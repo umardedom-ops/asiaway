@@ -16,6 +16,7 @@
 - **Bo'limlar:** IntroSplash → Hero(logo markazda) → NestOneShowcase(scroll-3D) → About → Services → ApartmentCatalog → Experience(SkylineBackdrop vektor skyline) → Testimonials → FAQ → Contact(ContactForm) → Footer + FloatingContact.
 - **Server actions:** `app/actions/booking.ts` (bron), `app/actions/lead.ts` (aloqa formasi → `leads`).
 - **Dizayn tokenlari (champagne):** fon `#0B0D0F`, panel `#111417`, accent `#C5A46D`(hover `#D4B77F`), matn `#F5F2EB`/`#A8A49B`. Shrift: Cormorant Garamond (heading) + Manrope (sans).
+- **Tugmalar:** umumiy champagne stillar `lib/ui.ts` (`btnPrimary`/`btnSecondary`/`btnGlass` + `btnLg`/`btnMd`) — izchil radius (8px), hover va ko'rinadigan fokus halqasi. Yangi tugmada shulardan foydalan (inline class emas).
 
 ## 🔑 Muhit (env) — `.env.local` (repo'ga PUSH QILINMAYDI)
 Vercel'da ham shu 4 ta: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
