@@ -9,6 +9,9 @@ import {
   LogOut,
   Building2,
   Menu,
+  Users,
+  Wallet,
+  UserCog
 } from "lucide-react";
 
 interface LayoutProps {
@@ -25,6 +28,9 @@ export default async function AdminLayout({ children }: LayoutProps) {
     { name: "Boshqaruv paneli", href: "/dashboard", icon: LayoutDashboard },
     { name: "Apartamentlar", href: "/dashboard/apartments", icon: Home },
     { name: "Bronlar ro'yxati", href: "/dashboard/bookings", icon: CalendarCheck },
+    { name: "CRM (Mijozlar)", href: "/dashboard/crm", icon: Users },
+    { name: "Moliya", href: "/dashboard/finance", icon: Wallet },
+    { name: "Xodimlar", href: "/dashboard/staff", icon: UserCog },
   ];
 
   return (

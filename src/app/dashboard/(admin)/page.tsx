@@ -5,6 +5,8 @@ import {
   CalendarCheck,
   DollarSign,
   TrendingUp,
+  TrendingDown,
+  Wallet,
   Percent,
 } from "lucide-react";
 
@@ -22,7 +24,7 @@ export default async function DashboardPage() {
   // 1. Barcha kvartiralarni olish
   const { data: apartments } = await supabase
     .from("apartments")
-    .select("id, status");
+    .select("id, status, monthly_lease_cost");
 
   const totalApts = apartments?.length || 0;
   const activeApts = apartments?.filter(a => a.status === "active").length || 0;
@@ -66,6 +68,21 @@ export default async function DashboardPage() {
   // Bandlik foizi
   const occupancyRate = activeApts > 0 ? Math.round((occupiedCount / activeApts) * 100) : 0;
 
+  // Oylik xarajat va sof foyda (moliya moduli bilan izchil)
+  const nextMonthStr = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 1)
+    .toISOString().split("T")[0];
+  const [{ data: monthExpenses }, { data: staffRows }] = await Promise.all([
+    supabase.from("expenses").select("amount").gte("spent_on", startOfMonthStr).lt("spent_on", nextMonthStr),
+    supabase.from("staff").select("monthly_salary, active"),
+  ]);
+  const rentCost = (apartments || []).filter((a) => a.status === "active")
+    .reduce((s, a) => s + Number(a.monthly_lease_cost || 0), 0);
+  const salaryCost = (staffRows || []).filter((s) => s.active)
+    .reduce((s, x) => s + Number(x.monthly_salary || 0), 0);
+  const variableCost = (monthExpenses || []).reduce((s, e) => s + Number(e.amount || 0), 0);
+  const monthlyCost = rentCost + salaryCost + variableCost;
+  const monthlyProfit = monthlyRevenue - monthlyCost;
+
   return (
     <div className="space-y-8">
       <div>
@@ -74,7 +91,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Cards Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Kvartiralar */}
         <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -127,6 +144,34 @@ export default async function DashboardPage() {
             <div className="text-[28px] font-medium text-[#F5F2EB]">{formatUzbekPrice(totalRevenue)}</div>
             <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
               Loyiha ishga tushgandan buyon
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Oylik Xarajat */}
+        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Oylik xarajat</CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-[28px] font-medium text-[#F5F2EB]">{formatUzbekPrice(monthlyCost)}</div>
+            <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
+              Arenda + ish haqi + boshqa
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Oylik Sof Foyda */}
+        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Oylik sof foyda</CardTitle>
+            <Wallet className="h-4 w-4 text-[#C5A46D]" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-[28px] font-medium ${monthlyProfit >= 0 ? "text-[#C5A46D]" : "text-red-400"}`}>{formatUzbekPrice(monthlyProfit)}</div>
+            <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
+              Daromad − xarajat
             </p>
           </CardContent>
         </Card>
