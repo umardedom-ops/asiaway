@@ -227,6 +227,44 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                   </div>
                 </div>
 
+                {/* Tan narx (biz egaga to'laydigan oylik) — foyda hisobi uchun */}
+                <div className="rounded-[12px] border border-[rgba(197,164,109,0.14)] bg-[#0B0D0F]/40 p-5 space-y-4">
+                  <div className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Tan narx · Ega ma&apos;lumoti</div>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="space-y-3">
+                      <Label htmlFor="monthly_lease_cost" className="text-[11px] text-[#A8A49B] uppercase tracking-[0.08em] font-semibold">Egaga oylik ($)</Label>
+                      <Input
+                        id="monthly_lease_cost"
+                        name="monthly_lease_cost"
+                        type="number"
+                        min={0}
+                        defaultValue={initialData?.monthly_lease_cost || 0}
+                        className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30 font-medium"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="owner_name" className="text-[11px] text-[#A8A49B] uppercase tracking-[0.08em] font-semibold">Ega ismi</Label>
+                      <Input
+                        id="owner_name"
+                        name="owner_name"
+                        defaultValue={initialData?.owner_name || ""}
+                        placeholder="Ixtiyoriy"
+                        className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="owner_phone" className="text-[11px] text-[#A8A49B] uppercase tracking-[0.08em] font-semibold">Ega telefoni</Label>
+                      <Input
+                        id="owner_phone"
+                        name="owner_phone"
+                        defaultValue={initialData?.owner_phone || ""}
+                        placeholder="+998"
+                        className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Rasm yuklash */}
                 <div className="space-y-3">
                   <Label className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Asosiy muqova rasmi (Cover Image)</Label>

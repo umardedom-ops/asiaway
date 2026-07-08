@@ -21,6 +21,10 @@ export async function saveApartment(prevState: any, formData: FormData) {
     const floor = formData.get("floor") ? Number(formData.get("floor")) : null;
     const max_guests = Number(formData.get("max_guests"));
     const status = formData.get("status") as string;
+    // Tan narx (biz egaga to'laydigan oylik) + ega ma'lumoti
+    const monthly_lease_cost = formData.get("monthly_lease_cost") ? Number(formData.get("monthly_lease_cost")) : 0;
+    const owner_name = (formData.get("owner_name") as string) || null;
+    const owner_phone = (formData.get("owner_phone") as string) || null;
     
     // Qulayliklarni parse qilish
     const amenities = formData.getAll("amenities") as string[];
@@ -68,6 +72,9 @@ export async function saveApartment(prevState: any, formData: FormData) {
       amenities,
       cover_image,
       status,
+      monthly_lease_cost,
+      owner_name,
+      owner_phone,
     };
 
     if (id) {
