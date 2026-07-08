@@ -32,7 +32,7 @@ export default function IntroSplash() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.7, ease: "easeInOut" }}
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#04060d]"
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[#0B0D0F]"
         >
           {/* Nest One fon surati */}
           <motion.div
@@ -48,8 +48,8 @@ export default function IntroSplash() {
               className="h-full w-full object-cover"
             />
           </motion.div>
-          <div className="absolute inset-0 bg-[#04060d]/70" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#04060d] via-transparent to-[#04060d]/60" />
+          <div className="absolute inset-0 bg-[#0B0D0F]/70" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D0F] via-transparent to-[#0B0D0F]/60" />
 
           {/* ASIA WAY logotipi */}
           <motion.div
@@ -62,13 +62,13 @@ export default function IntroSplash() {
             <img
               src={`${ASSETS}/brand/asia-way-mark.webp`}
               alt="ASIA WAY"
-              className="h-32 md:h-40 w-auto drop-shadow-[0_0_40px_rgba(245,166,35,0.25)]"
+              className="h-32 md:h-40 w-auto drop-shadow-[0_0_40px_rgba(197,164,109,0.28)]"
             />
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.9 }}
-              className="text-[11px] tracking-[0.35em] text-amber-400/90 uppercase"
+              className="text-[11px] tracking-[0.35em] text-[#C5A46D]/90 uppercase"
             >
               Nest One · Tashkent City
             </motion.span>

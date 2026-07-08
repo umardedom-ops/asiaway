@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createLead } from "@/app/actions/lead";
 import { useLang } from "./LanguageProvider";
+import { btnPrimary } from "@/lib/ui";
 import { CheckCircle2, Loader2, Phone, User, Send, Mail, MessageCircle } from "lucide-react";
 
 const inputCls =
@@ -81,7 +82,7 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={state === "sending"}
-        className="w-full h-13 py-4 rounded-lg bg-[#C5A46D] text-[#0B0D0F] font-semibold text-[15px] hover:bg-[#D4B77F] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+        className={`w-full h-14 text-[15px] gap-2 ${btnPrimary}`}
       >
         {state === "sending" ? (
           <>

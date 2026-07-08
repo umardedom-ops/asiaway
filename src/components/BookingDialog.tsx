@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createBooking, getBookedDates } from "@/app/actions/booking";
 import { Button } from "@/components/ui/button";
+import { btnPrimary, btnSecondary } from "@/lib/ui";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -341,7 +342,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
               <Button
                 type="submit"
                 disabled={nights === 0}
-                className="w-full bg-[#C5A46D] text-[#0B0D0F] font-semibold hover:bg-[#D4B77F] h-14 rounded-[8px] text-[15px] mt-4"
+                className={`w-full ${btnPrimary} h-14 text-[15px] mt-4`}
               >
                 Tasdiqlash va to&apos;lovga o&apos;tish
               </Button>
@@ -414,17 +415,16 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
 
             <div className="grid grid-cols-2 gap-4 pt-2">
               <Button
-                variant="outline"
                 onClick={() => setStep(1)}
                 disabled={isSubmitting}
-                className="border-[rgba(197,164,109,0.4)] text-[#F5F2EB] hover:bg-[#111417] h-14 rounded-[8px] text-[15px]"
+                className={`${btnSecondary} h-14 text-[15px]`}
               >
                 Orqaga
               </Button>
               <Button
                 onClick={handleSimulatePayment}
                 disabled={isSubmitting}
-                className="bg-[#C5A46D] text-[#0B0D0F] font-semibold hover:bg-[#D4B77F] h-14 rounded-[8px] text-[15px]"
+                className={`${btnPrimary} h-14 text-[15px]`}
               >
                 {isSubmitting ? (
                   <>
@@ -492,7 +492,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
 
             <Button
               onClick={onClose}
-              className="w-full bg-[#111417] border border-[rgba(197,164,109,0.4)] text-[#F5F2EB] hover:bg-[#C5A46D] hover:text-[#0B0D0F] h-14 rounded-[8px] text-[15px] transition-colors"
+              className={`w-full ${btnSecondary} h-14 text-[15px]`}
             >
               Yopish
             </Button>

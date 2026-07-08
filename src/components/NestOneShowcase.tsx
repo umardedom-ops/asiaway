@@ -1,23 +1,21 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { APARTMENTS } from "@/lib/seed-data";
+import { APARTMENT_TR } from "@/lib/i18n";
+import { useLang } from "./LanguageProvider";
+import { btnPrimary } from "@/lib/ui";
 
 /* ============================================================
    NEST ONE — Scroll-driven kinematik galereya (haqiqiy suratlar)
+   Til-sezgir: kicker, sarlavha/tavsif va CTA joriy tilга o'giriladi.
    ============================================================ */
 
-const SLIDES = APARTMENTS.filter((a) => a.cover_image)
-  .slice(0, 5)
-  .map((a) => ({
-    image: a.cover_image,
-    kicker: `${a.floor}-QAVAT · ${a.area_m2} M²`,
-    title: a.view,
-    sub: a.description,
-    price: a.price_per_day,
-  }));
+type SlideData = { image: string; kicker: string; title: string; sub: string; price: number };
+
+const FLOOR_WORD = { uz: "QAVAT", ru: "ЭТАЖ", en: "FLOOR" } as const;
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -27,10 +25,14 @@ function Slide({
   slide,
   index,
   total,
+  bookLabel,
+  perNight,
 }: {
-  slide: (typeof SLIDES)[number];
+  slide: SlideData;
   index: number;
   total: number;
+  bookLabel: string;
+  perNight: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -101,14 +103,11 @@ function Slide({
               </span>
               <span className="hidden sm:block h-8 w-px bg-[rgba(197,164,109,0.22)]" />
               <span className="hidden sm:block text-[15px] text-[#A8A49B] font-light">
-                <span className="text-[#C5A46D] font-medium tracking-wide">${slide.price}</span> / tun
+                <span className="text-[#C5A46D] font-medium tracking-wide">${slide.price}</span> {perNight}
               </span>
             </div>
-            <a
-              href="#catalog"
-              className="inline-flex items-center justify-center h-11 px-6 rounded-[6px] bg-[#C5A46D] text-[#0B0D0F] hover:bg-[#D4B77F] transition-colors font-semibold text-[13px] tracking-wide whitespace-nowrap"
-            >
-              Bron qilish
+            <a href="#catalog" className={`${btnPrimary} h-11 px-6 text-[13px] whitespace-nowrap`}>
+              {bookLabel}
               <ArrowUpRight className="ml-1.5 h-4 w-4" />
             </a>
           </div>
@@ -155,10 +154,36 @@ function Slide({
 }
 
 export default function NestOneShowcase() {
+  const { t, lang } = useLang();
+
+  const slides = useMemo<SlideData[]>(
+    () =>
+      APARTMENTS.filter((a) => a.cover_image)
+        .slice(0, 5)
+        .map((a) => {
+          const tr = lang === "uz" ? null : APARTMENT_TR[a.id]?.[lang];
+          return {
+            image: a.cover_image,
+            kicker: `${a.floor}-${FLOOR_WORD[lang]} · ${a.area_m2} M²`,
+            title: tr?.view ?? a.view,
+            sub: tr?.description ?? a.description,
+            price: a.price_per_day,
+          };
+        }),
+    [lang]
+  );
+
   return (
     <section className="relative bg-[#0B0D0F]">
-      {SLIDES.map((slide, i) => (
-        <Slide key={i} slide={slide} index={i} total={SLIDES.length} />
+      {slides.map((slide, i) => (
+        <Slide
+          key={i}
+          slide={slide}
+          index={i}
+          total={slides.length}
+          bookLabel={t.nav.book}
+          perNight={t.card.perNight}
+        />
       ))}
     </section>
   );

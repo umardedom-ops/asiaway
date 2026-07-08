@@ -15,6 +15,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLang } from "@/components/LanguageProvider";
 import { CONTACTS } from "@/lib/i18n";
 import { ASSETS } from "@/lib/assets";
+import { btnPrimary, btnGlass, btnLg, btnMd } from "@/lib/ui";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function HomeContent({ apartments, phones, address }: { apartments: any[]; phones: readonly string[]; address: string }) {
@@ -48,7 +49,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
               <LayoutDashboard className="h-[18px] w-[18px]" />
             </Link>
             <a href="#catalog" className="hidden sm:block">
-              <Button className="bg-[#C5A46D] text-[#0B0D0F] font-semibold hover:bg-[#D4B77F] transition-colors text-[14px] h-11 px-6 rounded-lg">
+              <Button className={`${btnPrimary} ${btnMd}`}>
                 {t.nav.book}
               </Button>
             </a>
@@ -82,13 +83,13 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 pt-9">
-            <a href="#catalog">
-              <Button className="w-full sm:w-auto bg-[#C5A46D] text-[#0B0D0F] font-semibold hover:bg-[#D4B77F] transition-colors text-[15px] h-14 px-10 rounded-lg">
+            <a href="#catalog" className="w-full sm:w-auto">
+              <Button className={`w-full sm:w-auto ${btnPrimary} ${btnLg}`}>
                 {t.hero.ctaPrimary}
               </Button>
             </a>
-            <a href="#contact">
-              <Button variant="outline" className="w-full sm:w-auto border-[rgba(197,164,109,0.35)] bg-white/5 backdrop-blur-sm text-[#F5F2EB] hover:bg-white/10 transition-colors text-[15px] h-14 px-10 rounded-lg">
+            <a href="#contact" className="w-full sm:w-auto">
+              <Button className={`w-full sm:w-auto ${btnGlass} ${btnLg}`}>
                 {t.hero.ctaContact}
               </Button>
             </a>

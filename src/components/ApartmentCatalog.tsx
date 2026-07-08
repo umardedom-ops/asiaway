@@ -10,6 +10,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AMENITY_LABELS } from "@/lib/seed-data";
 import { APARTMENT_TR, type Lang } from "@/lib/i18n";
 import { useLang } from "./LanguageProvider";
+import { btnPrimary, btnSecondary } from "@/lib/ui";
 import { Search, SlidersHorizontal, CheckCircle, Sparkles } from "lucide-react";
 
 // Modal / karta uchun mayda matnlar (i18n.ts ni shishirtmaslik uchun shu yerda)
@@ -150,7 +151,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                       <div className="text-[12px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.priceLabel}</div>
                       <div className="text-[18px] text-[#F5F2EB] font-medium">{fmtPrice(apt.price_per_day)} <span className="text-[14px] text-[#A8A49B] font-light">{t.card.perNight}</span></div>
                     </div>
-                    <Button onClick={() => { setSelectedApartment(apt); setIsDetailsOpen(true); }} variant="outline" className="border-[rgba(197,164,109,0.4)] text-[#F5F2EB] hover:bg-[#C5A46D] hover:text-[#0B0D0F] hover:border-[#C5A46D] font-semibold text-[13px] tracking-wide rounded-[6px] h-11 px-6 transition-colors duration-300">
+                    <Button onClick={() => { setSelectedApartment(apt); setIsDetailsOpen(true); }} className={`${btnSecondary} h-11 px-6 text-[13px]`}>
                       {mx.view}
                     </Button>
                   </div>
@@ -236,8 +237,8 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-[rgba(197,164,109,0.14)] sticky bottom-0 bg-[#0B0D0F]">
-                  <Button onClick={() => { setIsDetailsOpen(false); setIsBookingOpen(true); }} className="w-full sm:w-2/3 bg-[#C5A46D] text-[#0B0D0F] font-semibold hover:bg-[#D4B77F] text-[15px] h-14 rounded-[8px]">{t.nav.book}</Button>
-                  <Button onClick={() => setIsDetailsOpen(false)} variant="outline" className="w-full sm:w-1/3 border-[rgba(197,164,109,0.4)] text-[#F5F2EB] hover:bg-[#111417] text-[15px] h-14 rounded-[8px]">{mx.close}</Button>
+                  <Button onClick={() => { setIsDetailsOpen(false); setIsBookingOpen(true); }} className={`w-full sm:w-2/3 ${btnPrimary} h-14 text-[15px]`}>{t.nav.book}</Button>
+                  <Button onClick={() => setIsDetailsOpen(false)} className={`w-full sm:w-1/3 ${btnSecondary} h-14 text-[15px]`}>{mx.close}</Button>
                 </div>
               </div>
             </div>
