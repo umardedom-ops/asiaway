@@ -133,4 +133,8 @@
     font-family: var(--font-heading), Georgia, serif;
     font-weight: 500;
   }
+  /* Fixed header ostiga yashirinmasligi uchun anchor ofseti */
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
 }

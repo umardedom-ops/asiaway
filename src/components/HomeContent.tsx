@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,31 +21,58 @@ import { btnPrimary, btnGlass, btnLg, btnMd } from "@/lib/ui";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function HomeContent({ apartments, phones, address }: { apartments: any[]; phones: readonly string[]; address: string }) {
   const { t } = useLang();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0B0D0F] text-[#F5F2EB] flex flex-col font-sans selection:bg-[#C5A46D]/30 selection:text-white">
       <IntroSplash />
       <FloatingContact />
 
-      {/* HEADER NAVBAR — logo hero'ga ko'chdi; bu yerda nav + dashboard ikonka + til */}
-      <header className="sticky top-0 z-50 bg-[#0B0D0F]/92 backdrop-blur-md border-b border-[rgba(197,164,109,0.1)] px-6 lg:px-12 py-4 lg:py-5">
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
-          <nav className="hidden lg:flex items-center space-x-10 text-[15px] font-medium tracking-wide">
-            <a href="#about" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">{t.nav.about}</a>
-            <a href="#services" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">{t.nav.services}</a>
-            <a href="#catalog" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">{t.nav.apartments}</a>
-            <a href="#reviews" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">{t.nav.reviews}</a>
-            <a href="#faq" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">{t.nav.faq}</a>
-          </nav>
+      {/* HEADER — yupqa, shaffof; scroll'da yumshoq qorayadi (qattiq qora satr emas).
+          Brend nomi faqat scroll'da chiqadi (hero'da logo emblemi bor). */}
+      <header
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? "bg-[#0B0D0F]/80 backdrop-blur-xl border-b border-[rgba(197,164,109,0.14)]"
+            : "bg-gradient-to-b from-[#0B0D0F]/70 via-[#0B0D0F]/25 to-transparent border-b border-transparent"
+        }`}
+      >
+        <div
+          className={`max-w-[1440px] mx-auto flex items-center justify-between gap-4 px-6 lg:px-12 transition-all duration-500 ${
+            scrolled ? "py-2.5" : "py-3.5"
+          }`}
+        >
+          <a
+            href="#"
+            aria-label="ASIA WAY"
+            className={`font-heading text-[19px] md:text-[22px] font-semibold tracking-[0.2em] text-[#F5F2EB] transition-opacity duration-500 ${
+              scrolled ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            ASIA WAY
+          </a>
 
-          <span className="lg:hidden text-[15px] font-heading font-semibold tracking-wide text-[#F5F2EB]">ASIA WAY</span>
+          <nav className="hidden lg:flex items-center gap-9 text-[14px] font-medium tracking-wide absolute left-1/2 -translate-x-1/2">
+            <a href="#about" className="text-[#F5F2EB]/85 hover:text-[#C5A46D] transition-colors">{t.nav.about}</a>
+            <a href="#services" className="text-[#F5F2EB]/85 hover:text-[#C5A46D] transition-colors">{t.nav.services}</a>
+            <a href="#catalog" className="text-[#F5F2EB]/85 hover:text-[#C5A46D] transition-colors">{t.nav.apartments}</a>
+            <a href="#reviews" className="text-[#F5F2EB]/85 hover:text-[#C5A46D] transition-colors">{t.nav.reviews}</a>
+            <a href="#faq" className="text-[#F5F2EB]/85 hover:text-[#C5A46D] transition-colors">{t.nav.faq}</a>
+          </nav>
 
           <div className="flex items-center gap-3 md:gap-4">
             <LanguageSwitcher />
             <Link
               href="/dashboard"
               aria-label="Dashboard"
-              className="h-10 w-10 rounded-full border border-[rgba(197,164,109,0.22)] flex items-center justify-center text-[#A8A49B] hover:text-[#C5A46D] hover:border-[#C5A46D] transition-colors"
+              className="h-10 w-10 rounded-full border border-[rgba(197,164,109,0.22)] flex items-center justify-center text-[#F5F2EB]/80 hover:text-[#C5A46D] hover:border-[#C5A46D] transition-colors"
             >
               <LayoutDashboard className="h-[18px] w-[18px]" />
             </Link>
@@ -57,43 +85,58 @@ export default function HomeContent({ apartments, phones, address }: { apartment
         </div>
       </header>
 
-      {/* HERO — logo markazda, katta */}
-      <section className="relative w-full overflow-hidden" style={{ minHeight: "calc(100vh - 88px)" }}>
+      {/* HERO — kinematik, to'liq balandlik. Logo emblemi CHAPDA (o'rtacha), matn editorial chapga tekis. */}
+      <section className="relative w-full overflow-hidden min-h-[100svh]">
         <div className="absolute inset-0 z-0 bg-center bg-cover" style={{ backgroundImage: `url("${ASSETS}/nestone/exterior-day-street.webp")` }} />
-        <div className="absolute inset-0 z-10" style={{ background: "linear-gradient(180deg, rgba(5,7,9,0.72) 0%, rgba(5,7,9,0.55) 45%, rgba(5,7,9,0.82) 100%)" }} />
+        {/* Chapdan qoraytirish — matn kontrasti; o'ngda bino ochiq qoladi */}
+        <div className="absolute inset-0 z-10" style={{ background: "linear-gradient(90deg, rgba(11,13,15,0.94) 0%, rgba(11,13,15,0.7) 34%, rgba(11,13,15,0.28) 68%, rgba(11,13,15,0.1) 100%)" }} />
+        {/* Pastki grounding + keyingi seksiya bilan qo'shilish */}
+        <div className="absolute inset-0 z-10" style={{ background: "linear-gradient(0deg, #0B0D0F 0%, rgba(11,13,15,0.12) 40%, rgba(11,13,15,0.3) 100%)" }} />
 
-        <div className="relative z-20 w-full min-h-[inherit] flex flex-col items-center justify-center text-center px-6 py-20">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`${ASSETS}/brand/asia-way-mark.webp`}
-            alt="ASIA WAY"
-            className="h-28 md:h-40 lg:h-48 w-auto mb-8 drop-shadow-[0_8px_40px_rgba(197,164,109,0.25)]"
-          />
+        <div className="relative z-20 max-w-[1440px] mx-auto px-6 lg:px-12 min-h-[100svh] flex flex-col justify-center pt-28 pb-24">
+          <div className="max-w-[680px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`${ASSETS}/brand/asia-way-mark.webp`}
+              alt="ASIA WAY"
+              className="h-16 md:h-24 w-auto mb-8 md:mb-9 drop-shadow-[0_6px_30px_rgba(0,0,0,0.55)]"
+            />
 
-          <div className="text-[12px] md:text-[14px] font-semibold text-[#C5A46D] tracking-[0.14em] uppercase mb-5">
-            {t.hero.badge}
+            <div className="flex items-center gap-3 mb-6">
+              <span className="h-px w-8 bg-[#C5A46D]" />
+              <span className="text-[12px] md:text-[13px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">
+                {t.hero.badge}
+              </span>
+            </div>
+
+            <h1 className="font-heading text-[clamp(44px,6.4vw,88px)] font-medium text-[#F5F2EB] leading-[0.98] tracking-[-0.02em]">
+              {t.hero.titleTop} {t.hero.titleMid} <span className="text-[#C5A46D]">{t.hero.titleAccent}</span>
+            </h1>
+
+            <p className="text-[16px] md:text-[19px] text-[#D8D3C8] leading-[1.65] max-w-[540px] mt-7">
+              {t.hero.subtitle}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-10">
+              <a href="#catalog" className="w-full sm:w-auto">
+                <Button className={`w-full sm:w-auto ${btnPrimary} ${btnLg}`}>
+                  {t.hero.ctaPrimary}
+                </Button>
+              </a>
+              <a href="#contact" className="w-full sm:w-auto">
+                <Button className={`w-full sm:w-auto ${btnGlass} ${btnLg}`}>
+                  {t.hero.ctaContact}
+                </Button>
+              </a>
+            </div>
           </div>
+        </div>
 
-          <h1 className="font-heading text-[clamp(48px,6vw,96px)] font-medium text-[#F5F2EB] leading-[0.98] tracking-[-0.02em] max-w-[900px]">
-            {t.hero.titleTop} {t.hero.titleMid} <span className="text-[#C5A46D]">{t.hero.titleAccent}</span>
-          </h1>
-
-          <p className="text-[16px] md:text-[18px] text-[#D8D3C8] leading-[1.65] max-w-[620px] mt-6">
-            {t.hero.subtitle}
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-5 pt-9">
-            <a href="#catalog" className="w-full sm:w-auto">
-              <Button className={`w-full sm:w-auto ${btnPrimary} ${btnLg}`}>
-                {t.hero.ctaPrimary}
-              </Button>
-            </a>
-            <a href="#contact" className="w-full sm:w-auto">
-              <Button className={`w-full sm:w-auto ${btnGlass} ${btnLg}`}>
-                {t.hero.ctaContact}
-              </Button>
-            </a>
-          </div>
+        {/* Scroll ishorasi — pastda markazda, nozik */}
+        <div className="absolute bottom-7 left-1/2 -translate-x-1/2 z-20 hidden md:flex flex-col items-center gap-2 text-[#A8A49B]">
+          <span className="h-9 w-[22px] rounded-full border border-[rgba(197,164,109,0.4)] flex justify-center pt-1.5">
+            <span className="h-1.5 w-1 rounded-full bg-[#C5A46D] animate-bounce" />
+          </span>
         </div>
       </section>
 
