@@ -12,6 +12,7 @@ import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
 import FloatingContact from "@/components/FloatingContact";
+import BrandWordmark from "@/components/BrandWordmark";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLang } from "@/components/LanguageProvider";
 import { CONTACTS } from "@/lib/i18n";
@@ -49,14 +50,8 @@ export default function HomeContent({ apartments, phones, address }: { apartment
             scrolled ? "py-2.5" : "py-3.5"
           }`}
         >
-          <a
-            href="#"
-            aria-label="ASIA WAY"
-            className={`font-heading text-[19px] md:text-[22px] font-semibold tracking-[0.2em] text-[#F5F2EB] transition-opacity duration-500 ${
-              scrolled ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
-          >
-            ASIA WAY
+          <a href="#" aria-label="ASIA WAY" className="shrink-0">
+            <BrandWordmark variant="header" />
           </a>
 
           <nav className="hidden lg:flex items-center gap-9 text-[14px] font-medium tracking-wide absolute left-1/2 -translate-x-1/2">
@@ -95,12 +90,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
 
         <div className="relative z-20 max-w-[1440px] mx-auto px-6 lg:px-12 min-h-[100svh] flex flex-col justify-center pt-28 pb-24">
           <div className="max-w-[680px]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`${ASSETS}/brand/asia-way-mark.webp`}
-              alt="ASIA WAY"
-              className="h-16 md:h-24 w-auto mb-8 md:mb-9 drop-shadow-[0_6px_30px_rgba(0,0,0,0.55)]"
-            />
+            <BrandWordmark variant="hero" className="mb-9" />
 
             <div className="flex items-center gap-3 mb-6">
               <span className="h-px w-8 bg-[#C5A46D]" />
@@ -238,8 +228,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
       <footer className="bg-[#0B0D0F] pt-[70px] lg:pt-[100px] pb-10 px-6 lg:px-24 border-t border-[rgba(197,164,109,0.14)]">
         <div className="max-w-[1280px] mx-auto grid gap-14 lg:gap-8 md:grid-cols-2 lg:grid-cols-4 pb-[60px] border-b border-[rgba(197,164,109,0.14)]">
           <div className="space-y-6 lg:col-span-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${ASSETS}/brand/asia-way-mark.webp`} alt="ASIA WAY" className="h-16 w-auto" />
+            <BrandWordmark variant="footer" />
             <p className="text-[16px] text-[#A8A49B] leading-[1.65] max-w-[400px]">{t.footer.body}</p>
           </div>
           <div className="space-y-6">

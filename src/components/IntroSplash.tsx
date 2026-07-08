@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ASSETS } from "@/lib/assets";
+import BrandWordmark from "@/components/BrandWordmark";
 
 /**
  * Saytga kirishda ko'rsatiladigan intro/splash ekran — Nest One binoning
@@ -56,19 +57,14 @@ export default function IntroSplash() {
             initial={{ opacity: 0, scale: 0.85, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="relative flex flex-col items-center gap-4"
+            className="relative flex flex-col items-center gap-6"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`${ASSETS}/brand/asia-way-mark.webp`}
-              alt="ASIA WAY"
-              className="h-32 md:h-40 w-auto drop-shadow-[0_0_40px_rgba(197,164,109,0.28)]"
-            />
+            <BrandWordmark variant="intro" className="items-center text-center" />
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.9 }}
-              className="text-[11px] tracking-[0.35em] text-[#C5A46D]/90 uppercase"
+              className="text-[11px] tracking-[0.35em] text-[#A8A49B] uppercase"
             >
               Nest One · Tashkent City
             </motion.span>
