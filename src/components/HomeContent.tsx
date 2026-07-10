@@ -12,6 +12,7 @@ import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
 import FloatingContact from "@/components/FloatingContact";
+import AirportService from "@/components/AirportService";
 import BrandWordmark from "@/components/BrandWordmark";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLang } from "@/components/LanguageProvider";
@@ -147,6 +148,9 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           </div>
         </div>
       </section>
+
+      {/* AEROPORT XIZMATI — premium video seksiya */}
+      <AirportService />
 
       {/* SERVICES */}
       <section className="relative py-[80px] lg:py-[140px] px-6 lg:px-24 overflow-hidden" id="services">
