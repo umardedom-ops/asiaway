@@ -5,7 +5,6 @@ import Link from "next/link";
 import { LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ApartmentCatalog from "@/components/ApartmentCatalog";
-import NestOneShowcase from "@/components/NestOneShowcase";
 import SkylineBackdrop from "@/components/SkylineBackdrop";
 import IntroSplash from "@/components/IntroSplash";
 import Testimonials from "@/components/Testimonials";
@@ -170,9 +169,6 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           </div>
         </div>
       </section>
-
-      {/* 3D SHOWCASE — apartamentlar galereyasi (katalogdan oldin) */}
-      <NestOneShowcase />
 
       {/* CATALOG */}
       <section className="py-[80px] lg:py-[140px] px-6 lg:px-24 bg-[#0B0D0F]" id="catalog">
