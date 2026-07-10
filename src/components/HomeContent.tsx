@@ -131,8 +131,8 @@ export default function HomeContent({ apartments, phones, address }: { apartment
         </div>
       </section>
 
-      {/* 3D SHOWCASE */}
-      <NestOneShowcase />
+      {/* AEROPORT XIZMATI — 2-bo'lim (hero'dan keyin) */}
+      <AirportService />
 
       {/* ABOUT */}
       <section className="py-[80px] lg:py-[140px] px-6 lg:px-24 bg-[#0B0D0F]" id="about">
@@ -148,9 +148,6 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           </div>
         </div>
       </section>
-
-      {/* AEROPORT XIZMATI — premium video seksiya */}
-      <AirportService />
 
       {/* SERVICES */}
       <section className="relative py-[80px] lg:py-[140px] px-6 lg:px-24 overflow-hidden" id="services">
@@ -173,6 +170,9 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           </div>
         </div>
       </section>
+
+      {/* 3D SHOWCASE — apartamentlar galereyasi (katalogdan oldin) */}
+      <NestOneShowcase />
 
       {/* CATALOG */}
       <section className="py-[80px] lg:py-[140px] px-6 lg:px-24 bg-[#0B0D0F]" id="catalog">
