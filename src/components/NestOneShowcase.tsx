@@ -72,22 +72,17 @@ function Slide({
           className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-[#0B0D0F]/80 to-transparent"
         />
 
-        {/* Text */}
+        {/* Text — katta qalin uppercase sarlavha (nestone.mbc.uz uslubi) */}
         <motion.div
           style={{ opacity, y: textY }}
-          className="absolute inset-x-0 bottom-0 px-6 md:px-16 pb-40 md:pb-44"
+          className="absolute inset-0 z-[5] flex flex-col items-center justify-center text-center px-6 pb-28 md:pb-24"
         >
-          <div className="max-w-xl">
-            <span className="text-[11px] md:text-[12px] font-semibold tracking-[0.2em] text-[#C5A46D] uppercase">
-              {slide.kicker}
-            </span>
-            <h2 className="mt-4 font-heading text-4xl md:text-5xl lg:text-6xl font-medium text-[#F5F2EB] leading-[1.05]">
-              {slide.title}
-            </h2>
-            <p className="mt-5 text-[15px] md:text-[16px] text-[#F5F2EB]/80 font-light leading-relaxed max-w-md">
-              {slide.sub}
-            </p>
-          </div>
+          <span className="text-[11px] md:text-[13px] font-semibold tracking-[0.28em] text-[#C5A46D] uppercase mb-4 md:mb-6 drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
+            {slide.kicker}
+          </span>
+          <h2 className="font-sans font-extrabold uppercase text-white leading-[0.9] tracking-[-0.02em] text-[clamp(38px,10vw,150px)] max-w-[15ch] drop-shadow-[0_6px_44px_rgba(0,0,0,0.6)]">
+            {slide.title}
+          </h2>
         </motion.div>
 
         {/* CTA Panel */}
