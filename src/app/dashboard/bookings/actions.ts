@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { syncClientFromBooking, onBookingCompleted } from "@/lib/clients-sync";
 
 // Qo'lда bron kiritish (Airbnb / Booking / Instagram / WhatsApp / Telegram / to'g'ridan-to'g'ri)
 export interface ManualBookingInput {
@@ -58,6 +59,15 @@ export async function createManualBooking(input: ManualBookingInput) {
   }]);
 
   if (error) return { success: false, error: error.message };
+
+  await syncClientFromBooking(supabase, {
+    name: input.guest_name,
+    phone: input.guest_phone,
+    email: input.guest_email,
+    channel: input.channel,
+    amount: input.total_price,
+  });
+
   revalidatePath("/dashboard/bookings");
   revalidatePath("/dashboard");
   return { success: true };
@@ -66,6 +76,13 @@ export async function createManualBooking(input: ManualBookingInput) {
 export async function updateBookingStatus(id: string, status: "pending" | "confirmed" | "cancelled" | "completed") {
   const supabase = await createClient();
 
+  // Oldingi holatni olamiz (faqat yangi "completed" da avto-tozalash ochilsin)
+  const { data: prev } = await supabase
+    .from("bookings")
+    .select("booking_status, apartment_id, guest_name, guest_phone, check_out")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("bookings")
     .update({ booking_status: status })
@@ -73,6 +90,17 @@ export async function updateBookingStatus(id: string, status: "pending" | "confi
 
   if (error) {
     throw new Error(`Bron holatini yangilashda xatolik: ${error.message}`);
+  }
+
+  // Checkout (completed) → mijoz bosqichi + avto-tozalash vazifasi
+  if (status === "completed" && prev && prev.booking_status !== "completed") {
+    await onBookingCompleted(supabase, {
+      apartment_id: prev.apartment_id,
+      guest_name: prev.guest_name,
+      guest_phone: prev.guest_phone,
+      check_out: prev.check_out,
+    });
+    revalidatePath("/dashboard/staff");
   }
 
   revalidatePath("/dashboard/bookings");

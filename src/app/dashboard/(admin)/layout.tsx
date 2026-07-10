@@ -10,6 +10,7 @@ import {
   Building2,
   Menu,
   Users,
+  UsersRound,
   Wallet,
   UserCog
 } from "lucide-react";
@@ -28,7 +29,8 @@ export default async function AdminLayout({ children }: LayoutProps) {
     { name: "Boshqaruv paneli", href: "/dashboard", icon: LayoutDashboard },
     { name: "Apartamentlar", href: "/dashboard/apartments", icon: Home },
     { name: "Bronlar ro'yxati", href: "/dashboard/bookings", icon: CalendarCheck },
-    { name: "CRM (Mijozlar)", href: "/dashboard/crm", icon: Users },
+    { name: "CRM (Murojaatlar)", href: "/dashboard/crm", icon: Users },
+    { name: "Mehmonlar", href: "/dashboard/clients", icon: UsersRound },
     { name: "Moliya", href: "/dashboard/finance", icon: Wallet },
     { name: "Xodimlar", href: "/dashboard/staff", icon: UserCog },
   ];

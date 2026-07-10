@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { syncClientFromBooking } from "@/lib/clients-sync";
 
 export interface BookingInput {
   apartment_id: string;
@@ -64,6 +65,15 @@ export async function createBooking(input: BookingInput) {
     if (insertError) {
       throw insertError;
     }
+
+    // Mijozни (mehmonни) avtomatik sinxronlash
+    await syncClientFromBooking(supabase, {
+      name: input.guest_name,
+      phone: input.guest_phone,
+      email: input.guest_email,
+      channel: "direct",
+      amount: input.total_price,
+    });
 
     // Cache tozalash
     revalidatePath("/dashboard/bookings");
