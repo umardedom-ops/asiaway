@@ -132,6 +132,9 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading), Georgia, serif;
     font-weight: 500;
+    /* Cormorant eski-uslub raqamlar (ıo) o'rniga to'liq balandlikdagi raqamlar */
+    font-variant-numeric: lining-nums;
+    font-feature-settings: "lnum" 1, "onum" 0;
   }
   /* Fixed header ostiga yashirinmasligi uchun anchor ofseti */
   section[id] {
