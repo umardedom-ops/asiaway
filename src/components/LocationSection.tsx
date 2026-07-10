@@ -1,31 +1,32 @@
 "use client";
 
 import { useRef } from "react";
-import { MapPin, Footprints, Car } from "lucide-react";
+import { MapPin, Footprints, Car, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLang } from "./LanguageProvider";
 import type { Lang } from "@/lib/i18n";
 
 /* ============================================================
    JOYLASHUV — stilniy xarita + turistik joylar galereyasi.
    Har karta: haqiqiy foto (Wikimedia Commons, erkin litsenziya),
-   3D tilt (sichqoncha harakatiga qarab), foto zoom, champagne glow.
+   hover'da POP-OUT (ko'tarilib bo'rtib chiqadi) + 3D tilt + glare.
+   Yon scroll: strelka tugmalar + swipe.
    ============================================================ */
 
-const WM = "https://upload.wikimedia.org/wikipedia/commons";
+const WM = "https://upload.wikimedia.org/wikipedia/commons/thumb";
 
 type Place = { key: string; min: number; mode: "walk" | "drive"; img: string };
 
-// Foto manbalar — Wikimedia Commons (CC0 / CC BY / CC BY-SA)
+// Islom sivilizatsiyasi markazi — 1-o'rinda (egasi talabi)
 const PLACES: Place[] = [
-  { key: "city_park", min: 1, mode: "walk", img: `${WM}/thumb/9/90/%D0%A2%D0%B0%D1%88%D0%BA%D0%B5%D0%BD%D1%82%2C_%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D1%81%D0%BA%D0%BE%D0%B9_%D0%BF%D0%B0%D1%80%D0%BA_%282%29.jpg/960px-%D0%A2%D0%B0%D1%88%D0%BA%D0%B5%D0%BD%D1%82%2C_%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D1%81%D0%BA%D0%BE%D0%B9_%D0%BF%D0%B0%D1%80%D0%BA_%282%29.jpg` },
-  { key: "city_mall", min: 3, mode: "walk", img: `${WM}/thumb/a/a6/Tashkent_City_Mall_%28inside%29.jpg/960px-Tashkent_City_Mall_%28inside%29.jpg` },
-  { key: "hilton", min: 6, mode: "walk", img: `${WM}/thumb/5/5f/Hilton_Tashkent_City.jpg/960px-Hilton_Tashkent_City.jpg` },
-  { key: "islamic_center", min: 12, mode: "drive", img: `${WM}/thumb/8/82/Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_008.jpg/960px-Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_008.jpg` },
-  { key: "hazrati_imom", min: 12, mode: "drive", img: `${WM}/thumb/8/89/Hazrat_Imam_01.jpg/960px-Hazrat_Imam_01.jpg` },
-  { key: "mustaqillik", min: 10, mode: "drive", img: `${WM}/thumb/a/a8/Mustaqillik_maydoni._2024.jpg/960px-Mustaqillik_maydoni._2024.jpg` },
-  { key: "chorsu", min: 10, mode: "drive", img: `${WM}/thumb/e/ef/Chorsu_Bazaar_in_Tashkent_4.jpg/960px-Chorsu_Bazaar_in_Tashkent_4.jpg` },
-  { key: "magic_city", min: 15, mode: "drive", img: `${WM}/thumb/b/bb/Magic_city_Tashkent.jpg/960px-Magic_city_Tashkent.jpg` },
-  { key: "airport", min: 15, mode: "drive", img: `${WM}/thumb/f/f1/Tashkent_Airport_international_departure_2023.9.29.jpg/960px-Tashkent_Airport_international_departure_2023.9.29.jpg` },
+  { key: "islamic_center", min: 12, mode: "drive", img: `${WM}/f/f2/Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_034.jpg/1280px-Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_034.jpg` },
+  { key: "city_park", min: 1, mode: "walk", img: `${WM}/7/7c/Tashkent_City_Park_at_night_4.jpg/1280px-Tashkent_City_Park_at_night_4.jpg` },
+  { key: "city_mall", min: 3, mode: "walk", img: `${WM}/a/a6/Tashkent_City_Mall_%28inside%29.jpg/1280px-Tashkent_City_Mall_%28inside%29.jpg` },
+  { key: "hilton", min: 6, mode: "walk", img: `${WM}/5/5f/Hilton_Tashkent_City.jpg/1280px-Hilton_Tashkent_City.jpg` },
+  { key: "hazrati_imom", min: 12, mode: "drive", img: `${WM}/a/a9/Minaret_of_Hazrati_Imam_Mosque_01.jpg/1280px-Minaret_of_Hazrati_Imam_Mosque_01.jpg` },
+  { key: "mustaqillik", min: 10, mode: "drive", img: `${WM}/2/26/Monument_at_Mustaqillik_maydoni_02.jpg/1280px-Monument_at_Mustaqillik_maydoni_02.jpg` },
+  { key: "chorsu", min: 10, mode: "drive", img: `${WM}/b/ba/Chorsu_Bazaar_in_Tashkent.jpg/1280px-Chorsu_Bazaar_in_Tashkent.jpg` },
+  { key: "magic_city", min: 15, mode: "drive", img: `${WM}/b/bb/Magic_city_Tashkent.jpg/1280px-Magic_city_Tashkent.jpg` },
+  { key: "airport", min: 15, mode: "drive", img: `${WM}/1/19/TASHKENT_AIRPORT.2_-_panoramio.jpg/1280px-TASHKENT_AIRPORT.2_-_panoramio.jpg` },
 ];
 
 const TR: Record<Lang, {
@@ -39,8 +40,8 @@ const TR: Record<Lang, {
     nearby: "Bizga yaqin joylar",
     unit: "daqiqa", walk: "piyoda", drive: "mashinada",
     names: {
-      city_park: "Tashkent City Park", city_mall: "Tashkent City Mall", hilton: "Hilton Tashkent",
-      islamic_center: "Islom sivilizatsiyasi markazi", hazrati_imom: "Hazrati Imom majmuasi",
+      islamic_center: "Islom sivilizatsiyasi markazi", city_park: "Tashkent City Park",
+      city_mall: "Tashkent City Mall", hilton: "Hilton Tashkent", hazrati_imom: "Hazrati Imom majmuasi",
       mustaqillik: "Mustaqillik maydoni", chorsu: "Chorsu bozori", magic_city: "Magic City", airport: "Xalqaro aeroport",
     },
   },
@@ -51,8 +52,8 @@ const TR: Record<Lang, {
     nearby: "Рядом с нами",
     unit: "мин", walk: "пешком", drive: "на машине",
     names: {
-      city_park: "Tashkent City Park", city_mall: "Tashkent City Mall", hilton: "Hilton Tashkent",
-      islamic_center: "Центр исламской цивилизации", hazrati_imom: "Комплекс Хазрати Имам",
+      islamic_center: "Центр исламской цивилизации", city_park: "Tashkent City Park",
+      city_mall: "Tashkent City Mall", hilton: "Hilton Tashkent", hazrati_imom: "Комплекс Хазрати Имам",
       mustaqillik: "Площадь Мустакиллик", chorsu: "Базар Чорсу", magic_city: "Magic City", airport: "Международный аэропорт",
     },
   },
@@ -63,14 +64,14 @@ const TR: Record<Lang, {
     nearby: "Nearby places",
     unit: "min", walk: "on foot", drive: "by car",
     names: {
-      city_park: "Tashkent City Park", city_mall: "Tashkent City Mall", hilton: "Hilton Tashkent",
-      islamic_center: "Center of Islamic Civilization", hazrati_imom: "Hazrati Imam Complex",
+      islamic_center: "Center of Islamic Civilization", city_park: "Tashkent City Park",
+      city_mall: "Tashkent City Mall", hilton: "Hilton Tashkent", hazrati_imom: "Hazrati Imam Complex",
       mustaqillik: "Mustaqillik Square", chorsu: "Chorsu Bazaar", magic_city: "Magic City", airport: "International airport",
     },
   },
 };
 
-/** 3D tilt karta — sichqoncha pozitsiyasiga qarab perspektiv buriladi. */
+/** Karta: hover'da POP-OUT (ko'tarilib bo'rtadi) + sichqonchaga qarab 3D tilt + glare. */
 function TiltCard({ place, name, unit, modeLabel }: { place: Place; name: string; unit: string; modeLabel: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -80,22 +81,22 @@ function TiltCard({ place, name, unit, modeLabel }: { place: Place; name: string
     const r = el.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `perspective(900px) rotateY(${px * 10}deg) rotateX(${py * -10}deg) scale(1.03)`;
+    el.style.transform = `perspective(900px) translateY(-14px) translateZ(40px) rotateY(${px * 12}deg) rotateX(${py * -12}deg) scale(1.06)`;
     el.style.setProperty("--gx", `${(px + 0.5) * 100}%`);
     el.style.setProperty("--gy", `${(py + 0.5) * 100}%`);
   };
   const onLeave = () => {
     const el = ref.current;
-    if (el) el.style.transform = "perspective(900px) rotateY(0deg) rotateX(0deg) scale(1)";
+    if (el) el.style.transform = "perspective(900px) translateY(0) translateZ(0) rotateY(0deg) rotateX(0deg) scale(1)";
   };
 
   return (
-    <div className="shrink-0 snap-start w-[240px] md:w-[280px]" style={{ perspective: "900px" }}>
+    <div className="shrink-0 snap-start w-[240px] md:w-[280px] py-4" style={{ perspective: "900px" }}>
       <div
         ref={ref}
         onMouseMove={onMove}
         onMouseLeave={onLeave}
-        className="group relative aspect-[3/4] rounded-[18px] overflow-hidden border border-[rgba(197,164,109,0.18)] bg-[#111417] transition-transform duration-300 ease-out will-change-transform hover:border-[rgba(197,164,109,0.5)] hover:shadow-[0_30px_70px_-20px_rgba(0,0,0,0.85),0_0_40px_-10px_rgba(197,164,109,0.25)]"
+        className="group relative aspect-[3/4] rounded-[18px] overflow-hidden border border-[rgba(197,164,109,0.18)] bg-[#111417] transition-transform duration-300 ease-out will-change-transform hover:border-[#C5A46D]/70 hover:shadow-[0_40px_90px_-20px_rgba(0,0,0,0.9),0_0_60px_-8px_rgba(197,164,109,0.35)]"
       >
         {/* Foto */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -103,14 +104,14 @@ function TiltCard({ place, name, unit, modeLabel }: { place: Place; name: string
           src={place.img}
           alt={name}
           loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.12]"
         />
         {/* Qoraytirish gradienti */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D0F] via-[#0B0D0F]/25 to-[#0B0D0F]/10" />
-        {/* Sichqonchaga ergashuvchi yorug'lik (glare) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D0F] via-[#0B0D0F]/20 to-transparent" />
+        {/* Sichqonchaga ergashuvchi champagne yorug'lik */}
         <div
           className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          style={{ background: "radial-gradient(420px circle at var(--gx,50%) var(--gy,50%), rgba(197,164,109,0.18), transparent 65%)" }}
+          style={{ background: "radial-gradient(420px circle at var(--gx,50%) var(--gy,50%), rgba(197,164,109,0.22), transparent 65%)" }}
         />
         {/* Vaqt chipi */}
         <div className="absolute top-4 left-4 flex items-center gap-1.5 rounded-full bg-[#0B0D0F]/70 backdrop-blur-md border border-[rgba(197,164,109,0.3)] px-3 py-1.5">
@@ -132,6 +133,11 @@ function TiltCard({ place, name, unit, modeLabel }: { place: Place; name: string
 export default function LocationSection() {
   const { lang } = useLang();
   const t = TR[lang];
+  const scroller = useRef<HTMLDivElement>(null);
+
+  const scrollBy = (dir: 1 | -1) => {
+    scroller.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  };
 
   return (
     <section id="location" className="py-[80px] lg:py-[130px] bg-[#0B0D0F]">
@@ -164,10 +170,31 @@ export default function LocationSection() {
           <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-[rgba(197,164,109,0.14)] rounded-[18px]" />
         </div>
 
-        {/* Yaqin joylar — fotoli 3D tilt kartalar */}
-        <div className="space-y-6">
-          <div className="text-[12px] font-semibold text-[#A8A49B] uppercase tracking-[0.14em]">{t.nearby}</div>
-          <div className="flex gap-4 md:gap-6 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory -mx-6 px-6 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Yaqin joylar — fotoli pop-out kartalar + yon scroll strelkalari */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="text-[12px] font-semibold text-[#A8A49B] uppercase tracking-[0.14em]">{t.nearby}</div>
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                onClick={() => scrollBy(-1)}
+                aria-label="Chapga"
+                className="h-10 w-10 rounded-full border border-[rgba(197,164,109,0.3)] flex items-center justify-center text-[#C5A46D] hover:bg-[#C5A46D] hover:text-[#0B0D0F] transition-colors"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => scrollBy(1)}
+                aria-label="O'ngga"
+                className="h-10 w-10 rounded-full border border-[rgba(197,164,109,0.3)] flex items-center justify-center text-[#C5A46D] hover:bg-[#C5A46D] hover:text-[#0B0D0F] transition-colors"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+          <div
+            ref={scroller}
+            className="flex gap-4 md:gap-6 overflow-x-auto pb-2 snap-x snap-mandatory -mx-6 px-6 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {PLACES.map((p) => (
               <TiltCard
                 key={p.key}
