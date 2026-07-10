@@ -12,6 +12,7 @@ import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
 import FloatingContact from "@/components/FloatingContact";
 import AirportService from "@/components/AirportService";
+import LocationSection from "@/components/LocationSection";
 import BrandWordmark from "@/components/BrandWordmark";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLang } from "@/components/LanguageProvider";
@@ -169,6 +170,9 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           </div>
         </div>
       </section>
+
+      {/* JOYLASHUV VA INFRATUZILMA — xarita + yaqin joylar (katalogdan oldin) */}
+      <LocationSection />
 
       {/* CATALOG */}
       <section className="py-[80px] lg:py-[140px] px-6 lg:px-24 bg-[#0B0D0F]" id="catalog">

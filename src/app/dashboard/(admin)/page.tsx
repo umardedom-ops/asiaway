@@ -237,7 +237,7 @@ export default async function DashboardPage() {
               <div className="h-2.5 w-2.5 rounded-full bg-[#F5F2EB]" />
               <div className="flex-1 space-y-1">
                 <p className="text-[14px] font-medium text-[#F5F2EB]">Nest One platformasi</p>
-                <p className="text-[12px] text-[#A8A49B] font-light">15 yillik apart-gostinitsa tajribasi</p>
+                <p className="text-[12px] text-[#A8A49B] font-light">10 yillik apart-gostinitsa tajribasi</p>
               </div>
             </div>
           </CardContent>
