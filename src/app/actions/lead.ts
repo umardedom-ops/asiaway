@@ -10,24 +10,12 @@ export interface LeadInput {
   email?: string;
   message?: string;
   lang?: string;
+  source?: string;
+  notes?: string;
 }
 
 /**
  * Aloqa (qayta aloqaga chiqish) so'rovini Supabase `leads` jadvaliga saqlaydi.
- *
- * Jadval mavjud bo'lmasa, quyidagi SQL bilan yarating (Supabase SQL editor):
- *   create table if not exists leads (
- *     id uuid primary key default gen_random_uuid(),
- *     name text not null,
- *     phone text not null,
- *     whatsapp text,
- *     telegram text,
- *     email text,
- *     message text,
- *     lang text,
- *     status text default 'new',
- *     created_at timestamptz default now()
- *   );
  */
 export async function createLead(input: LeadInput) {
   if (!input.name?.trim() || !input.phone?.trim()) {
@@ -44,6 +32,8 @@ export async function createLead(input: LeadInput) {
       email: input.email?.trim() || null,
       message: input.message?.trim() || null,
       lang: input.lang || null,
+      source: input.source || "sayt",
+      notes: input.notes || null,
       status: "new",
     },
   ]);

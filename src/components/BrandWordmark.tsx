@@ -6,11 +6,13 @@
 
 type Variant = "header" | "hero" | "footer" | "intro";
 
+// tracking past — "ASIA WAY" yagona uyg'un logotype bo'lib o'qiladi (harflar juda cho'zilmaydi).
+// Sub "APARTMENTS" kengligi main bilan mos kelishi uchun tracking o'lchamга moslangan.
 const STYLES: Record<Variant, { main: string; sub: string }> = {
-  header: { main: "text-[19px] md:text-[22px] tracking-[0.22em]", sub: "" },
-  hero: { main: "text-[30px] md:text-[40px] tracking-[0.16em]", sub: "text-[10px] md:text-[11px] tracking-[0.55em] mt-2" },
-  footer: { main: "text-[26px] tracking-[0.16em]", sub: "text-[10px] tracking-[0.5em] mt-1.5" },
-  intro: { main: "text-[42px] md:text-[58px] tracking-[0.16em]", sub: "text-[11px] md:text-[13px] tracking-[0.6em] mt-3" },
+  header: { main: "text-[19px] md:text-[22px] tracking-[0.06em]", sub: "" },
+  hero: { main: "text-[30px] md:text-[40px] tracking-[0.04em]", sub: "text-[10px] md:text-[11px] tracking-[0.36em] mt-2" },
+  footer: { main: "text-[26px] tracking-[0.05em]", sub: "text-[10px] tracking-[0.34em] mt-1.5" },
+  intro: { main: "text-[42px] md:text-[58px] tracking-[0.05em]", sub: "text-[11px] md:text-[13px] tracking-[0.42em] mt-3" },
 };
 
 export default function BrandWordmark({

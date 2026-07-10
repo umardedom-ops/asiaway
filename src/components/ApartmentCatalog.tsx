@@ -169,7 +169,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
 
       {/* DETAIL MODAL */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-[800px] w-full bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl">
+        <DialogContent showCloseButton={false} className="max-w-[800px] w-full bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl">
           {selectedApartment && (
             <div className="flex flex-col max-h-[90vh]">
               <div className="relative h-[300px] md:h-[400px] w-full shrink-0">
