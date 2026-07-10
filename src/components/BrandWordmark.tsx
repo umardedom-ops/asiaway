@@ -25,7 +25,7 @@ export default function BrandWordmark({
   const s = STYLES[variant];
   return (
     <span className={`inline-flex flex-col ${className}`} aria-label="ASIA WAY Apartments">
-      <span className={`font-heading font-semibold leading-none text-[#F5F2EB] ${s.main}`}>
+      <span className={`font-heading font-semibold leading-none text-[#F5F2EB] [word-spacing:-0.24em] ${s.main}`}>
         ASIA WAY
       </span>
       {s.sub && (
