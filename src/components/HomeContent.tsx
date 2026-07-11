@@ -202,9 +202,17 @@ export default function HomeContent({ apartments, phones, address }: { apartment
 
       {/* SERVICES */}
       <section className="relative py-[100px] lg:py-[160px] px-6 lg:px-24 overflow-hidden bg-[#0B0D0F]" id="services">
+        {/* Gym Background Image */}
+        <div className="absolute inset-0 z-0 opacity-20 mix-blend-luminosity">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/nestone/interior-gym.jpg" alt="Nest One Gym" className="w-full h-full object-cover" />
+        </div>
+        {/* Dark Overlays for Contrast */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#0B0D0F] via-[#111417]/85 to-[#0B0D0F]" />
+        
         {/* Glow Effects */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-0" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-0" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-10" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-10" />
 
         <div className="relative z-20 max-w-[1280px] mx-auto space-y-16">
           <div className="space-y-6 max-w-3xl text-left">
@@ -212,23 +220,38 @@ export default function HomeContent({ apartments, phones, address }: { apartment
               <span className="h-px w-8 bg-[#C5A46D]" />
               <span className="text-[12px] md:text-[14px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">{t.services.kicker}</span>
             </div>
-            <h2 className="font-heading text-[42px] md:text-[56px] lg:text-[72px] font-medium text-[#F5F2EB] leading-[1.05] tracking-tight">{t.services.title}</h2>
+            <h2 className="font-heading text-[42px] md:text-[56px] lg:text-[72px] font-medium text-[#F5F2EB] leading-[1.05] tracking-tight">
+              <motion.span
+                className="block"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              >
+                {t.services.title}
+              </motion.span>
+            </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" style={{ perspective: 1200 }}>
             {t.services.items.map((service, idx) => {
               const Icon = SERVICE_ICONS[idx] || Sparkles;
               const detail = (SERVICE_DETAILS[lang] || SERVICE_DETAILS["uz"])[idx];
               return (
                 <motion.div
                   key={idx}
-                  className="group relative bg-[#111417]/40 backdrop-blur-md p-8 md:p-10 rounded-2xl border border-[rgba(197,164,109,0.1)] hover:border-[#C5A46D]/50 transition-all duration-500 flex flex-col justify-between space-y-8 hover:shadow-[0_20px_50px_rgba(197,164,109,0.05)] overflow-hidden"
-                  whileHover={{ y: -8 }}
+                  className="group relative bg-[#111417]/60 backdrop-blur-md p-8 md:p-10 rounded-2xl border border-[rgba(197,164,109,0.1)] hover:border-[#C5A46D]/50 transition-all duration-500 flex flex-col justify-between space-y-8 hover:shadow-[0_20px_50px_rgba(197,164,109,0.08)] overflow-hidden cursor-pointer"
+                  style={{ transformStyle: "preserve-3d" }}
+                  whileHover={{ 
+                    y: -10,
+                    rotateX: 4,
+                    rotateY: -4,
+                    scale: 1.015,
+                  }}
+                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
                 >
                   {/* Subtle Background Card Glow */}
                   <div className="absolute -right-16 -top-16 w-36 h-36 rounded-full bg-[#C5A46D]/5 blur-2xl group-hover:bg-[#C5A46D]/10 transition-all duration-500" />
                   
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between" style={{ transform: "translateZ(30px)" }}>
                     <div className="p-4 rounded-xl bg-[#1A1D20] border border-[rgba(197,164,109,0.15)] group-hover:border-[#C5A46D]/50 group-hover:text-[#0B0D0F] group-hover:bg-[#C5A46D] text-[#C5A46D] transition-all duration-500">
                       <Icon className="h-6 w-6 stroke-[1.5]" />
                     </div>
@@ -237,7 +260,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
                     </span>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3" style={{ transform: "translateZ(40px)" }}>
                     <h3 className="text-[20px] md:text-[22px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors duration-500">
                       {service}
                     </h3>
