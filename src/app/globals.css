@@ -147,13 +147,24 @@
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+@keyframes marquee-x-reverse {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
 .marquee-track {
   animation: marquee-x 55s linear infinite;
   width: max-content;
 }
-.marquee-wrap:hover .marquee-track {
+.marquee-track-reverse {
+  animation: marquee-x-reverse 55s linear infinite;
+  width: max-content;
+}
+.marquee-wrap:hover .marquee-track,
+.marquee-wrap:hover .marquee-track-reverse,
+.marquee-wrap:active .marquee-track,
+.marquee-wrap:active .marquee-track-reverse {
   animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track { animation: none; }
+  .marquee-track, .marquee-track-reverse { animation: none; }
 }
