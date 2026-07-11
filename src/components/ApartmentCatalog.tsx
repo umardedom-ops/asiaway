@@ -177,11 +177,11 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
 
       {/* DETAIL MODAL */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent showCloseButton={false} className="max-w-[800px] sm:max-w-[800px] md:max-w-[960px] lg:max-w-[1100px] w-[calc(100%-2rem)] bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl h-[90vh] md:h-[650px] lg:h-[750px] max-h-[85vh] flex flex-col">
+        <DialogContent showCloseButton={false} className="max-w-[800px] sm:max-w-[800px] md:max-w-[960px] lg:max-w-[1100px] w-[calc(100%-2rem)] bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl h-[90vh] max-h-[90vh] md:h-[650px] lg:h-[750px] md:max-h-[85vh] flex flex-col">
           {selectedApartment && (() => {
             const images = getApartmentImages(selectedApartment);
             return (
-              <div className="flex flex-col md:flex-row flex-1 min-h-0 w-full overflow-hidden">
+              <div className="flex flex-col md:flex-row h-full w-full overflow-hidden">
                 {/* LEFT: Image Slider */}
                 <div className="relative h-[300px] md:h-full w-full md:w-[45%] lg:w-[50%] shrink-0 group/slider overflow-hidden bg-black">
                   {/* Images */}
@@ -256,7 +256,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                 </div>
 
                 {/* RIGHT: Content Area */}
-                <div className="flex flex-col flex-1 min-w-0 bg-[#0B0D0F] relative">
+                <div className="flex flex-col h-full w-full md:w-[55%] lg:w-[50%] bg-[#0B0D0F] relative">
                   {/* Close Button for Desktop ONLY */}
                   <button
                     onClick={() => setIsDetailsOpen(false)}
@@ -265,7 +265,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                     ✕
                   </button>
 
-                  <div className="flex-1 min-h-0 p-8 md:p-10 lg:p-12 md:pt-20 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden p-8 md:p-10 lg:p-12 md:pt-20 custom-scrollbar">
                     <div className="flex flex-col xl:flex-row justify-between xl:items-end gap-6 mb-10 border-b border-[rgba(197,164,109,0.14)] pb-8">
                       <div className="space-y-4 pr-12 md:pr-0">
                         <span className="text-[12px] font-semibold text-[#C5A46D] tracking-[0.12em] uppercase">Tashkent City • Nest One</span>
