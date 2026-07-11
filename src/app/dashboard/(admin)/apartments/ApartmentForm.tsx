@@ -21,6 +21,31 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(saveApartment, null);
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.cover_image || null);
+  const [existingImages, setExistingImages] = useState<any[]>(initialData?.apartment_images || []);
+  const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+
+  const handleRemoveExistingImage = (id: string) => {
+    setDeletedImageIds((prev) => [...prev, id]);
+    setExistingImages((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newPreviews: string[] = [];
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newPreviews.push(reader.result as string);
+          if (newPreviews.length === files.length) {
+            setGalleryPreviews(newPreviews);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
 
   useEffect(() => {
     if (state?.success) {
@@ -310,6 +335,71 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                         <p className="text-[11px] text-[#A8A49B]/50 mt-2 font-light">PNG, JPG, WEBP formats up to 5MB</p>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {/* Qo'shimcha rasmlar (Galereya) */}
+                <div className="space-y-4">
+                  <Label className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Qo'shimcha rasmlar (Galereya)</Label>
+                  
+                  {/* Deleted images tracking */}
+                  {deletedImageIds.map((id) => (
+                    <input key={id} type="hidden" name="deleted_image_ids" value={id} />
+                  ))}
+
+                  {/* Previews grid of existing and new previews */}
+                  {(existingImages.length > 0 || galleryPreviews.length > 0) && (
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      {/* Existing database images */}
+                      {existingImages.map((img) => (
+                        <div key={img.id} className="relative h-28 w-full group overflow-hidden rounded-[8px] border border-[rgba(197,164,109,0.14)] bg-[#0B0D0F]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={img.url} alt="Gallery" className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExistingImage(img.id)}
+                            className="absolute top-2 right-2 bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-200 rounded-full w-6 h-6 flex items-center justify-center text-[10px] transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      {/* Newly selected images */}
+                      {galleryPreviews.map((url, idx) => (
+                        <div key={idx} className="relative h-28 w-full group overflow-hidden rounded-[8px] border border-[rgba(197,164,109,0.14)] bg-[#0B0D0F]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={url} alt="New Preview" className="h-full w-full object-cover opacity-70" />
+                          <div className="absolute inset-0 bg-[#0B0D0F]/40 flex items-center justify-center">
+                            <span className="text-[10px] text-[#C5A46D] font-semibold bg-[#111417] px-2 py-0.5 rounded border border-[rgba(197,164,109,0.2)]">Yangi</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Upload input */}
+                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-[rgba(197,164,109,0.22)] rounded-[12px] p-6 bg-[#0B0D0F]/50 hover:bg-[#0B0D0F] transition-colors">
+                    <div className="text-center">
+                      <ImageIcon className="mx-auto h-8 w-8 text-[#A8A49B]/50" />
+                      <div className="mt-3 flex items-center justify-center text-[13px] text-[#A8A49B]">
+                        <label
+                          htmlFor="gallery_files"
+                          className="relative cursor-pointer rounded-[4px] font-semibold text-[#C5A46D] hover:text-[#D4B77F] focus-within:outline-none"
+                        >
+                          <span>Galereyaga rasm qo'shish</span>
+                          <input
+                            id="gallery_files"
+                            name="gallery_files"
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleGalleryChange}
+                            className="sr-only"
+                          />
+                        </label>
+                      </div>
+                      <p className="text-[10px] text-[#A8A49B]/50 mt-1 font-light">Bir nechta rasm tanlashingiz mumkin</p>
+                    </div>
                   </div>
                 </div>
 

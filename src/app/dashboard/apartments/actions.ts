@@ -77,6 +77,8 @@ export async function saveApartment(prevState: any, formData: FormData) {
       owner_phone,
     };
 
+    let targetAptId = id;
+
     if (id) {
       // Yangilash (Update)
       const { error } = await supabase
@@ -87,11 +89,68 @@ export async function saveApartment(prevState: any, formData: FormData) {
       if (error) throw error;
     } else {
       // Yaratish (Create)
-      const { error } = await supabase
+      const { data: newApt, error } = await supabase
         .from("apartments")
-        .insert([apartmentData]);
+        .insert([apartmentData])
+        .select("id")
+        .single();
 
       if (error) throw error;
+      targetAptId = newApt.id;
+    }
+
+    // Galereya rasmlarini qayta ishlash
+    const galleryFiles = formData.getAll("gallery_files") as File[];
+    const deletedImageIds = formData.getAll("deleted_image_ids") as string[];
+
+    // 1. O'chirilishi kerak bo'lgan rasmlarni o'chirish
+    if (deletedImageIds.length > 0) {
+      const { error: deleteErr } = await supabase
+        .from("apartment_images")
+        .delete()
+        .in("id", deletedImageIds);
+      if (deleteErr) console.error("Error deleting old images:", deleteErr);
+    }
+
+    // 2. Yangi galereya rasmlarini yuklash
+    const uploadedUrls: string[] = [];
+    for (let i = 0; i < galleryFiles.length; i++) {
+      const file = galleryFiles[i];
+      if (file && file.size > 0) {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `gallery_${targetAptId}_${Date.now()}_${i}.${fileExt}`;
+        const buffer = Buffer.from(await file.arrayBuffer());
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("apartments")
+          .upload(fileName, buffer, {
+            contentType: file.type,
+            upsert: true,
+          });
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from("apartments")
+            .getPublicUrl(fileName);
+          uploadedUrls.push(publicUrl);
+        } else {
+          console.error("Error uploading gallery image:", uploadError);
+        }
+      }
+    }
+
+    // 3. Yangi rasmlarni ma'lumotlar bazasiga yozish
+    if (uploadedUrls.length > 0) {
+      const imgInserts = uploadedUrls.map((url, index) => ({
+        apartment_id: targetAptId,
+        url,
+        is_360: false,
+        sort_order: index + 10,
+      }));
+      const { error: imgErr } = await supabase
+        .from("apartment_images")
+        .insert(imgInserts);
+      if (imgErr) console.error("Error inserting apartment images:", imgErr);
     }
 
     revalidatePath("/dashboard/apartments");

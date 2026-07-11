@@ -163,11 +163,11 @@ export default function HomeContent({ apartments, phones, address }: { apartment
         {/* Pastki grounding + keyingi seksiya bilan qo'shilish */}
         <div className="absolute inset-0 z-10" style={{ background: "linear-gradient(0deg, #0B0D0F 0%, rgba(11,13,15,0.12) 40%, rgba(11,13,15,0.3) 100%)" }} />
 
-        <div className="relative z-20 max-w-[1440px] mx-auto px-6 lg:px-12 min-h-[100svh] flex flex-col justify-center pt-28 pb-24">
+        <div className="relative z-20 max-w-[1440px] mx-auto px-6 lg:px-12 min-h-[100svh] flex flex-col justify-center pt-20 pb-8 md:pb-12">
           <div className="max-w-[680px]">
-            <BrandWordmark variant="hero" className="mb-9" />
+            <BrandWordmark variant="hero" className="mb-4 md:mb-6" />
 
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4">
               <span className="h-px w-8 bg-[#C5A46D]" />
               <span className="text-[12px] md:text-[13px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">
                 {t.hero.badge}
@@ -178,11 +178,11 @@ export default function HomeContent({ apartments, phones, address }: { apartment
               {t.hero.titleTop} {t.hero.titleMid} <span className="text-[#C5A46D]">{t.hero.titleAccent}</span>
             </h1>
 
-            <p className="text-[16px] md:text-[19px] text-[#D8D3C8] leading-[1.65] max-w-[540px] mt-7">
+            <p className="text-[16px] md:text-[19px] text-[#D8D3C8] leading-[1.65] max-w-[540px] mt-4 md:mt-5">
               {t.hero.subtitle}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-10">
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 md:pt-8">
               <a href="#catalog" className="w-full sm:w-auto">
                 <Button className={`w-full sm:w-auto ${btnPrimary} ${btnLg}`}>
                   {t.hero.ctaPrimary}
@@ -241,11 +241,21 @@ export default function HomeContent({ apartments, phones, address }: { apartment
               <span className="h-px w-8 bg-[#C5A46D]" />
               <span className="text-[11px] md:text-[12px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">{t.services.kicker}</span>
             </div>
-            <h2 className="font-heading text-[36px] md:text-[48px] lg:text-[60px] font-medium text-[#F5F2EB] leading-[1.1] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
+            <h2 className="font-heading text-[36px] md:text-[48px] lg:text-[60px] font-medium text-[#F5F2EB] leading-[1.1] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]" style={{ perspective: 1200 }}>
               <motion.span
-                className="block"
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                className="block origin-left"
+                animate={{ 
+                  y: [0, -8, 0],
+                  rotateX: [0, 4, -4, 0],
+                  rotateY: [0, -8, 8, 0],
+                  z: [0, 15, 0]
+                }}
+                style={{ transformStyle: "preserve-3d" }}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 6, 
+                  ease: "easeInOut" 
+                }}
               >
                 {t.services.title}
               </motion.span>
@@ -285,7 +295,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
                     <h3 className="text-[13px] lg:text-[14px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors duration-500 leading-snug">
                       {service}
                     </h3>
-                    <p className="text-[10px] lg:text-[11px] text-[#A8A49B]/95 leading-relaxed font-light line-clamp-2">
+                    <p className="text-[10px] lg:text-[11px] text-[#A8A49B]/95 leading-relaxed font-light line-clamp-2 group-hover:line-clamp-none transition-all duration-300">
                       {detail?.desc}
                     </p>
                   </div>

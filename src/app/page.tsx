@@ -9,7 +9,7 @@ export default async function HomePage() {
 
   const { data: dbApartments } = await supabase
     .from("apartments")
-    .select("*")
+    .select("*, apartment_images(*)")
     .eq("status", "active")
     .order("created_at", { ascending: false });
 

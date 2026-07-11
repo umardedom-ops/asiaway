@@ -57,10 +57,45 @@ export interface Apartment {
   price_per_month: number;
   deposit_amount: number;
   cover_image: string;
+  images?: string[];
   amenities: string[];
   description: string;
   telegram_post: string;
   status: "active" | "inactive";
+}
+
+export function getApartmentImages(apt: any): string[] {
+  let urls: string[] = [];
+  if (apt.apartment_images && apt.apartment_images.length > 0) {
+    const sorted = [...apt.apartment_images].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    urls = sorted.map((img: any) => img.url);
+  } else if (apt.images && apt.images.length > 0) {
+    urls = apt.images;
+  }
+
+  // Prepend cover image if it is not already in the list
+  if (apt.cover_image && !urls.includes(apt.cover_image)) {
+    urls.unshift(apt.cover_image);
+  }
+
+  // If we still have less than 4 images, let's fill it with high-quality fallback interior photos so we always have at least 4 photos!
+  const fallbacks = [
+    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1200&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=1200&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&auto=format&fit=crop&q=80"
+  ];
+
+  let fallbackIdx = 0;
+  while (urls.length < 4 && fallbackIdx < fallbacks.length) {
+    const candidate = fallbacks[fallbackIdx];
+    if (!urls.includes(candidate)) {
+      urls.push(candidate);
+    }
+    fallbackIdx++;
+  }
+
+  return urls;
 }
 
 export const APARTMENTS: Apartment[] = [

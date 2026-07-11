@@ -14,7 +14,7 @@ export default async function EditApartmentPage({ params }: EditApartmentPagePro
 
   const { data: apartment, error } = await supabase
     .from("apartments")
-    .select("*")
+    .select("*, apartment_images(*)")
     .eq("id", id)
     .single();
 
