@@ -16,11 +16,10 @@ const WM = "https://upload.wikimedia.org/wikipedia/commons/thumb";
 
 type Place = { key: string; min: number; mode: "walk" | "drive"; img: string };
 
-// Islom sivilizatsiyasi markazi — 1-o'rinda (egasi talabi)
 const PLACES: Place[] = [
   {
     key: "islamic_center", min: 12, mode: "drive",
-    img: `${WM}/f/f2/Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_034.jpg/1280px-Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_034.jpg`,
+    img: `https://iccu.uz/_next/image?url=%2Fimages%2Fbanner.webp&w=1920&q=60`,
   },
   {
     key: "city_park", min: 1, mode: "walk",
@@ -28,23 +27,23 @@ const PLACES: Place[] = [
   },
   {
     key: "city_mall", min: 3, mode: "walk",
-    img: `${WM}/a/a6/Tashkent_City_Mall_%28inside%29.jpg/1280px-Tashkent_City_Mall_%28inside%29.jpg`,
+    img: `https://elleuzbekistan.com/wp-content/uploads/2024/08/DJI_0807-jpg.webp`,
   },
   {
     key: "hilton", min: 6, mode: "walk",
-    img: `https://dynamic-media-cdn.tripadvisor.com/media/photo-o/16/d5/9a/94/hilton-tashkent-city.jpg?w=1200&h=800&s=1`,
+    img: `https://www.cvent.com/venues/_next/image?url=https%3A%2F%2Fimages.cvent.com%2Fcsn%2Fa6ae862c-74e0-4c7a-906b-599d29e049d2%2Fimages%2Fd77e201d938140adb2c033548eb618a9_large!_!5c09bc0633a61050680bbd72508ce4b8.jpg&w=3840&q=80`,
   },
   {
     key: "hazrati_imom", min: 12, mode: "drive",
-    img: `${WM}/e/e2/Khast_Imam_mosque_in_Tashkent%2C_Uzbekistan.jpg/1280px-Khast_Imam_mosque_in_Tashkent%2C_Uzbekistan.jpg`,
+    img: `https://uzbekistan.travel/storage/app/media/Rasmlar/Toshkent/cropped-images/shutterstock_2294563905-0-0-0-0-1738130309.jpg`,
   },
   {
     key: "mustaqillik", min: 10, mode: "drive",
-    img: `${WM}/8/8c/Independence_square_Tashkent.jpg/1280px-Independence_square_Tashkent.jpg`,
+    img: `https://d3fphkxyf5o5bm.cloudfront.net/image-resize/format=webp,w=720/QwRY54Li1HMwD7oNfpIV4ZuIvxp5hYmu0QcX2xJEWu`,
   },
   {
     key: "chorsu", min: 10, mode: "drive",
-    img: `${WM}/4/4b/Chorsu_Bazaar%2C_Tashkent_%282%29.jpg/1280px-Chorsu_Bazaar%2C_Tashkent_%282%29.jpg`,
+    img: `https://www.advantour.com/img/uzbekistan/tashkent/chorsu/chorsu.jpg`,
   },
   {
     key: "magic_city", min: 15, mode: "drive",
@@ -52,7 +51,7 @@ const PLACES: Place[] = [
   },
   {
     key: "airport", min: 15, mode: "drive",
-    img: `${WM}/e/e1/Tashkent_International_Airport_2020.jpg/1280px-Tashkent_International_Airport_2020.jpg`,
+    img: `https://uzairports.com/storage/blog/1783400009_6a4c864980ace.jpg`,
   },
 ];
 
