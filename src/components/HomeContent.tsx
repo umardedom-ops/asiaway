@@ -309,9 +309,14 @@ export default function HomeContent({ apartments, phones, address }: { apartment
               {phones.map((p) => (
                 <a key={p} href={`tel:${p}`} className="block text-[18px] text-[#F5F2EB] hover:text-[#C5A46D] transition-colors font-medium">{p}</a>
               ))}
-              <div className="flex gap-4 pt-3 text-[14px] font-medium">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 pt-3 text-[14px] font-medium">
                 <a href={CONTACTS.whatsapp} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">WhatsApp</a>
-                <a href={CONTACTS.telegram} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">Telegram</a>
+                <a href={CONTACTS.telegram} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">
+                  {lang === "uz" ? "Telegram (Lichka)" : lang === "ru" ? "Telegram (Личка)" : "Telegram (Chat)"}
+                </a>
+                <a href={CONTACTS.telegramChannel} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">
+                  {lang === "uz" ? "Telegram (Kanal)" : lang === "ru" ? "Telegram (Канал)" : "Telegram (Channel)"}
+                </a>
                 <a href={CONTACTS.instagram} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">Instagram</a>
               </div>
             </div>
@@ -341,9 +346,14 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           <div className="space-y-6">
             <h4 className="text-[12px] font-semibold text-[#A8A49B] tracking-[0.12em] uppercase">{t.footer.addressLabel}</h4>
             <p className="text-[15px] text-[#A8A49B] leading-relaxed">{address}</p>
-            <div className="flex gap-4 text-[14px] font-medium">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[14px] font-medium">
               <a href={CONTACTS.instagram} target="_blank" rel="noopener noreferrer" className="text-[#F5F2EB] hover:text-[#C5A46D] transition-colors">Instagram</a>
-              <a href={CONTACTS.telegram} target="_blank" rel="noopener noreferrer" className="text-[#F5F2EB] hover:text-[#C5A46D] transition-colors">Telegram</a>
+              <a href={CONTACTS.telegram} target="_blank" rel="noopener noreferrer" className="text-[#F5F2EB] hover:text-[#C5A46D] transition-colors">
+                {lang === "uz" ? "Telegram (Lichka)" : lang === "ru" ? "Telegram (Личка)" : "Telegram (Chat)"}
+              </a>
+              <a href={CONTACTS.telegramChannel} target="_blank" rel="noopener noreferrer" className="text-[#F5F2EB] hover:text-[#C5A46D] transition-colors">
+                {lang === "uz" ? "Telegram (Kanal)" : lang === "ru" ? "Telegram (Канал)" : "Telegram (Channel)"}
+              </a>
             </div>
           </div>
         </div>

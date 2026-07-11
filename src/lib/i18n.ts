@@ -208,7 +208,8 @@ export const APARTMENT_TR: Record<string, { ru: { view: string; description: str
 export const CONTACTS = {
   phone: "+998 90 110 13 01",
   phoneRaw: "998901101301",
-  whatsapp: "https://wa.me/998901101301",
-  telegram: "https://t.me/AsiaWayApart",
-  instagram: "https://instagram.com/asiawayapart",
+  whatsapp: "https://wa.me/qr/P74D3ZR54TMDF1",
+  telegram: "https://t.me/AsiaWay2025",
+  telegramChannel: "https://t.me/nestoneapartment",
+  instagram: "https://www.instagram.com/asiawayapartments/",
 };
