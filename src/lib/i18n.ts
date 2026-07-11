@@ -42,7 +42,7 @@ export const T: Record<Lang, Dict> = {
       ctaPrimary: "Apartamentlarni ko'rish", ctaContact: "Aloqaga chiqish",
     },
     about: { kicker: "AsiaWay HAQIDA", title: "10 Yillik Tajriba. Bitta Mukammal Xizmat.", body: "AsiaWay — Toshkentdagi premium apartamentlar va shaxsiy xizmatni yagona tizimda birlashtiradi. Aeroportda kutib olishdan tortib, kundalik qulayliklargacha — har bir detal sizning xotirjamligingiz uchun." },
-    services: { kicker: "SHAXSIY XIZMAT", title: "Siz Faqat Yashaysiz. Qolganini Biz Hal Qilamiz.", items: ["Aeroportda kutib olish", "24/7 shaxsiy yordam", "Professional tozalash", "Transfer xizmati", "Maxsus so'rovlar"] },
+    services: { kicker: "SHAXSIY XIZMAT", title: "Siz Faqat Yashaysiz. Qolganini Biz Hal Qilamiz.", items: ["Apartament ijarasi", "24/7 shaxsiy yordam", "Professional tozalash", "Transfer xizmati", "Sportiv zalga kirish", "Maxsus so'rovlar"] },
     catalog: { kicker: "APARTAMENTLAR", title: "O'zingizga Mos Makonni Tanlang.", total: (n) => `Jami: ${n} ta faol ijara obyekti` },
     experience: { kicker: "34-qavat · Balandlikdagi hayot", title: "Shahar oyoqlaringiz ostida.", body: "Har tong bulutlar sathida uyg'oning — panoramik oynalar ortida butun Toshkent. 34-qavatdan ochilgan manzara, jimjitlik va mukammal qulaylik. AsiaWay — bu shunchaki apartament emas, bu balandlikdagi premium hayot. Bir marta yuqoriga ko'tarilgach, pastga tushishni istamaysiz.", cta: "Balandlikni band qiling" },
     reviews: {
@@ -85,7 +85,7 @@ export const T: Record<Lang, Dict> = {
       ctaPrimary: "Смотреть апартаменты", ctaContact: "Связаться с нами",
     },
     about: { kicker: "О КОМПАНИИ AsiaWay", title: "10 Лет Опыта. Один Безупречный Сервис.", body: "AsiaWay объединяет премиальные апартаменты Ташкента и персональный сервис в единую систему. От встречи в аэропорту до ежедневного комфорта — каждая деталь ради вашего спокойствия." },
-    services: { kicker: "ПЕРСОНАЛЬНЫЙ СЕРВИС", title: "Вы Просто Живёте. Остальное — Наша Забота.", items: ["Встреча в аэропорту", "Личная поддержка 24/7", "Профессиональная уборка", "Трансфер", "Особые пожелания"] },
+    services: { kicker: "ПЕРСОНАЛЬНЫЙ СЕРВИС", title: "Вы Просто Живёте. Остальное — Наша Забота.", items: ["Аренда апартаментов", "Личная поддержка 24/7", "Профессиональная уборка", "Трансфер", "Доступ в спортзал", "Особые пожелания"] },
     catalog: { kicker: "АПАРТАМЕНТЫ", title: "Выберите Своё Пространство.", total: (n) => `Всего: ${n} доступных объектов` },
     experience: { kicker: "34 этаж · Жизнь на высоте", title: "Город у ваших ног.", body: "Каждое утро — на уровне облаков: за панорамными окнами весь Ташкент. Вид с 34 этажа, тишина и абсолютный комфорт. AsiaWay — это не просто апартаменты, это премиальная жизнь на высоте. Однажды поднявшись, вы не захотите спускаться.", cta: "Забронировать высоту" },
     reviews: {
@@ -128,7 +128,7 @@ export const T: Record<Lang, Dict> = {
       ctaPrimary: "View apartments", ctaContact: "Get in touch",
     },
     about: { kicker: "ABOUT AsiaWay", title: "10 Years of Experience. One Flawless Service.", body: "AsiaWay brings together Tashkent's premium apartments and personal service in a single system. From airport pickup to daily comfort — every detail is for your peace of mind." },
-    services: { kicker: "PERSONAL SERVICE", title: "You Just Live. We Handle the Rest.", items: ["Airport meet & greet", "24/7 personal support", "Professional cleaning", "Transfer service", "Special requests"] },
+    services: { kicker: "PERSONAL SERVICE", title: "You Just Live. We Handle the Rest.", items: ["Apartment rental", "24/7 personal support", "Professional cleaning", "Transfer service", "Gym access", "Special requests"] },
     catalog: { kicker: "APARTMENTS", title: "Choose Your Space.", total: (n) => `Total: ${n} available listings` },
     experience: { kicker: "34th floor · Life at height", title: "The city at your feet.", body: "Wake each morning at cloud level — all of Tashkent beyond your panoramic windows. The view from the 34th floor, silence, and absolute comfort. AsiaWay isn't just an apartment — it's premium life at height. Once you rise, you'll never want to come down.", cta: "Book the height" },
     reviews: {
