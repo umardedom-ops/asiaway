@@ -231,40 +231,40 @@ export default function HomeContent({ apartments, phones, address }: { apartment
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" style={{ perspective: 1200 }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-5" style={{ perspective: 1200 }}>
             {t.services.items.map((service, idx) => {
               const Icon = SERVICE_ICONS[idx] || Sparkles;
               const detail = (SERVICE_DETAILS[lang] || SERVICE_DETAILS["uz"])[idx];
               return (
                 <motion.div
                   key={idx}
-                  className="group relative bg-[#111417]/60 backdrop-blur-md p-8 md:p-10 rounded-2xl border border-[rgba(197,164,109,0.1)] hover:border-[#C5A46D]/50 transition-all duration-500 flex flex-col justify-between space-y-8 hover:shadow-[0_20px_50px_rgba(197,164,109,0.08)] overflow-hidden cursor-pointer"
+                  className="group relative bg-[#111417]/70 backdrop-blur-md p-6 lg:p-7 rounded-xl border border-[rgba(197,164,109,0.1)] hover:border-[#C5A46D]/50 transition-all duration-500 flex flex-col justify-between min-h-[180px] lg:min-h-[220px] hover:shadow-[0_15px_30px_rgba(197,164,109,0.06)] cursor-pointer"
                   style={{ transformStyle: "preserve-3d" }}
                   whileHover={{ 
-                    y: -10,
-                    rotateX: 4,
-                    rotateY: -4,
+                    y: -6,
+                    rotateX: 3,
+                    rotateY: -3,
                     scale: 1.015,
                   }}
                   transition={{ type: "spring", stiffness: 200, damping: 20 }}
                 >
                   {/* Subtle Background Card Glow */}
-                  <div className="absolute -right-16 -top-16 w-36 h-36 rounded-full bg-[#C5A46D]/5 blur-2xl group-hover:bg-[#C5A46D]/10 transition-all duration-500" />
+                  <div className="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-[#C5A46D]/5 blur-xl group-hover:bg-[#C5A46D]/8 transition-all duration-500" />
                   
-                  <div className="flex items-start justify-between" style={{ transform: "translateZ(30px)" }}>
-                    <div className="p-4 rounded-xl bg-[#1A1D20] border border-[rgba(197,164,109,0.15)] group-hover:border-[#C5A46D]/50 group-hover:text-[#0B0D0F] group-hover:bg-[#C5A46D] text-[#C5A46D] transition-all duration-500">
-                      <Icon className="h-6 w-6 stroke-[1.5]" />
+                  <div className="flex items-start justify-between" style={{ transform: "translateZ(20px)" }}>
+                    <div className="p-3 rounded-lg bg-[#1A1D20] border border-[rgba(197,164,109,0.15)] group-hover:border-[#C5A46D]/50 group-hover:text-[#0B0D0F] group-hover:bg-[#C5A46D] text-[#C5A46D] transition-all duration-500">
+                      <Icon className="h-5 w-5 stroke-[1.5]" />
                     </div>
-                    <span className="text-[14px] font-heading font-medium text-[#A8A49B]/30 tracking-widest group-hover:text-[#C5A46D] transition-colors duration-500">
+                    <span className="text-[12px] font-heading font-medium text-[#A8A49B]/30 tracking-widest group-hover:text-[#C5A46D] transition-colors duration-500">
                       {detail?.num || `0${idx + 1}`}
                     </span>
                   </div>
 
-                  <div className="space-y-3" style={{ transform: "translateZ(40px)" }}>
-                    <h3 className="text-[20px] md:text-[22px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors duration-500">
+                  <div className="space-y-2 mt-4" style={{ transform: "translateZ(30px)" }}>
+                    <h3 className="text-[15px] lg:text-[16px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors duration-500 leading-snug">
                       {service}
                     </h3>
-                    <p className="text-[14px] md:text-[15px] text-[#A8A49B] leading-relaxed font-light">
+                    <p className="text-[11px] lg:text-[12px] text-[#A8A49B] leading-relaxed font-light opacity-90">
                       {detail?.desc}
                     </p>
                   </div>
