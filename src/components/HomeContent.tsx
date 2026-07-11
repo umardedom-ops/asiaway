@@ -203,12 +203,12 @@ export default function HomeContent({ apartments, phones, address }: { apartment
       {/* SERVICES */}
       <section className="relative py-[100px] lg:py-[160px] px-6 lg:px-24 overflow-hidden bg-[#0B0D0F]" id="services">
         {/* Gym Background Image */}
-        <div className="absolute inset-0 z-0 opacity-20 mix-blend-luminosity">
+        <div className="absolute inset-0 z-0 opacity-45">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/nestone/interior-gym.jpg" alt="Nest One Gym" className="w-full h-full object-cover" />
         </div>
         {/* Dark Overlays for Contrast */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#0B0D0F] via-[#111417]/85 to-[#0B0D0F]" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#0B0D0F]/90 via-[#0B0D0F]/75 to-[#0B0D0F]/90 backdrop-blur-[1px]" />
         
         {/* Glow Effects */}
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-10" />
