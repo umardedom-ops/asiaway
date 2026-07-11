@@ -47,7 +47,7 @@ const PLACES: Place[] = [
   },
   {
     key: "magic_city", min: 15, mode: "drive",
-    img: `${WM}/b/bb/Magic_city_Tashkent.jpg/1280px-Magic_city_Tashkent.jpg`,
+    img: `https://mdktravel.com/uploads/images/places/org/f2SonmNap12I.webp`,
   },
   {
     key: "airport", min: 15, mode: "drive",
