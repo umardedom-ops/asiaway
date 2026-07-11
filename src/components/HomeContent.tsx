@@ -5,7 +5,6 @@ import Link from "next/link";
 import { LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ApartmentCatalog from "@/components/ApartmentCatalog";
-import SkylineBackdrop from "@/components/SkylineBackdrop";
 import IntroSplash from "@/components/IntroSplash";
 import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
@@ -188,15 +187,39 @@ export default function HomeContent({ apartments, phones, address }: { apartment
         </div>
       </section>
 
-      {/* EXPERIENCE — kreativ vektor skyline fon */}
-      <SkylineBackdrop>
-        <section className="py-[90px] lg:py-[130px] px-6 lg:px-24 relative overflow-hidden flex items-center justify-center text-center border-y border-[rgba(197,164,109,0.14)]">
-          <div className="relative z-20 max-w-[800px] mx-auto space-y-8">
-            <h2 className="font-heading text-[40px] md:text-[56px] lg:text-[72px] font-medium text-[#F5F2EB] leading-[1.05] tracking-tight">{t.experience.title}</h2>
-            <p className="text-[16px] md:text-[20px] text-[#A8A49B] leading-[1.6] font-light max-w-[600px] mx-auto">{t.experience.body}</p>
+      {/* EXPERIENCE — 34-qavat balkon fotosi + kuchli sotuvchi matn */}
+      <section id="experience" className="relative min-h-[82vh] lg:min-h-[90vh] flex items-end overflow-hidden border-y border-[rgba(197,164,109,0.14)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/nestone/balcony-34floor.jpg"
+          alt="34-qavat balkonidan Toshkent manzarasi"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* Chapdan qoraytirish — matn kontrasti; o'ngda manzara ochiq */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(11,13,15,0.92) 0%, rgba(11,13,15,0.55) 42%, rgba(11,13,15,0.05) 78%)" }} />
+        {/* Pastki grounding */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, #0B0D0F 0%, rgba(11,13,15,0.15) 32%, transparent 62%)" }} />
+
+        <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 lg:px-24 pb-16 lg:pb-24 pt-28">
+          <div className="max-w-[640px] space-y-6">
+            <div className="flex items-center gap-3">
+              <span className="h-px w-8 bg-[#C5A46D]" />
+              <span className="text-[12px] md:text-[13px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">{t.experience.kicker}</span>
+            </div>
+            <h2 className="font-heading text-[42px] md:text-[60px] lg:text-[76px] font-medium text-[#F5F2EB] leading-[1.02] tracking-tight drop-shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+              {t.experience.title}
+            </h2>
+            <p className="text-[16px] md:text-[19px] text-[#E4DFD4] leading-[1.65] max-w-[560px] drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]">
+              {t.experience.body}
+            </p>
+            <div className="pt-4">
+              <a href="#catalog">
+                <Button className={`${btnPrimary} ${btnLg}`}>{t.experience.cta}</Button>
+              </a>
+            </div>
           </div>
-        </section>
-      </SkylineBackdrop>
+        </div>
+      </section>
 
       {/* MIJOZLAR FIKRI */}
       <Testimonials />

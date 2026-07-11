@@ -18,7 +18,7 @@ interface Dict {
   about: { kicker: string; title: string; body: string };
   services: { kicker: string; title: string; items: string[] };
   catalog: { kicker: string; title: string; total: (n: number) => string };
-  experience: { title: string; body: string };
+  experience: { kicker: string; title: string; body: string; cta: string };
   reviews: { kicker: string; title: string; items: { name: string; role: string; text: string }[] };
   faq: { kicker: string; title: string; items: { q: string; a: string }[] };
   contact: {
@@ -44,7 +44,7 @@ export const T: Record<Lang, Dict> = {
     about: { kicker: "ASIA WAY HAQIDA", title: "10 Yillik Tajriba. Bitta Mukammal Xizmat.", body: "ASIA WAY — Toshkentdagi premium apartamentlar va shaxsiy xizmatni yagona tizimda birlashtiradi. Aeroportda kutib olishdan tortib, kundalik qulayliklargacha — har bir detal sizning xotirjamligingiz uchun." },
     services: { kicker: "SHAXSIY XIZMAT", title: "Siz Faqat Yashaysiz. Qolganini Biz Hal Qilamiz.", items: ["Aeroportda kutib olish", "24/7 shaxsiy yordam", "Professional tozalash", "Transfer xizmati", "Maxsus so'rovlar"] },
     catalog: { kicker: "APARTAMENTLAR", title: "O'zingizga Mos Makonni Tanlang.", total: (n) => `Jami: ${n} ta faol ijara obyekti` },
-    experience: { title: "Toshkentni Boshqacha His Qiling.", body: "Shahar markazi. Betakror manzara. Mukammal qulaylik. ASIA WAY bilan har bir kun yangi darajada boshlanadi." },
+    experience: { kicker: "34-qavat · Balandlikdagi hayot", title: "Shahar oyoqlaringiz ostida.", body: "Har tong bulutlar sathida uyg'oning — panoramik oynalar ortida butun Toshkent. 34-qavatdan ochilgan manzara, jimjitlik va mukammal qulaylik. ASIA WAY — bu shunchaki apartament emas, bu balandlikdagi premium hayot. Bir marta yuqoriga ko'tarilgach, pastga tushishni istamaysiz.", cta: "Balandlikni band qiling" },
     reviews: {
       kicker: "MIJOZLAR FIKRI", title: "Bizga Ishonganlar Nima Deydi",
       items: [
@@ -87,7 +87,7 @@ export const T: Record<Lang, Dict> = {
     about: { kicker: "О КОМПАНИИ ASIA WAY", title: "10 Лет Опыта. Один Безупречный Сервис.", body: "ASIA WAY объединяет премиальные апартаменты Ташкента и персональный сервис в единую систему. От встречи в аэропорту до ежедневного комфорта — каждая деталь ради вашего спокойствия." },
     services: { kicker: "ПЕРСОНАЛЬНЫЙ СЕРВИС", title: "Вы Просто Живёте. Остальное — Наша Забота.", items: ["Встреча в аэропорту", "Личная поддержка 24/7", "Профессиональная уборка", "Трансфер", "Особые пожелания"] },
     catalog: { kicker: "АПАРТАМЕНТЫ", title: "Выберите Своё Пространство.", total: (n) => `Всего: ${n} доступных объектов` },
-    experience: { title: "Почувствуйте Ташкент Иначе.", body: "Центр города. Неповторимый вид. Абсолютный комфорт. С ASIA WAY каждый день начинается на новом уровне." },
+    experience: { kicker: "34 этаж · Жизнь на высоте", title: "Город у ваших ног.", body: "Каждое утро — на уровне облаков: за панорамными окнами весь Ташкент. Вид с 34 этажа, тишина и абсолютный комфорт. ASIA WAY — это не просто апартаменты, это премиальная жизнь на высоте. Однажды поднявшись, вы не захотите спускаться.", cta: "Забронировать высоту" },
     reviews: {
       kicker: "ОТЗЫВЫ КЛИЕНТОВ", title: "Что Говорят Те, Кто Нам Доверился",
       items: [
@@ -130,7 +130,7 @@ export const T: Record<Lang, Dict> = {
     about: { kicker: "ABOUT ASIA WAY", title: "10 Years of Experience. One Flawless Service.", body: "ASIA WAY brings together Tashkent's premium apartments and personal service in a single system. From airport pickup to daily comfort — every detail is for your peace of mind." },
     services: { kicker: "PERSONAL SERVICE", title: "You Just Live. We Handle the Rest.", items: ["Airport meet & greet", "24/7 personal support", "Professional cleaning", "Transfer service", "Special requests"] },
     catalog: { kicker: "APARTMENTS", title: "Choose Your Space.", total: (n) => `Total: ${n} available listings` },
-    experience: { title: "Experience Tashkent Differently.", body: "City center. Unmatched views. Absolute comfort. With ASIA WAY, every day starts on a new level." },
+    experience: { kicker: "34th floor · Life at height", title: "The city at your feet.", body: "Wake each morning at cloud level — all of Tashkent beyond your panoramic windows. The view from the 34th floor, silence, and absolute comfort. ASIA WAY isn't just an apartment — it's premium life at height. Once you rise, you'll never want to come down.", cta: "Book the height" },
     reviews: {
       kicker: "CLIENT REVIEWS", title: "What Those Who Trusted Us Say",
       items: [
