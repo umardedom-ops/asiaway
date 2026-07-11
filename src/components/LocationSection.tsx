@@ -154,11 +154,12 @@ export default function LocationSection() {
         <div className="relative rounded-[18px] overflow-hidden border border-[rgba(197,164,109,0.2)] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)] h-[360px] md:h-[500px] bg-[#111417]">
           <iframe
             title="Nest One — Tashkent City"
-            src="https://maps.google.com/maps?q=41.304217,69.417816&hl=uz&z=15&output=embed"
+            src="https://yandex.uz/map-widget/v1/?ll=69.251950%2C41.312081&z=16&l=map"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
             className="absolute inset-0 h-full w-full"
-            style={{ filter: "invert(0.92) hue-rotate(180deg) saturate(0.65) brightness(1.05) contrast(0.92)", border: 0 }}
+            style={{ filter: "invert(0.93) hue-rotate(180deg) saturate(0.7) brightness(1.02) contrast(0.95)", border: 0 }}
           />
           <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[calc(100%+2px)] flex flex-col items-center">
             <span className="px-3 py-1 rounded-full bg-[#C5A46D] text-[#0B0D0F] text-[11px] font-semibold tracking-wide whitespace-nowrap shadow-lg mb-1">Nest One</span>

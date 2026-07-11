@@ -11,7 +11,7 @@ export const BRAND = {
     "10 yillik apart-gostinitsa tajribasi bilan O'zbekistonda yetakchi bo'lgan ASIA WAY. Barcha kvartiralar Nest One — mamlakatning eng baland binosi (266.5 metr, 51 qavat) da joylashgan. Aeroport transferidan tortib to barcha xizmatlarni bir joyda taqdim etamiz.",
   building: "Nest One Skyscraper",
   address: "Toshkent shahri, Toshkent City, Botir Zokirov ko'chasi 1A/1",
-  coordinates: { lat: 41.304217, lng: 69.417816 },
+  coordinates: { lat: 41.312081, lng: 69.251950 },
   phones: ["+998901101301", "+998952565776", "+998992266262"],
   telegram: "@AsiaWayApart",
   channel: "@nestoneapartment",
