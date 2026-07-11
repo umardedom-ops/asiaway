@@ -18,16 +18,44 @@ type Place = { key: string; min: number; mode: "walk" | "drive"; img: string };
 
 // Islom sivilizatsiyasi markazi — 1-o'rinda (egasi talabi)
 const PLACES: Place[] = [
-  { key: "islamic_center", min: 12, mode: "drive", img: `${WM}/f/f2/Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_034.jpg/1280px-Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_034.jpg` },
-  { key: "city_park", min: 1, mode: "walk", img: `${WM}/7/7c/Tashkent_City_Park_at_night_4.jpg/1280px-Tashkent_City_Park_at_night_4.jpg` },
-  { key: "city_mall", min: 3, mode: "walk", img: `${WM}/a/a6/Tashkent_City_Mall_%28inside%29.jpg/1280px-Tashkent_City_Mall_%28inside%29.jpg` },
-  { key: "hilton", min: 6, mode: "walk", img: `${WM}/5/5f/Hilton_Tashkent_City.jpg/1280px-Hilton_Tashkent_City.jpg` },
-  { key: "hazrati_imom", min: 12, mode: "drive", img: `${WM}/a/a9/Minaret_of_Hazrati_Imam_Mosque_01.jpg/1280px-Minaret_of_Hazrati_Imam_Mosque_01.jpg` },
-  { key: "mustaqillik", min: 10, mode: "drive", img: `${WM}/2/26/Monument_at_Mustaqillik_maydoni_02.jpg/1280px-Monument_at_Mustaqillik_maydoni_02.jpg` },
-  { key: "chorsu", min: 10, mode: "drive", img: `${WM}/b/ba/Chorsu_Bazaar_in_Tashkent.jpg/1280px-Chorsu_Bazaar_in_Tashkent.jpg` },
-  { key: "magic_city", min: 15, mode: "drive", img: `${WM}/b/bb/Magic_city_Tashkent.jpg/1280px-Magic_city_Tashkent.jpg` },
-  { key: "airport", min: 15, mode: "drive", img: `${WM}/1/19/TASHKENT_AIRPORT.2_-_panoramio.jpg/1280px-TASHKENT_AIRPORT.2_-_panoramio.jpg` },
+  {
+    key: "islamic_center", min: 12, mode: "drive",
+    img: `${WM}/f/f2/Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_034.jpg/1280px-Center_of_Islamic_Civilization_of_Uzbekistan_Tashkent_2026_034.jpg`,
+  },
+  {
+    key: "city_park", min: 1, mode: "walk",
+    img: `${WM}/7/7c/Tashkent_City_Park_at_night_4.jpg/1280px-Tashkent_City_Park_at_night_4.jpg`,
+  },
+  {
+    key: "city_mall", min: 3, mode: "walk",
+    img: `${WM}/a/a6/Tashkent_City_Mall_%28inside%29.jpg/1280px-Tashkent_City_Mall_%28inside%29.jpg`,
+  },
+  {
+    key: "hilton", min: 6, mode: "walk",
+    img: `https://dynamic-media-cdn.tripadvisor.com/media/photo-o/16/d5/9a/94/hilton-tashkent-city.jpg?w=1200&h=800&s=1`,
+  },
+  {
+    key: "hazrati_imom", min: 12, mode: "drive",
+    img: `${WM}/e/e2/Khast_Imam_mosque_in_Tashkent%2C_Uzbekistan.jpg/1280px-Khast_Imam_mosque_in_Tashkent%2C_Uzbekistan.jpg`,
+  },
+  {
+    key: "mustaqillik", min: 10, mode: "drive",
+    img: `${WM}/8/8c/Independence_square_Tashkent.jpg/1280px-Independence_square_Tashkent.jpg`,
+  },
+  {
+    key: "chorsu", min: 10, mode: "drive",
+    img: `${WM}/4/4b/Chorsu_Bazaar%2C_Tashkent_%282%29.jpg/1280px-Chorsu_Bazaar%2C_Tashkent_%282%29.jpg`,
+  },
+  {
+    key: "magic_city", min: 15, mode: "drive",
+    img: `${WM}/b/bb/Magic_city_Tashkent.jpg/1280px-Magic_city_Tashkent.jpg`,
+  },
+  {
+    key: "airport", min: 15, mode: "drive",
+    img: `${WM}/e/e1/Tashkent_International_Airport_2020.jpg/1280px-Tashkent_International_Airport_2020.jpg`,
+  },
 ];
+
 
 const TR: Record<Lang, {
   kicker: string; title: string; body: string; nearby: string; unit: string;
