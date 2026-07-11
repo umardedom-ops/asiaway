@@ -2,7 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { LayoutDashboard } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  LayoutDashboard,
+  KeyRound,
+  Clock,
+  Sparkles,
+  Car,
+  Dumbbell,
+  HeartHandshake
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ApartmentCatalog from "@/components/ApartmentCatalog";
 import IntroSplash from "@/components/IntroSplash";
@@ -20,9 +29,48 @@ import { CONTACTS } from "@/lib/i18n";
 import { ASSETS } from "@/lib/assets";
 import { btnPrimary, btnGlass, btnLg, btnMd } from "@/lib/ui";
 
+const SERVICE_ICONS = [
+  KeyRound,
+  Clock,
+  Sparkles,
+  Car,
+  Dumbbell,
+  HeartHandshake,
+];
+
+const SERVICE_DETAILS: Record<
+  "uz" | "ru" | "en",
+  { desc: string; num: string }[]
+> = {
+  uz: [
+    { desc: "Premium darajadagi apartamentlar va lyuks xonadonlar ijarasi", num: "01" },
+    { desc: "Sizning har qanday savolingiz va muammongiz uchun doimiy ko'mak", num: "02" },
+    { desc: "Mehmonxona darajasidagi mukammal va toza xizmat", num: "03" },
+    { desc: "Aeroport va shahar bo'ylab qulay transport xizmati", num: "04" },
+    { desc: "Nest One zamonaviy fitnes markaziga bepul kirish imkoniyati", num: "05" },
+    { desc: "Tadbirlar, bron qilishlar va individual xizmatlar", num: "06" },
+  ],
+  ru: [
+    { desc: "Аренда премиальных апартаментов и люкс квартир", num: "01" },
+    { desc: "Круглосуточная поддержка по любым вопросам и поручениям", num: "02" },
+    { desc: "Безупречная уборка гостиничного уровня", num: "03" },
+    { desc: "Комфортабельные трансферы по городу и в аэропорт", num: "04" },
+    { desc: "Доступ в современный фитнес-центр Nest One", num: "05" },
+    { desc: "Организация мероприятий, броней и личных поручений", num: "06" },
+  ],
+  en: [
+    { desc: "Rent of premium and luxury apartments", num: "01" },
+    { desc: "Round-the-clock assistance for any requests and tasks", num: "02" },
+    { desc: "Flawless hotel-level housekeeping and cleaning", num: "03" },
+    { desc: "Comfortable airport and city transfer services", num: "04" },
+    { desc: "Access to the modern Nest One fitness center", num: "05" },
+    { desc: "Event organization, reservations, and personal tasks", num: "06" },
+  ],
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function HomeContent({ apartments, phones, address }: { apartments: any[]; phones: readonly string[]; address: string }) {
-  const { t } = useLang();
+  const { lang, t } = useLang();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -153,23 +201,53 @@ export default function HomeContent({ apartments, phones, address }: { apartment
       </section>
 
       {/* SERVICES */}
-      <section className="relative py-[80px] lg:py-[140px] px-6 lg:px-24 overflow-hidden" id="services">
-        <div className="absolute inset-0 z-0 opacity-20 mix-blend-luminosity">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${ASSETS}/nestone/interior-gym.webp`} alt="Services" className="w-full h-full object-cover" />
-        </div>
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#0B0D0F] via-[#111417]/90 to-[#0B0D0F]" />
-        <div className="relative z-20 max-w-[1280px] mx-auto text-center space-y-16">
-          <div className="space-y-6 max-w-3xl mx-auto">
-            <span className="text-[12px] md:text-[14px] font-semibold text-[#A8A49B] tracking-[0.12em] uppercase block">{t.services.kicker}</span>
-            <h2 className="font-heading text-[36px] md:text-[48px] lg:text-[64px] font-medium text-[#F5F2EB] leading-[1.1] tracking-tight">{t.services.title}</h2>
+      <section className="relative py-[100px] lg:py-[160px] px-6 lg:px-24 overflow-hidden bg-[#0B0D0F]" id="services">
+        {/* Glow Effects */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-0" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-0" />
+
+        <div className="relative z-20 max-w-[1280px] mx-auto space-y-16">
+          <div className="space-y-6 max-w-3xl text-left">
+            <div className="flex items-center gap-3">
+              <span className="h-px w-8 bg-[#C5A46D]" />
+              <span className="text-[12px] md:text-[14px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">{t.services.kicker}</span>
+            </div>
+            <h2 className="font-heading text-[42px] md:text-[56px] lg:text-[72px] font-medium text-[#F5F2EB] leading-[1.05] tracking-tight">{t.services.title}</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-px bg-[rgba(197,164,109,0.14)]">
-            {t.services.items.map((service, idx) => (
-              <div key={idx} className="bg-[#111417] p-8 lg:p-12 flex items-center justify-center text-center backdrop-blur-sm">
-                <span className="text-[16px] lg:text-[18px] font-medium text-[#F5F2EB] leading-[1.4]">{service}</span>
-              </div>
-            ))}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {t.services.items.map((service, idx) => {
+              const Icon = SERVICE_ICONS[idx] || Sparkles;
+              const detail = (SERVICE_DETAILS[lang] || SERVICE_DETAILS["uz"])[idx];
+              return (
+                <motion.div
+                  key={idx}
+                  className="group relative bg-[#111417]/40 backdrop-blur-md p-8 md:p-10 rounded-2xl border border-[rgba(197,164,109,0.1)] hover:border-[#C5A46D]/50 transition-all duration-500 flex flex-col justify-between space-y-8 hover:shadow-[0_20px_50px_rgba(197,164,109,0.05)] overflow-hidden"
+                  whileHover={{ y: -8 }}
+                >
+                  {/* Subtle Background Card Glow */}
+                  <div className="absolute -right-16 -top-16 w-36 h-36 rounded-full bg-[#C5A46D]/5 blur-2xl group-hover:bg-[#C5A46D]/10 transition-all duration-500" />
+                  
+                  <div className="flex items-start justify-between">
+                    <div className="p-4 rounded-xl bg-[#1A1D20] border border-[rgba(197,164,109,0.15)] group-hover:border-[#C5A46D]/50 group-hover:text-[#0B0D0F] group-hover:bg-[#C5A46D] text-[#C5A46D] transition-all duration-500">
+                      <Icon className="h-6 w-6 stroke-[1.5]" />
+                    </div>
+                    <span className="text-[14px] font-heading font-medium text-[#A8A49B]/30 tracking-widest group-hover:text-[#C5A46D] transition-colors duration-500">
+                      {detail?.num || `0${idx + 1}`}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="text-[20px] md:text-[22px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors duration-500">
+                      {service}
+                    </h3>
+                    <p className="text-[14px] md:text-[15px] text-[#A8A49B] leading-relaxed font-light">
+                      {detail?.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
