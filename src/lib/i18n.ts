@@ -206,8 +206,8 @@ export const APARTMENT_TR: Record<string, { ru: { view: string; description: str
 
 // Kontakt manzillari (BRAND'dan) — floating tugma va formada ishlatiladi
 export const CONTACTS = {
-  phone: "+998 90 110 13 01",
-  phoneRaw: "998901101301",
+  phone: "+998 77 380 33 30",
+  phoneRaw: "998773803330",
   whatsapp: "https://wa.me/qr/P74D3ZR54TMDF1",
   telegram: "https://t.me/AsiaWay2025",
   telegramChannel: "https://t.me/nestoneapartment",

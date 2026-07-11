@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon, Loader2, CreditCard, CheckCircle2, Phone, User, Mail, Sparkles, MapPin } from "lucide-react";
 import Image from "next/image";
+import { CONTACTS } from "@/lib/i18n";
 
 interface BookingDialogProps {
   apartment: any;
@@ -486,7 +487,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
               </p>
               <div className="pt-3 border-t border-[rgba(197,164,109,0.14)] space-y-1">
                 <p className="text-[11px] font-semibold tracking-[0.1em] uppercase text-[#A8A49B]">Transfer koordinatori</p>
-                <p className="font-medium text-[#F5F2EB] tracking-wide">+998 90 110 13 01</p>
+                <p className="font-medium text-[#F5F2EB] tracking-wide">{CONTACTS.phone}</p>
               </div>
             </div>
 

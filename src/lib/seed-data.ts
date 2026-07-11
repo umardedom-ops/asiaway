@@ -12,7 +12,12 @@ export const BRAND = {
   building: "Nest One Skyscraper",
   address: "Toshkent shahri, Toshkent City, Botir Zokirov ko'chasi 1A/1",
   coordinates: { lat: 41.312081, lng: 69.251950 },
-  phones: ["+998901101301", "+998952565776", "+998992266262"],
+  phones: [
+    "+998 77 380 33 30",
+    "+998 95 256 57 76",
+    "+998 90 110 13 01",
+    "+998 99 614 22 22"
+  ],
   telegram: "@AsiaWayApart",
   channel: "@nestoneapartment",
   yearsExperience: 10,
