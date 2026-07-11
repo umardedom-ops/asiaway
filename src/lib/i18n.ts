@@ -30,6 +30,7 @@ interface Dict {
   floating: { label: string; call: string; whatsapp: string; telegram: string; instagram: string };
   card: { perNight: string; details: string; book: string; rooms: string; floor: string; area: string; guests: string; from: string; noResults: string };
   filters: { search: string; filters: string; rooms: string; price: string; floor: string; all: string; r1: string; r2: string; r3: string; pLow: string; pMid: string; pHigh: string; fLow: string; fMid: string; fHigh: string };
+  amenities: { wifi: string; smart_tv: string; kitchen: string; ac: string; washing_machine: string; panoramic_view: string; park_view: string; city_view: string; garden_view: string; coffee_maker: string; sofa_bed: string; jacuzzi: string; dishwasher: string; };
 }
 
 export const T: Record<Lang, Dict> = {
@@ -74,6 +75,7 @@ export const T: Record<Lang, Dict> = {
     floating: { label: "Tezkor bog'lanish", call: "Qo'ng'iroq", whatsapp: "WhatsApp", telegram: "Telegram", instagram: "Instagram" },
     card: { perNight: "/ tun", details: "Batafsil", book: "Band qilish", rooms: "xona", floor: "qavat", area: "maydon", guests: "mehmon", from: "dan", noResults: "Filtr bo'yicha apartament topilmadi." },
     filters: { search: "Qidirish... (pentxaus, park manzarasi, 34-qavat)", filters: "Filtrlar", rooms: "Xonalar soni", price: "Narx oralig'i", floor: "Qavat balandligi", all: "Barchasi", r1: "1 xonali", r2: "2 xonali", r3: "3+ xonali", pLow: "Hamyonbop ($120 gacha)", pMid: "O'rtacha ($120–145)", pHigh: "Premium ($145+)", fLow: "Pastki (1–9)", fMid: "O'rta (10–25)", fHigh: "Yuqori (25+)" },
+    amenities: { wifi: "Tezkor Wi-Fi", smart_tv: "Smart TV", kitchen: "To'liq jihozlangan oshxona", ac: "Konditsioner", washing_machine: "Kir yuvish mashinasi", panoramic_view: "Panoramik manzara", park_view: "Park ko'rinishi", city_view: "Shahar ko'rinishi", garden_view: "Bog' ko'rinishi", coffee_maker: "Kofe mashinasi", sofa_bed: "Ochiladigan divan", jacuzzi: "Jakuzi", dishwasher: "Idish yuvish mashinasi" },
   },
 
   ru: {
@@ -117,6 +119,7 @@ export const T: Record<Lang, Dict> = {
     floating: { label: "Быстрая связь", call: "Позвонить", whatsapp: "WhatsApp", telegram: "Telegram", instagram: "Instagram" },
     card: { perNight: "/ ночь", details: "Подробнее", book: "Забронировать", rooms: "комнат", floor: "этаж", area: "площадь", guests: "гостей", from: "от", noResults: "По фильтру апартаменты не найдены." },
     filters: { search: "Поиск... (пентхаус, вид на парк, 34 этаж)", filters: "Фильтры", rooms: "Комнаты", price: "Диапазон цен", floor: "Этажность", all: "Все", r1: "1 комната", r2: "2 комнаты", r3: "3+ комнат", pLow: "Бюджет (до $120)", pMid: "Средний ($120–145)", pHigh: "Премиум ($145+)", fLow: "Нижние (1–9)", fMid: "Средние (10–25)", fHigh: "Верхние (25+)" },
+    amenities: { wifi: "Высокоскоростной Wi-Fi", smart_tv: "Smart TV", kitchen: "Полностью оборудованная кухня", ac: "Кондиционер", washing_machine: "Стиральная машина", panoramic_view: "Панорамный вид", park_view: "Вид на парк", city_view: "Вид на город", garden_view: "Вид на сад", coffee_maker: "Кофемашина", sofa_bed: "Раскладной диван", jacuzzi: "Джакузи", dishwasher: "Посудомоечная машина" },
   },
 
   en: {
@@ -160,6 +163,7 @@ export const T: Record<Lang, Dict> = {
     floating: { label: "Quick contact", call: "Call", whatsapp: "WhatsApp", telegram: "Telegram", instagram: "Instagram" },
     card: { perNight: "/ night", details: "Details", book: "Book now", rooms: "rooms", floor: "floor", area: "area", guests: "guests", from: "from", noResults: "No apartments match the filter." },
     filters: { search: "Search... (penthouse, park view, 34th floor)", filters: "Filters", rooms: "Rooms", price: "Price range", floor: "Floor height", all: "All", r1: "1 room", r2: "2 rooms", r3: "3+ rooms", pLow: "Budget (up to $120)", pMid: "Mid ($120–145)", pHigh: "Premium ($145+)", fLow: "Lower (1–9)", fMid: "Mid (10–25)", fHigh: "Upper (25+)" },
+    amenities: { wifi: "High-speed Wi-Fi", smart_tv: "Smart TV", kitchen: "Fully equipped kitchen", ac: "Air conditioning", washing_machine: "Washing machine", panoramic_view: "Panoramic view", park_view: "Park view", city_view: "City view", garden_view: "Garden view", coffee_maker: "Coffee maker", sofa_bed: "Sofa bed", jacuzzi: "Jacuzzi", dishwasher: "Dishwasher" },
   },
 };
 

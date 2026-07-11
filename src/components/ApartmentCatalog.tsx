@@ -181,7 +181,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
           {selectedApartment && (() => {
             const images = getApartmentImages(selectedApartment);
             return (
-              <div className="flex flex-col md:flex-row max-h-[90vh] md:h-[650px] lg:h-[750px]">
+              <div className="flex flex-col md:flex-row h-[90vh] md:h-[650px] lg:h-[750px] w-full">
                 {/* LEFT: Image Slider */}
                 <div className="relative h-[300px] md:h-full w-full md:w-[45%] lg:w-[50%] shrink-0 group/slider overflow-hidden bg-black">
                   {/* Images */}
@@ -308,7 +308,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                           {selectedApartment.amenities.map((amenity: string, idx: number) => (
                             <div key={idx} className="flex items-center space-x-3">
                               <CheckCircle className="h-4 w-4 text-[#C5A46D] flex-shrink-0" />
-                              <span>{AMENITY_LABELS[amenity.toLowerCase()] || amenity}</span>
+                              <span>{(t.amenities as any)[amenity.toLowerCase()] || AMENITY_LABELS[amenity.toLowerCase()] || amenity}</span>
                             </div>
                           ))}
                         </div>
