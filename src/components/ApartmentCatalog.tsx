@@ -177,12 +177,13 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
 
       {/* DETAIL MODAL */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent showCloseButton={false} className="max-w-[800px] sm:max-w-[800px] w-[calc(100%-2rem)] bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl">
+        <DialogContent showCloseButton={false} className="max-w-[800px] sm:max-w-[800px] md:max-w-[960px] lg:max-w-[1100px] w-[calc(100%-2rem)] bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl">
           {selectedApartment && (() => {
             const images = getApartmentImages(selectedApartment);
             return (
-              <div className="flex flex-col max-h-[90vh]">
-                <div className="relative h-[300px] md:h-[400px] w-full shrink-0 group/slider overflow-hidden bg-black">
+              <div className="flex flex-col md:flex-row max-h-[90vh] md:h-[650px] lg:h-[750px]">
+                {/* LEFT: Image Slider */}
+                <div className="relative h-[300px] md:h-full w-full md:w-[45%] lg:w-[50%] shrink-0 group/slider overflow-hidden bg-black">
                   {/* Images */}
                   <div className="w-full h-full relative">
                     {images.map((imgUrl, index) => (
@@ -204,10 +205,10 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
 
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D0F] via-transparent to-transparent opacity-90 z-20 pointer-events-none" />
 
-                  {/* Close Button */}
+                  {/* Close Button for Mobile ONLY (hidden on md+) */}
                   <button
                     onClick={() => setIsDetailsOpen(false)}
-                    className="absolute top-6 right-6 bg-[#111417]/85 backdrop-blur border border-[rgba(197,164,109,0.22)] text-[#F5F2EB] hover:text-[#C5A46D] rounded-full w-10 h-10 flex items-center justify-center transition-all duration-300 z-30 shadow-lg hover:scale-105 active:scale-95"
+                    className="md:hidden absolute top-4 right-4 bg-[#111417]/85 backdrop-blur border border-[rgba(197,164,109,0.22)] text-[#F5F2EB] hover:text-[#C5A46D] rounded-full w-10 h-10 flex items-center justify-center transition-all duration-300 z-30 shadow-lg hover:scale-105 active:scale-95"
                   >
                     ✕
                   </button>
@@ -253,69 +254,81 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-h-0 p-8 md:p-12 pb-4 overflow-y-auto overflow-x-hidden custom-scrollbar">
-                  <div className="flex flex-col md:flex-row justify-between md:items-end gap-6 mb-10 border-b border-[rgba(197,164,109,0.14)] pb-8">
-                    <div className="space-y-4">
-                      <span className="text-[12px] font-semibold text-[#C5A46D] tracking-[0.12em] uppercase">Tashkent City • Nest One</span>
-                      <h2 className="font-heading text-[32px] md:text-[48px] font-medium text-[#F5F2EB] leading-[1.05]">{locTitle(selectedApartment.title)}</h2>
-                    </div>
-                    <div className="text-left md:text-right shrink-0">
-                      <div className="text-[12px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em] mb-1">{mx.priceLabel}</div>
-                      <div className="text-[24px] text-[#C5A46D] font-medium">{fmtPrice(selectedApartment.price_per_day)} <span className="text-[16px] text-[#A8A49B] font-light">{t.card.perNight}</span></div>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-                    <div className="space-y-1 text-center md:text-left border-l border-[rgba(197,164,109,0.22)] pl-4">
-                      <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.specRooms}</div>
-                      <div className="text-[16px] font-medium text-[#F5F2EB]">{selectedApartment.rooms} {mx.unitRoom}</div>
-                    </div>
-                    <div className="space-y-1 text-center md:text-left border-l border-[rgba(197,164,109,0.22)] pl-4">
-                      <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.specFloor}</div>
-                      <div className="text-[16px] font-medium text-[#F5F2EB]">{selectedApartment.floor}-{mx.unitFloor}</div>
-                    </div>
-                    <div className="space-y-1 text-center md:text-left border-l border-[rgba(197,164,109,0.22)] pl-4">
-                      <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.specArea}</div>
-                      <div className="text-[16px] font-medium text-[#F5F2EB]">{selectedApartment.area_m2} m²</div>
-                    </div>
-                    <div className="space-y-1 text-center md:text-left border-l border-[rgba(197,164,109,0.22)] pl-4">
-                      <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.specGuests}</div>
-                      <div className="text-[16px] font-medium text-[#F5F2EB]">{selectedApartment.max_guests || 4} {mx.unitGuest}</div>
-                    </div>
-                  </div>
+                {/* RIGHT: Content Area */}
+                <div className="flex flex-col flex-1 min-w-0 bg-[#0B0D0F] relative">
+                  {/* Close Button for Desktop ONLY */}
+                  <button
+                    onClick={() => setIsDetailsOpen(false)}
+                    className="hidden md:flex absolute top-6 right-6 bg-[#111417]/85 backdrop-blur border border-[rgba(197,164,109,0.22)] text-[#F5F2EB] hover:text-[#C5A46D] rounded-full w-10 h-10 items-center justify-center transition-all duration-300 z-30 shadow-lg hover:scale-105 active:scale-95"
+                  >
+                    ✕
+                  </button>
 
-                  <div className="space-y-4 mb-12">
-                    <h3 className="text-[12px] font-semibold text-[#A8A49B] uppercase tracking-[0.12em]">{mx.descTitle}</h3>
-                    <p className="text-[16px] text-[#F5F2EB]/90 leading-[1.7] font-light">{locDesc(selectedApartment)}</p>
-                  </div>
-
-                  {selectedApartment.amenities && selectedApartment.amenities.length > 0 && (
-                    <div className="space-y-6 mb-12">
-                      <h3 className="text-[12px] font-semibold text-[#A8A49B] uppercase tracking-[0.12em]">{mx.amenTitle}</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6 text-[15px] text-[#F5F2EB]/90 font-light">
-                        {selectedApartment.amenities.map((amenity: string, idx: number) => (
-                          <div key={idx} className="flex items-center space-x-3">
-                            <CheckCircle className="h-4 w-4 text-[#C5A46D] flex-shrink-0" />
-                            <span>{AMENITY_LABELS[amenity.toLowerCase()] || amenity}</span>
-                          </div>
-                        ))}
+                  <div className="flex-1 min-h-0 p-8 md:p-10 lg:p-12 md:pt-20 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                    <div className="flex flex-col xl:flex-row justify-between xl:items-end gap-6 mb-10 border-b border-[rgba(197,164,109,0.14)] pb-8">
+                      <div className="space-y-4 pr-12 md:pr-0">
+                        <span className="text-[12px] font-semibold text-[#C5A46D] tracking-[0.12em] uppercase">Tashkent City • Nest One</span>
+                        <h2 className="font-heading text-[32px] lg:text-[42px] font-medium text-[#F5F2EB] leading-[1.05]">{locTitle(selectedApartment.title)}</h2>
+                      </div>
+                      <div className="text-left xl:text-right shrink-0">
+                        <div className="text-[12px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em] mb-1">{mx.priceLabel}</div>
+                        <div className="text-[24px] text-[#C5A46D] font-medium">{fmtPrice(selectedApartment.price_per_day)} <span className="text-[16px] text-[#A8A49B] font-light">{t.card.perNight}</span></div>
                       </div>
                     </div>
-                  )}
 
-                  <div className="p-6 bg-[#111417] border border-[rgba(197,164,109,0.14)] rounded-[8px] mb-4 flex items-start gap-4">
-                    <Sparkles className="h-5 w-5 text-[#C5A46D] flex-shrink-0 mt-1" />
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-[#F5F2EB] tracking-wide">{mx.serviceTitle}</h4>
-                      <p className="text-[14px] text-[#A8A49B] leading-[1.6] font-light">{mx.serviceBody}</p>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                      <div className="space-y-1 text-center md:text-left border-l border-[rgba(197,164,109,0.22)] pl-4">
+                        <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.specRooms}</div>
+                        <div className="text-[16px] font-medium text-[#F5F2EB]">{selectedApartment.rooms} {mx.unitRoom}</div>
+                      </div>
+                      <div className="space-y-1 text-center md:text-left border-l border-[rgba(197,164,109,0.22)] pl-4">
+                        <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.specFloor}</div>
+                        <div className="text-[16px] font-medium text-[#F5F2EB]">{selectedApartment.floor}-{mx.unitFloor}</div>
+                      </div>
+                      <div className="space-y-1 text-center md:text-left border-l border-[rgba(197,164,109,0.22)] pl-4">
+                        <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.specArea}</div>
+                        <div className="text-[16px] font-medium text-[#F5F2EB]">{selectedApartment.area_m2} m²</div>
+                      </div>
+                      <div className="space-y-1 text-center md:text-left border-l border-[rgba(197,164,109,0.22)] pl-4">
+                        <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.specGuests}</div>
+                        <div className="text-[16px] font-medium text-[#F5F2EB]">{selectedApartment.max_guests || 4} {mx.unitGuest}</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 mb-12">
+                      <h3 className="text-[12px] font-semibold text-[#A8A49B] uppercase tracking-[0.12em]">{mx.descTitle}</h3>
+                      <p className="text-[16px] text-[#F5F2EB]/90 leading-[1.7] font-light">{locDesc(selectedApartment)}</p>
+                    </div>
+
+                    {selectedApartment.amenities && selectedApartment.amenities.length > 0 && (
+                      <div className="space-y-6 mb-12">
+                        <h3 className="text-[12px] font-semibold text-[#A8A49B] uppercase tracking-[0.12em]">{mx.amenTitle}</h3>
+                        <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-[15px] text-[#F5F2EB]/90 font-light">
+                          {selectedApartment.amenities.map((amenity: string, idx: number) => (
+                            <div key={idx} className="flex items-center space-x-3">
+                              <CheckCircle className="h-4 w-4 text-[#C5A46D] flex-shrink-0" />
+                              <span>{AMENITY_LABELS[amenity.toLowerCase()] || amenity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-6 bg-[#111417] border border-[rgba(197,164,109,0.14)] rounded-[8px] mb-4 flex items-start gap-4">
+                      <Sparkles className="h-5 w-5 text-[#C5A46D] flex-shrink-0 mt-1" />
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-[#F5F2EB] tracking-wide">{mx.serviceTitle}</h4>
+                        <p className="text-[14px] text-[#A8A49B] leading-[1.6] font-light">{mx.serviceBody}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="p-6 md:p-8 border-t border-[rgba(197,164,109,0.14)] bg-[#0B0D0F] shrink-0">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <Button onClick={() => { setIsDetailsOpen(false); setIsBookingOpen(true); }} className={`w-full sm:w-2/3 ${btnPrimary} h-14 text-[15px]`}>{t.nav.book}</Button>
-                    <Button onClick={() => setIsDetailsOpen(false)} className={`w-full sm:w-1/3 ${btnSecondary} h-14 text-[15px]`}>{mx.close}</Button>
+                  <div className="p-6 md:p-8 border-t border-[rgba(197,164,109,0.14)] bg-[#0B0D0F] shrink-0">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <Button onClick={() => { setIsDetailsOpen(false); setIsBookingOpen(true); }} className={`w-full sm:w-2/3 ${btnPrimary} h-14 text-[15px]`}>{t.nav.book}</Button>
+                      <Button onClick={() => setIsDetailsOpen(false)} className={`w-full sm:w-1/3 ${btnSecondary} h-14 text-[15px]`}>{mx.close}</Button>
+                    </div>
                   </div>
                 </div>
               </div>
