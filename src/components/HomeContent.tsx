@@ -29,6 +29,32 @@ import { CONTACTS } from "@/lib/i18n";
 import { ASSETS } from "@/lib/assets";
 import { btnPrimary, btnGlass, btnLg, btnMd } from "@/lib/ui";
 
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.054L2 22l5.077-1.331a9.927 9.927 0 004.93 1.302h.004c5.507 0 9.99-4.478 9.99-9.985A9.998 9.998 0 0012.012 2zm5.836 14.199c-.24.675-1.199 1.282-1.65 1.332-.45.05-1.02.074-2.884-.66-2.38-.94-3.92-3.36-4.04-3.52-.12-.16-.97-1.29-.97-2.459 0-1.17.61-1.743.83-1.983.22-.24.47-.3.63-.3.16 0 .32 0 .46.01.15.01.35-.06.55.42.2.49.69 1.68.75 1.8.06.12.1.26.02.42-.08.17-.12.27-.24.41-.12.14-.26.31-.37.42-.12.12-.25.26-.11.5.14.24.63 1.04 1.35 1.68.93.83 1.71 1.09 1.95 1.21.24.12.38.1.52-.06.14-.16.61-.71.77-.96.16-.25.32-.21.54-.13.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.1.06.58-.18 1.25z"/>
+    </svg>
+  );
+}
+
+function TelegramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.94-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.37.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z"/>
+    </svg>
+  );
+}
+
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
 const SERVICE_ICONS = [
   KeyRound,
   Clock,
@@ -309,15 +335,43 @@ export default function HomeContent({ apartments, phones, address }: { apartment
               {phones.map((p) => (
                 <a key={p} href={`tel:${p}`} className="block text-[18px] text-[#F5F2EB] hover:text-[#C5A46D] transition-colors font-medium">{p}</a>
               ))}
-              <div className="flex flex-wrap gap-x-4 gap-y-1 pt-3 text-[14px] font-medium">
-                <a href={CONTACTS.whatsapp} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">WhatsApp</a>
-                <a href={CONTACTS.telegram} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">
-                  {lang === "uz" ? "Telegram (Lichka)" : lang === "ru" ? "Telegram (Личка)" : "Telegram (Chat)"}
+              <div className="flex flex-wrap gap-2.5 pt-4">
+                <a 
+                  href={CONTACTS.whatsapp} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[rgba(197,164,109,0.12)] bg-[#111417] text-[#A8A49B] hover:text-[#25D366] hover:border-[#25D366]/40 hover:bg-[#25D366]/5 transition-all duration-300 text-[13px] font-medium"
+                >
+                  <WhatsAppIcon className="h-4 w-4" />
+                  <span>WhatsApp</span>
                 </a>
-                <a href={CONTACTS.telegramChannel} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">
-                  {lang === "uz" ? "Telegram (Kanal)" : lang === "ru" ? "Telegram (Канал)" : "Telegram (Channel)"}
+                <a 
+                  href={CONTACTS.telegram} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[rgba(197,164,109,0.12)] bg-[#111417] text-[#A8A49B] hover:text-[#2AABEE] hover:border-[#2AABEE]/40 hover:bg-[#2AABEE]/5 transition-all duration-300 text-[13px] font-medium"
+                >
+                  <TelegramIcon className="h-4 w-4" />
+                  <span>{lang === "uz" ? "Telegram (Lichka)" : lang === "ru" ? "Telegram (Личка)" : "Telegram (Chat)"}</span>
                 </a>
-                <a href={CONTACTS.instagram} target="_blank" rel="noopener noreferrer" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors">Instagram</a>
+                <a 
+                  href={CONTACTS.telegramChannel} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[rgba(197,164,109,0.12)] bg-[#111417] text-[#A8A49B] hover:text-[#2AABEE] hover:border-[#2AABEE]/40 hover:bg-[#2AABEE]/5 transition-all duration-300 text-[13px] font-medium"
+                >
+                  <TelegramIcon className="h-4 w-4" />
+                  <span>{lang === "uz" ? "Telegram (Kanal)" : lang === "ru" ? "Telegram (Канал)" : "Telegram (Channel)"}</span>
+                </a>
+                <a 
+                  href={CONTACTS.instagram} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[rgba(197,164,109,0.12)] bg-[#111417] text-[#A8A49B] hover:text-[#E1306C] hover:border-[#E1306C]/40 hover:bg-[#E1306C]/5 transition-all duration-300 text-[13px] font-medium"
+                >
+                  <InstagramIcon className="h-4 w-4" />
+                  <span>Instagram</span>
+                </a>
               </div>
             </div>
           </div>
@@ -346,13 +400,33 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           <div className="space-y-6">
             <h4 className="text-[12px] font-semibold text-[#A8A49B] tracking-[0.12em] uppercase">{t.footer.addressLabel}</h4>
             <p className="text-[15px] text-[#A8A49B] leading-relaxed">{address}</p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[14px] font-medium">
-              <a href={CONTACTS.instagram} target="_blank" rel="noopener noreferrer" className="text-[#F5F2EB] hover:text-[#C5A46D] transition-colors">Instagram</a>
-              <a href={CONTACTS.telegram} target="_blank" rel="noopener noreferrer" className="text-[#F5F2EB] hover:text-[#C5A46D] transition-colors">
-                {lang === "uz" ? "Telegram (Lichka)" : lang === "ru" ? "Telegram (Личка)" : "Telegram (Chat)"}
+            <div className="flex flex-col gap-3.5 pt-2">
+              <a 
+                href={CONTACTS.instagram} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center gap-3 text-[14px] text-[#A8A49B] hover:text-[#E1306C] transition-colors group font-medium"
+              >
+                <InstagramIcon className="h-4.5 w-4.5 text-[#A8A49B] group-hover:text-[#E1306C] transition-colors" />
+                <span>Instagram</span>
               </a>
-              <a href={CONTACTS.telegramChannel} target="_blank" rel="noopener noreferrer" className="text-[#F5F2EB] hover:text-[#C5A46D] transition-colors">
-                {lang === "uz" ? "Telegram (Kanal)" : lang === "ru" ? "Telegram (Канал)" : "Telegram (Channel)"}
+              <a 
+                href={CONTACTS.telegram} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center gap-3 text-[14px] text-[#A8A49B] hover:text-[#2AABEE] transition-colors group font-medium"
+              >
+                <TelegramIcon className="h-4.5 w-4.5 text-[#A8A49B] group-hover:text-[#2AABEE] transition-colors" />
+                <span>{lang === "uz" ? "Telegram (Lichka)" : lang === "ru" ? "Telegram (Личка)" : "Telegram (Chat)"}</span>
+              </a>
+              <a 
+                href={CONTACTS.telegramChannel} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center gap-3 text-[14px] text-[#A8A49B] hover:text-[#2AABEE] transition-colors group font-medium"
+              >
+                <TelegramIcon className="h-4.5 w-4.5 text-[#A8A49B] group-hover:text-[#2AABEE] transition-colors" />
+                <span>{lang === "uz" ? "Telegram (Kanal)" : lang === "ru" ? "Telegram (Канал)" : "Telegram (Channel)"}</span>
               </a>
             </div>
           </div>
