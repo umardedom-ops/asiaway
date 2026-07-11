@@ -203,12 +203,12 @@ export default function HomeContent({ apartments, phones, address }: { apartment
       {/* SERVICES */}
       <section className="relative py-[85px] lg:py-[110px] px-6 lg:px-24 overflow-hidden bg-black" id="services">
         {/* Gym Background Image */}
-        <div className="absolute inset-0 z-0 opacity-40">
+        <div className="absolute inset-0 z-0 opacity-75">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/nestone/interior-gym.jpg" alt="Nest One Gym" className="w-full h-full object-cover object-center" />
         </div>
         {/* Clean semi-transparent dark overlay for high visibility and contrast */}
-        <div className="absolute inset-0 z-10 bg-black/65 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 z-10 bg-black/20 backdrop-blur-[0.5px]" />
         
         {/* Glow Effects */}
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-10" />
@@ -220,7 +220,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
               <span className="h-px w-8 bg-[#C5A46D]" />
               <span className="text-[11px] md:text-[12px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">{t.services.kicker}</span>
             </div>
-            <h2 className="font-heading text-[36px] md:text-[48px] lg:text-[60px] font-medium text-[#F5F2EB] leading-[1.1] tracking-tight">
+            <h2 className="font-heading text-[36px] md:text-[48px] lg:text-[60px] font-medium text-[#F5F2EB] leading-[1.1] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
               <motion.span
                 className="block"
                 animate={{ y: [0, -6, 0] }}
