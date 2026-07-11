@@ -120,18 +120,7 @@ function Slide({
           </div>
         )}
 
-        {/* Scroll indicator */}
-        {index === 0 && (
-          <motion.div
-            style={{ opacity: useTransform(scrollYProgress, [0, 0.1], [1, 0]) }}
-            className="absolute bottom-[8rem] md:bottom-32 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-[#A8A49B] z-10"
-          >
-            <span className="text-[10px] font-semibold tracking-[0.3em] uppercase">Scroll</span>
-            <span className="h-10 w-6 rounded-full border border-[rgba(197,164,109,0.4)] flex justify-center pt-2">
-              <span className="h-1.5 w-1 rounded-full bg-[#C5A46D] animate-bounce" />
-            </span>
-          </motion.div>
-        )}
+
 
         {/* Progress line */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#111417] z-10">

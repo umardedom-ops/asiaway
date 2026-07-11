@@ -164,7 +164,7 @@ export default function LocationSection() {
   const loop = [...PLACES, ...PLACES];
 
   return (
-    <section id="location" className="py-[80px] lg:py-[130px] bg-[#0B0D0F]">
+    <section id="location" className="pt-[80px] lg:pt-[130px] pb-6 bg-[#0B0D0F]">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-24 space-y-12">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 lg:items-end">
           <div className="space-y-5">
@@ -214,7 +214,6 @@ export default function LocationSection() {
             <div className="pointer-events-none absolute inset-y-0 left-0 w-12 lg:w-24 bg-gradient-to-r from-[#0B0D0F] to-transparent" />
             <div className="pointer-events-none absolute inset-y-0 right-0 w-12 lg:w-24 bg-gradient-to-l from-[#0B0D0F] to-transparent" />
           </div>
-          <div className="text-[10px] text-[#A8A49B]/50">Foto: Wikimedia Commons (erkin litsenziya) · sichqoncha kelganda to&apos;xtaydi</div>
         </div>
       </div>
     </section>

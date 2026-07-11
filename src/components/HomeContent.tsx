@@ -197,12 +197,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           </div>
         </div>
 
-        {/* Scroll ishorasi — pastda markazda, nozik */}
-        <div className="absolute bottom-7 left-1/2 -translate-x-1/2 z-20 hidden md:flex flex-col items-center gap-2 text-[#A8A49B]">
-          <span className="h-9 w-[22px] rounded-full border border-[rgba(197,164,109,0.4)] flex justify-center pt-1.5">
-            <span className="h-1.5 w-1 rounded-full bg-[#C5A46D] animate-bounce" />
-          </span>
-        </div>
+
       </section>
 
       {/* EXPERIENCE 3D — 2-bo'lim (hero'dan keyin) */}
@@ -305,7 +300,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
       <LocationSection />
 
       {/* CATALOG */}
-      <section className="py-[80px] lg:py-[140px] px-6 lg:px-24 bg-[#0B0D0F]" id="catalog">
+      <section className="pt-8 pb-[80px] lg:pb-[140px] px-6 lg:px-24 bg-[#0B0D0F]" id="catalog">
         <div className="max-w-[1280px] mx-auto space-y-16">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div className="space-y-6">
