@@ -175,8 +175,9 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[600px] sm:max-w-[650px] md:max-w-[700px] w-full bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-y-auto h-[90vh] md:max-h-[90vh] shadow-2xl p-0 custom-scrollbar">
+      <DialogContent className="max-w-[600px] sm:max-w-[650px] md:max-w-[700px] w-full bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden h-[90vh] md:max-h-[85vh] shadow-2xl p-0 flex flex-col">
         
+        <div className="flex-1 overflow-y-auto custom-scrollbar w-full h-full relative">
         {/* STEP 1: DATE PICKER & GUEST INFO */}
         {step === 1 && (
           <div className="p-6 md:p-10 space-y-8">
@@ -515,6 +516,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
           </div>
         )}
 
+        </div>
       </DialogContent>
     </Dialog>
   );
