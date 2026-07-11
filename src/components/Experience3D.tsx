@@ -93,7 +93,7 @@ export default function Experience3D() {
   };
   const item = {
     hidden: { opacity: 0, y: 40, rotateX: 14 },
-    show:  { opacity: 1, y: 0,  rotateX: 0, transition: { duration: 0.85, ease: [0.16, 1, 0.3, 1] } },
+    show:  { opacity: 1, y: 0,  rotateX: 0, transition: { duration: 0.85, ease: "easeOut" as const } },
   };
 
   return (
