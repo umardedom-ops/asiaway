@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { MapPin, Footprints, Car, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Footprints, Car } from "lucide-react";
 import { useLang } from "./LanguageProvider";
 import type { Lang } from "@/lib/i18n";
 
@@ -91,7 +91,7 @@ function TiltCard({ place, name, unit, modeLabel }: { place: Place; name: string
   };
 
   return (
-    <div className="shrink-0 snap-start w-[240px] md:w-[280px] py-4" style={{ perspective: "900px" }}>
+    <div className="shrink-0 w-[240px] md:w-[280px] mr-4 md:mr-6 py-4" style={{ perspective: "900px" }}>
       <div
         ref={ref}
         onMouseMove={onMove}
@@ -133,11 +133,8 @@ function TiltCard({ place, name, unit, modeLabel }: { place: Place; name: string
 export default function LocationSection() {
   const { lang } = useLang();
   const t = TR[lang];
-  const scroller = useRef<HTMLDivElement>(null);
-
-  const scrollBy = (dir: 1 | -1) => {
-    scroller.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
-  };
+  // Seamless loop uchun ikki nusxa
+  const loop = [...PLACES, ...PLACES];
 
   return (
     <section id="location" className="py-[80px] lg:py-[130px] bg-[#0B0D0F]">
@@ -170,42 +167,26 @@ export default function LocationSection() {
           <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-[rgba(197,164,109,0.14)] rounded-[18px]" />
         </div>
 
-        {/* Yaqin joylar — fotoli pop-out kartalar + yon scroll strelkalari */}
+        {/* Yaqin joylar — avtomatik aylanuvchi (marquee) fotoli pop-out kartalar */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-[12px] font-semibold text-[#A8A49B] uppercase tracking-[0.14em]">{t.nearby}</div>
-            <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={() => scrollBy(-1)}
-                aria-label="Chapga"
-                className="h-10 w-10 rounded-full border border-[rgba(197,164,109,0.3)] flex items-center justify-center text-[#C5A46D] hover:bg-[#C5A46D] hover:text-[#0B0D0F] transition-colors"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => scrollBy(1)}
-                aria-label="O'ngga"
-                className="h-10 w-10 rounded-full border border-[rgba(197,164,109,0.3)] flex items-center justify-center text-[#C5A46D] hover:bg-[#C5A46D] hover:text-[#0B0D0F] transition-colors"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+          <div className="text-[12px] font-semibold text-[#A8A49B] uppercase tracking-[0.14em]">{t.nearby}</div>
+          <div className="marquee-wrap relative overflow-hidden">
+            <div className="marquee-track flex">
+              {loop.map((p, i) => (
+                <TiltCard
+                  key={`${p.key}-${i}`}
+                  place={p}
+                  name={t.names[p.key]}
+                  unit={t.unit}
+                  modeLabel={p.mode === "walk" ? t.walk : t.drive}
+                />
+              ))}
             </div>
+            {/* Chekka gradientlar — silliq kirib-chiqish */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-12 lg:w-24 bg-gradient-to-r from-[#0B0D0F] to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-12 lg:w-24 bg-gradient-to-l from-[#0B0D0F] to-transparent" />
           </div>
-          <div
-            ref={scroller}
-            className="flex gap-4 md:gap-6 overflow-x-auto pb-2 snap-x snap-mandatory -mx-6 px-6 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {PLACES.map((p) => (
-              <TiltCard
-                key={p.key}
-                place={p}
-                name={t.names[p.key]}
-                unit={t.unit}
-                modeLabel={p.mode === "walk" ? t.walk : t.drive}
-              />
-            ))}
-          </div>
-          <div className="text-[10px] text-[#A8A49B]/50">Foto: Wikimedia Commons (erkin litsenziya)</div>
+          <div className="text-[10px] text-[#A8A49B]/50">Foto: Wikimedia Commons (erkin litsenziya) · sichqoncha kelganda to&apos;xtaydi</div>
         </div>
       </div>
     </section>

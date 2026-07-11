@@ -141,3 +141,19 @@
     scroll-margin-top: 5rem;
   }
 }
+
+/* Yaqin joylar — avtomatik aylanuvchi (marquee) galereya */
+@keyframes marquee-x {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee-x 55s linear infinite;
+  width: max-content;
+}
+.marquee-wrap:hover .marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
