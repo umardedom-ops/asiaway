@@ -137,29 +137,29 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
           filteredApartments.map((apt, index) => (
             <motion.div key={apt.id} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.8, delay: (index % 3) * 0.1, ease: [0.22, 1, 0.36, 1] }}>
               <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] overflow-hidden group hover:border-[rgba(197,164,109,0.4)] hover:-translate-y-1 transition-all duration-500 flex flex-col h-full shadow-none">
-                <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#0B0D0F] cursor-pointer" onClick={() => openDetails(apt)}>
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0B0D0F] cursor-pointer" onClick={() => openDetails(apt)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={apt.cover_image} alt={locView(apt)} className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-[1000ms] ease-out" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D0F] via-transparent to-transparent opacity-80" />
-                  <div className="absolute top-5 left-5 right-5 flex justify-between items-center text-[11px] font-semibold tracking-[0.12em] text-[#F5F2EB] uppercase">
+                  <div className="absolute top-4 left-4 right-4 flex justify-between items-center text-[10px] font-semibold tracking-[0.12em] text-[#F5F2EB] uppercase">
                     <span>{apt.area_m2} m² • {apt.rooms} {mx.unitRoom}</span>
                   </div>
                 </div>
-                <CardContent className="p-6 md:p-8 flex-1 flex flex-col justify-between">
-                  <div className="space-y-3 cursor-pointer" onClick={() => openDetails(apt)}>
-                    <h3 className="font-heading text-[28px] md:text-[32px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors leading-[1.1] line-clamp-2">
+                <CardContent className="p-5 md:p-6 flex-1 flex flex-col justify-between">
+                  <div className="space-y-2 cursor-pointer" onClick={() => openDetails(apt)}>
+                    <h3 className="font-heading text-[24px] md:text-[28px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors leading-[1.1] line-clamp-2">
                        {locTitle(apt.title)}
                     </h3>
-                    <div className="text-[14px] text-[#A8A49B] font-light">
+                    <div className="text-[13px] text-[#A8A49B] font-light">
                       {apt.floor}-{mx.unitFloor} • {apt.max_guests || 4} {mx.unitGuest}
                     </div>
                   </div>
-                  <div className="mt-8 flex items-end justify-between border-t border-[rgba(197,164,109,0.14)] pt-6">
+                  <div className="mt-6 flex items-end justify-between border-t border-[rgba(197,164,109,0.14)] pt-5">
                     <div className="space-y-1">
-                      <div className="text-[12px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.priceLabel}</div>
-                      <div className="text-[18px] text-[#F5F2EB] font-medium">{fmtPrice(apt.price_per_day)} <span className="text-[14px] text-[#A8A49B] font-light">{t.card.perNight}</span></div>
+                      <div className="text-[11px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em]">{mx.priceLabel}</div>
+                      <div className="text-[16px] text-[#F5F2EB] font-medium">{fmtPrice(apt.price_per_day)} <span className="text-[13px] text-[#A8A49B] font-light">{t.card.perNight}</span></div>
                     </div>
-                    <Button onClick={() => openDetails(apt)} className={`${btnSecondary} h-11 px-6 text-[13px]`}>
+                    <Button onClick={() => openDetails(apt)} className={`${btnSecondary} h-10 px-5 text-[12px]`}>
                       {mx.view}
                     </Button>
                   </div>
