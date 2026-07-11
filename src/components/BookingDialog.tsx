@@ -447,7 +447,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
 
             <div className="space-y-3">
               <h2 className="font-heading text-[32px] font-medium text-[#F5F2EB]">Bron tasdiqlandi.</h2>
-              <p className="text-[15px] text-[#A8A49B] font-light">ASIA WAY ni tanlaganingiz uchun minnatdormiz.</p>
+              <p className="text-[15px] text-[#A8A49B] font-light">AsiaWay ni tanlaganingiz uchun minnatdormiz.</p>
             </div>
 
             {/* Voucher summary */}
@@ -476,10 +476,10 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
               </div>
             </div>
 
-            {/* ASIA WAY Premium service details */}
+            {/* AsiaWay Premium service details */}
             <div className="p-6 bg-[#0B0D0F] border border-[#C5A46D]/30 rounded-[8px] text-left space-y-3">
               <h3 className="font-medium text-[#C5A46D] flex items-center gap-2 text-[15px]">
-                <Sparkles className="h-4 w-4" /> ASIA WAY Eksklyuziv Xizmati
+                <Sparkles className="h-4 w-4" /> AsiaWay Eksklyuziv Xizmati
               </h3>
               <p className="text-[13px] text-[#A8A49B] leading-[1.6]">
                 Siz uchun bepul aeroport transferi (kutib olish va kuzatish) tashkil qilinadi.

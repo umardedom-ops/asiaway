@@ -1,12 +1,12 @@
 /**
- * ASIA WAY — tipografik wordmark (og'ir 3D rasm-logo o'rniga).
- * Cormorant Garamond "ASIA WAY" + tracked "APARTMENTS" (champagne) — nafis,
+ * AsiaWay — tipografik wordmark (og'ir 3D rasm-logo o'rniga).
+ * Cormorant Garamond "AsiaWay" + tracked "APARTMENTS" (champagne) — nafis,
  * mavzuga mos, baked soyasiz. Har joyda izchil ishlatiladi.
  */
 
 type Variant = "header" | "hero" | "footer" | "intro";
 
-// tracking past — "ASIA WAY" yagona uyg'un logotype bo'lib o'qiladi (harflar juda cho'zilmaydi).
+// tracking past — "AsiaWay" yagona uyg'un logotype bo'lib o'qiladi (harflar juda cho'zilmaydi).
 // Sub "APARTMENTS" kengligi main bilan mos kelishi uchun tracking o'lchamга moslangan.
 const STYLES: Record<Variant, { main: string; sub: string }> = {
   header: { main: "text-[19px] md:text-[22px] tracking-[0.06em]", sub: "" },
@@ -24,7 +24,7 @@ export default function BrandWordmark({
 }) {
   const s = STYLES[variant];
   return (
-    <span className={`inline-flex flex-col ${className}`} aria-label="ASIA WAY Apartments">
+    <span className={`inline-flex flex-col ${className}`} aria-label="AsiaWay Apartments">
       <span className={`font-heading font-semibold leading-none text-[#F5F2EB] ${s.main}`}>
         AsiaWay
       </span>

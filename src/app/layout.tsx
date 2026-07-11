@@ -18,7 +18,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "ASIA WAY Apartment — Nest One'da premium ijara | Tashkent City",
+  title: "AsiaWay Apartment — Nest One'da premium ijara | Tashkent City",
   description:
     "Nest One osmono'par binosida kunlik va oylik premium apartament ijarasi. 10 yillik tajriba, bepul aeroport transferi, 24/7 xizmat. Online bron qiling.",
 };

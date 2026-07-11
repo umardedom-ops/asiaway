@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
       <aside className="hidden md:flex flex-col w-[280px] border-r border-[rgba(197,164,109,0.14)] bg-[#111417] p-6 space-y-8">
         <div className="flex items-center space-x-3 px-2">
           <Building2 className="h-6 w-6 text-[#C5A46D]" />
-          <span className="text-[20px] font-heading font-semibold tracking-wide text-[#F5F2EB]">ASIA WAY</span>
+          <span className="text-[20px] font-heading font-semibold tracking-wide text-[#F5F2EB]">AsiaWay</span>
           <span className="text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 bg-[#C5A46D]/10 text-[#C5A46D] rounded border border-[#C5A46D]/20">Admin</span>
         </div>
 
@@ -85,7 +85,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
         <header className="md:hidden flex items-center justify-between p-4 border-b border-[rgba(197,164,109,0.14)] bg-[#111417]">
           <div className="flex items-center space-x-2">
             <Building2 className="h-5 w-5 text-[#C5A46D]" />
-            <span className="font-heading font-medium text-[#F5F2EB] text-[18px]">ASIA WAY</span>
+            <span className="font-heading font-medium text-[#F5F2EB] text-[18px]">AsiaWay</span>
           </div>
           <div className="flex items-center space-x-3">
             <form action={logout}>

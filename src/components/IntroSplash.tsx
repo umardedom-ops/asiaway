@@ -7,7 +7,7 @@ import BrandWordmark from "@/components/BrandWordmark";
 
 /**
  * Saytga kirishda ko'rsatiladigan intro/splash ekran — Nest One binoning
- * haqiqiy surati fonda, markazda ASIA WAY logotipi paydo bo'ladi, so'ng
+ * haqiqiy surati fonda, markazda AsiaWay logotipi paydo bo'ladi, so'ng
  * butun ekran silliq fade bilan asosiy saytga o'tadi.
  */
 export default function IntroSplash() {
@@ -52,7 +52,7 @@ export default function IntroSplash() {
           <div className="absolute inset-0 bg-[#0B0D0F]/70" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D0F] via-transparent to-[#0B0D0F]/60" />
 
-          {/* ASIA WAY logotipi */}
+          {/* AsiaWay logotipi */}
           <motion.div
             initial={{ opacity: 0, scale: 0.85, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

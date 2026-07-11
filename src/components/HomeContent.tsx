@@ -11,6 +11,7 @@ import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
 import FloatingContact from "@/components/FloatingContact";
 import AirportService from "@/components/AirportService";
+import Experience3D from "@/components/Experience3D";
 import LocationSection from "@/components/LocationSection";
 import BrandWordmark from "@/components/BrandWordmark";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -50,7 +51,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
             scrolled ? "py-2.5" : "py-3.5"
           }`}
         >
-          <a href="#" aria-label="ASIA WAY" className="shrink-0">
+          <a href="#" aria-label="AsiaWay" className="shrink-0">
             <BrandWordmark variant="header" />
           </a>
 
@@ -130,7 +131,10 @@ export default function HomeContent({ apartments, phones, address }: { apartment
         </div>
       </section>
 
-      {/* AEROPORT XIZMATI — 2-bo'lim (hero'dan keyin) */}
+      {/* EXPERIENCE 3D — 2-bo'lim (hero'dan keyin) */}
+      <Experience3D />
+
+      {/* AEROPORT XIZMATI — 3-bo'lim */}
       <AirportService />
 
       {/* ABOUT */}
@@ -184,40 +188,6 @@ export default function HomeContent({ apartments, phones, address }: { apartment
             <div className="text-[13px] text-[#A8A49B]">{t.catalog.total(apartments.length)}</div>
           </div>
           <ApartmentCatalog initialApartments={apartments} />
-        </div>
-      </section>
-
-      {/* EXPERIENCE — 34-qavat balkon fotosi + kuchli sotuvchi matn */}
-      <section id="experience" className="relative min-h-[82vh] lg:min-h-[90vh] flex items-end overflow-hidden border-y border-[rgba(197,164,109,0.14)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/nestone/balcony-34floor.jpg"
-          alt="34-qavat balkonidan Toshkent manzarasi"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        {/* Chapdan qoraytirish — matn kontrasti; o'ngda manzara ochiq */}
-        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(11,13,15,0.92) 0%, rgba(11,13,15,0.55) 42%, rgba(11,13,15,0.05) 78%)" }} />
-        {/* Pastki grounding */}
-        <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, #0B0D0F 0%, rgba(11,13,15,0.15) 32%, transparent 62%)" }} />
-
-        <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 lg:px-24 pb-16 lg:pb-24 pt-28">
-          <div className="max-w-[640px] space-y-6">
-            <div className="flex items-center gap-3">
-              <span className="h-px w-8 bg-[#C5A46D]" />
-              <span className="text-[12px] md:text-[13px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">{t.experience.kicker}</span>
-            </div>
-            <h2 className="font-heading text-[42px] md:text-[60px] lg:text-[76px] font-medium text-[#F5F2EB] leading-[1.02] tracking-tight drop-shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-              {t.experience.title}
-            </h2>
-            <p className="text-[16px] md:text-[19px] text-[#E4DFD4] leading-[1.65] max-w-[560px] drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]">
-              {t.experience.body}
-            </p>
-            <div className="pt-4">
-              <a href="#catalog">
-                <Button className={`${btnPrimary} ${btnLg}`}>{t.experience.cta}</Button>
-              </a>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -277,7 +247,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
           </div>
         </div>
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center text-[12px] text-[#A8A49B] pt-8 gap-3">
-          <span>© {new Date().getFullYear()} ASIA WAY. {t.footer.rights}</span>
+          <span>© {new Date().getFullYear()} AsiaWay. {t.footer.rights}</span>
           <span>{t.footer.city}</span>
         </div>
       </footer>

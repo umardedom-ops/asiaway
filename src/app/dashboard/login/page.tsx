@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
             <ShieldAlert className="h-6 w-6" />
           </div>
           <CardTitle className="text-[28px] font-heading font-medium tracking-wide text-[#F5F2EB] mt-4">
-            ASIA WAY
+            AsiaWay
           </CardTitle>
           <CardDescription className="text-[13px] text-[#A8A49B] tracking-wide mt-2">
             Tizimga kirish uchun ma&apos;lumotlarni kiriting
