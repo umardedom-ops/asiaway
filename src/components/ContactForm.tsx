@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createLead } from "@/app/actions/lead";
 import { useLang } from "./LanguageProvider";
 import { btnPrimary } from "@/lib/ui";
@@ -39,9 +39,23 @@ export default function ContactForm() {
   const [whatsapp, setWhatsapp] = useState("");
   const [telegram, setTelegram] = useState("");
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState(() => DEFAULT_MSG[lang] || "");
+  const [message, setMessage] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [formErr, setFormErr] = useState("");
+  const [started, setStarted] = useState(false);
+  const [msgEdited, setMsgEdited] = useState(false);
+
+  // Anketani to'ldira boshlaganda tayyor xabar joriy tilda paydo bo'ladi
+  const handleStart = () => {
+    if (started) return;
+    setStarted(true);
+    if (!msgEdited) setMessage(DEFAULT_MSG[lang]);
+  };
+
+  // Til almashsa — tayyor xabar o'zi tarjima bo'ladi (qo'lda tahrirlanmagan bo'lsa)
+  useEffect(() => {
+    if (started && !msgEdited) setMessage(DEFAULT_MSG[lang]);
+  }, [lang, started, msgEdited]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +83,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4" noValidate>
+    <form onSubmit={submit} onFocus={(e) => { if ((e.target as HTMLElement).tagName !== "TEXTAREA") handleStart(); }} className="space-y-4" noValidate>
       {(state === "error" || formErr) && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {formErr || c.error}
@@ -105,7 +119,7 @@ export default function ContactForm() {
         className="w-full rounded-lg border border-[rgba(197,164,109,0.2)] bg-[#0B0D0F]/60 p-4 text-[15px] text-[#F5F2EB] placeholder-[#A8A49B]/60 outline-none focus:border-[#C5A46D] transition-colors min-h-[96px] resize-none"
         placeholder={c.message}
         value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        onChange={(e) => { setMessage(e.target.value); setMsgEdited(true); }}
       />
 
       <button
