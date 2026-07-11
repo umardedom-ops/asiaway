@@ -169,7 +169,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
 
       {/* DETAIL MODAL */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent showCloseButton={false} className="max-w-[800px] w-full bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl">
+        <DialogContent showCloseButton={false} className="max-w-[800px] sm:max-w-[800px] w-[calc(100%-2rem)] bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl">
           {selectedApartment && (
             <div className="flex flex-col max-h-[90vh]">
               <div className="relative h-[300px] md:h-[400px] w-full shrink-0">
@@ -178,7 +178,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D0F] via-transparent to-transparent opacity-90" />
                 <button onClick={() => setIsDetailsOpen(false)} className="absolute top-6 right-6 bg-[#111417]/80 backdrop-blur border border-[rgba(197,164,109,0.22)] text-[#F5F2EB] hover:text-[#C5A46D] rounded-full w-10 h-10 flex items-center justify-center transition-colors">✕</button>
               </div>
-              <div className="p-8 md:p-12 overflow-y-auto custom-scrollbar">
+              <div className="p-8 md:p-12 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 <div className="flex flex-col md:flex-row justify-between md:items-end gap-6 mb-10 border-b border-[rgba(197,164,109,0.14)] pb-8">
                   <div className="space-y-4">
                     <span className="text-[12px] font-semibold text-[#C5A46D] tracking-[0.12em] uppercase">Tashkent City • Nest One</span>
