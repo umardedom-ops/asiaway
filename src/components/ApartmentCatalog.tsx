@@ -265,7 +265,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                     ✕
                   </button>
 
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden p-8 md:p-10 lg:p-12 md:pt-20 custom-scrollbar">
+                  <div data-lenis-prevent className="flex-1 overflow-y-auto overflow-x-hidden p-8 md:p-10 lg:p-12 md:pt-20 custom-scrollbar">
                     <div className="flex flex-col xl:flex-row justify-between xl:items-end gap-6 mb-10 border-b border-[rgba(197,164,109,0.14)] pb-8">
                       <div className="space-y-4 pr-12 md:pr-0">
                         <span className="text-[12px] font-semibold text-[#C5A46D] tracking-[0.12em] uppercase">Tashkent City • Nest One</span>

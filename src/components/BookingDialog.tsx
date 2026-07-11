@@ -177,7 +177,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-[600px] sm:max-w-[650px] md:max-w-[700px] w-full bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden h-[90vh] max-h-[90vh] md:h-[85vh] md:max-h-[85vh] shadow-2xl p-0">
         
-        <div className="h-full w-full overflow-y-auto custom-scrollbar relative">
+        <div data-lenis-prevent className="h-full w-full overflow-y-auto custom-scrollbar relative">
         {/* STEP 1: DATE PICKER & GUEST INFO */}
         {step === 1 && (
           <div className="p-6 md:p-10 space-y-8">
