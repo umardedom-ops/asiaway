@@ -18,7 +18,7 @@ const REVIEWS_DATA: Record<"uz" | "ru" | "en", ReviewItem[]> = {
     { name: "Elena S.", role: "Astana", text: "Gullar bilan bezatilgan balkon va basseyn menga juda yoqdi. Bolalarim maza qilib dam olishdi." },
     { name: "Farrux K.", role: "Buxoro", text: "Aeroportdan transfer vaqtida keldi. Menejerlar juda xushmuomala. Biznes safar uchun eng yaxshi tanlov." },
     { name: "John D.", role: "Nyu-York", text: "Nest One apartamentlari 5 yulduzli mehmonxonalardan qolishmaydi. Manzara esa shunchaki aqlbovar qilmas!" },
-    { name: "Madina A.", role: "Toshkent", text: "Oila bilan dam olish uchun juda mos joy. Uydagidek issiq muhit va toza havo." },
+    { name: "Madina A.", role: "Toshkent", text: "Oila bilan dam olish uchun juda mos job. Uydagidek issiq muhit va toza havo." },
     { name: "Rinat T.", role: "Almati", text: "Premium xizmat darajasi. Har bir iltimosimiz soniyalar ichida bajarildi. Rahmat AsiaWay jamoasiga!" },
     { name: "Sophie L.", role: "Parij", text: "Dizayn juda did bilan qilingan. Balkondagi gullar va shahar manzarasi unutilmas lahzalar taqdim etdi." },
     { name: "Sardor M.", role: "Farg'ona", text: "Xonalar toza va shinam. Sportzal va basseyn uchun alohida rahmat. Keyingi safar ham shu yerda qolaman." },
@@ -26,7 +26,7 @@ const REVIEWS_DATA: Record<"uz" | "ru" | "en", ReviewItem[]> = {
     { name: "Kyu-Hyun Kim", role: "Seul", text: "Juda xavfsiz va yuqori texnologiyali bino. Xizmat ko'rsatish sifati eng yuqori darajada." },
     { name: "Amir H.", role: "Dubay", text: "Luks darajadagi apartament. Dizayni premium, sport zali va hududi mukammal tartibga solingan." },
     { name: "Zuhra O.", role: "Toshkent", text: "Ajoyib dam olish kunlari bo'ldi. Gullar ifori va balkondagi shinamlik dam olishni unutilmas qildi." },
-    { name: "David P.", role: "Berlin", text: "Toshkentdagi eng yaxshi turar-joy. AsiaWay jamoasi o'z ishining ustalari. Tavsiya qilaman!" },
+    { name: "David P.", role: "Berlin", text: "Toshkentdagi eng yaxshi turar-job. AsiaWay jamoasi o'z ishining ustalari. Tavsiya qilaman!" },
     { name: "Nodira Z.", role: "Xiva", text: "Kvartira juda shinam va yorug'. Aeroportda kutib olishganidan juda xursand bo'ldik." },
     { name: "Alexander B.", role: "Minsk", text: "Hamma narsa ideal darajada tashkil etilgan. Xizmat ko'rsatish tezligi juda yuqori." },
     { name: "Emily W.", role: "Sidney", text: "Manzara va balkondagi hordiq maydoni shunchaki ajoyib. Xizmat ko'rsatish juda yaxshi." },
@@ -125,15 +125,12 @@ export default function Testimonials() {
   const reviews = REVIEWS_DATA[lang as "uz" | "ru" | "en"] || REVIEWS_DATA["uz"];
   const r = t.reviews;
 
-  const row1 = reviews.slice(0, 13);
-  const row2 = reviews.slice(13);
-
   return (
     <section className="relative py-[90px] lg:py-[145px] overflow-hidden bg-black" id="reviews">
-      {/* Balcony Background Image */}
+      {/* Background Image from Desktop (photo_2026-07-11_19-40-38.jpg) */}
       <div className="absolute inset-0 z-0 opacity-75">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/nestone/balcony-34floor.jpg" alt="Nest One Balcony View" className="w-full h-full object-cover object-center" />
+        <img src="/nestone/view-34floor.jpg" alt="Nest One 34th Floor View" className="w-full h-full object-cover object-center" />
       </div>
       {/* Clean semi-transparent dark overlay for high visibility and contrast (20% qoraytirish) */}
       <div className="absolute inset-0 z-10 bg-black/20 backdrop-blur-[0.5px]" />
@@ -148,27 +145,17 @@ export default function Testimonials() {
           </h2>
         </div>
 
-        <div className="space-y-6 md:space-y-8">
-          {/* Row 1: Left scrolling */}
-          <div className="marquee-wrap overflow-hidden w-full relative">
-            <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black/40 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black/40 to-transparent z-10 pointer-events-none" />
-            <div className="marquee-track flex gap-5 px-6 py-2">
-              {[...row1, ...row1].map((item, i) => (
-                <TestimonialCard key={i} item={item} />
-              ))}
-            </div>
-          </div>
-
-          {/* Row 2: Right scrolling */}
-          <div className="marquee-wrap overflow-hidden w-full relative">
-            <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black/40 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black/40 to-transparent z-10 pointer-events-none" />
-            <div className="marquee-track-reverse flex gap-5 px-6 py-2">
-              {[...row2, ...row2].map((item, i) => (
-                <TestimonialCard key={i} item={item} />
-              ))}
-            </div>
+        {/* Single Row Infinite Marquee */}
+        <div className="marquee-wrap overflow-hidden w-full relative">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black/40 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black/40 to-transparent z-10 pointer-events-none" />
+          <div 
+            className="marquee-track flex gap-5 px-6 py-2"
+            style={{ animationDuration: "140s" }}
+          >
+            {[...reviews, ...reviews].map((item, i) => (
+              <TestimonialCard key={i} item={item} />
+            ))}
           </div>
         </div>
       </div>
