@@ -201,29 +201,29 @@ export default function HomeContent({ apartments, phones, address }: { apartment
       </section>
 
       {/* SERVICES */}
-      <section className="relative py-[100px] lg:py-[160px] px-6 lg:px-24 overflow-hidden bg-[#0B0D0F]" id="services">
+      <section className="relative py-[85px] lg:py-[110px] px-6 lg:px-24 overflow-hidden bg-black" id="services">
         {/* Gym Background Image */}
-        <div className="absolute inset-0 z-0 opacity-45">
+        <div className="absolute inset-0 z-0 opacity-40">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/nestone/interior-gym.jpg" alt="Nest One Gym" className="w-full h-full object-cover" />
+          <img src="/nestone/interior-gym.jpg" alt="Nest One Gym" className="w-full h-full object-cover object-center" />
         </div>
-        {/* Dark Overlays for Contrast */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#0B0D0F]/90 via-[#0B0D0F]/75 to-[#0B0D0F]/90 backdrop-blur-[1px]" />
+        {/* Clean semi-transparent dark overlay for high visibility and contrast */}
+        <div className="absolute inset-0 z-10 bg-black/65 backdrop-blur-[1px]" />
         
         {/* Glow Effects */}
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-10" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#C5A46D]/5 blur-[120px] pointer-events-none z-10" />
 
-        <div className="relative z-20 max-w-[1280px] mx-auto space-y-16">
-          <div className="space-y-6 max-w-3xl text-left">
+        <div className="relative z-20 max-w-[1340px] mx-auto space-y-12">
+          <div className="space-y-4 max-w-3xl text-left">
             <div className="flex items-center gap-3">
               <span className="h-px w-8 bg-[#C5A46D]" />
-              <span className="text-[12px] md:text-[14px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">{t.services.kicker}</span>
+              <span className="text-[11px] md:text-[12px] font-semibold text-[#C5A46D] tracking-[0.2em] uppercase">{t.services.kicker}</span>
             </div>
-            <h2 className="font-heading text-[42px] md:text-[56px] lg:text-[72px] font-medium text-[#F5F2EB] leading-[1.05] tracking-tight">
+            <h2 className="font-heading text-[36px] md:text-[48px] lg:text-[60px] font-medium text-[#F5F2EB] leading-[1.1] tracking-tight">
               <motion.span
                 className="block"
-                animate={{ y: [0, -8, 0] }}
+                animate={{ y: [0, -6, 0] }}
                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
               >
                 {t.services.title}
@@ -231,40 +231,40 @@ export default function HomeContent({ apartments, phones, address }: { apartment
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-5" style={{ perspective: 1200 }}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4" style={{ perspective: 1200 }}>
             {t.services.items.map((service, idx) => {
               const Icon = SERVICE_ICONS[idx] || Sparkles;
               const detail = (SERVICE_DETAILS[lang] || SERVICE_DETAILS["uz"])[idx];
               return (
                 <motion.div
                   key={idx}
-                  className="group relative bg-[#111417]/70 backdrop-blur-md p-6 lg:p-7 rounded-xl border border-[rgba(197,164,109,0.1)] hover:border-[#C5A46D]/50 transition-all duration-500 flex flex-col justify-between min-h-[180px] lg:min-h-[220px] hover:shadow-[0_15px_30px_rgba(197,164,109,0.06)] cursor-pointer"
+                  className="group relative bg-[#111417]/75 backdrop-blur-md p-5 lg:p-6 rounded-xl border border-[rgba(197,164,109,0.12)] hover:border-[#C5A46D]/60 transition-all duration-500 flex flex-col justify-between min-h-[160px] lg:min-h-[200px] hover:shadow-[0_15px_30px_rgba(197,164,109,0.06)] cursor-pointer"
                   style={{ transformStyle: "preserve-3d" }}
                   whileHover={{ 
-                    y: -6,
+                    y: -5,
                     rotateX: 3,
                     rotateY: -3,
-                    scale: 1.015,
+                    scale: 1.01,
                   }}
-                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 22 }}
                 >
                   {/* Subtle Background Card Glow */}
-                  <div className="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-[#C5A46D]/5 blur-xl group-hover:bg-[#C5A46D]/8 transition-all duration-500" />
+                  <div className="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-[#C5A46D]/5 blur-xl group-hover:bg-[#C5A46D]/8 transition-all duration-500" />
                   
-                  <div className="flex items-start justify-between" style={{ transform: "translateZ(20px)" }}>
-                    <div className="p-3 rounded-lg bg-[#1A1D20] border border-[rgba(197,164,109,0.15)] group-hover:border-[#C5A46D]/50 group-hover:text-[#0B0D0F] group-hover:bg-[#C5A46D] text-[#C5A46D] transition-all duration-500">
-                      <Icon className="h-5 w-5 stroke-[1.5]" />
+                  <div className="flex items-start justify-between" style={{ transform: "translateZ(15px)" }}>
+                    <div className="p-2.5 rounded-lg bg-[#1A1D20] border border-[rgba(197,164,109,0.15)] group-hover:border-[#C5A46D]/50 group-hover:text-[#0B0D0F] group-hover:bg-[#C5A46D] text-[#C5A46D] transition-all duration-500">
+                      <Icon className="h-4.5 w-4.5 stroke-[1.5]" />
                     </div>
-                    <span className="text-[12px] font-heading font-medium text-[#A8A49B]/30 tracking-widest group-hover:text-[#C5A46D] transition-colors duration-500">
+                    <span className="text-[11px] font-heading font-medium text-[#A8A49B]/30 tracking-widest group-hover:text-[#C5A46D] transition-colors duration-500">
                       {detail?.num || `0${idx + 1}`}
                     </span>
                   </div>
 
-                  <div className="space-y-2 mt-4" style={{ transform: "translateZ(30px)" }}>
-                    <h3 className="text-[15px] lg:text-[16px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors duration-500 leading-snug">
+                  <div className="space-y-1.5 mt-3" style={{ transform: "translateZ(25px)" }}>
+                    <h3 className="text-[13px] lg:text-[14px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors duration-500 leading-snug">
                       {service}
                     </h3>
-                    <p className="text-[11px] lg:text-[12px] text-[#A8A49B] leading-relaxed font-light opacity-90">
+                    <p className="text-[10px] lg:text-[11px] text-[#A8A49B]/95 leading-relaxed font-light line-clamp-2">
                       {detail?.desc}
                     </p>
                   </div>
