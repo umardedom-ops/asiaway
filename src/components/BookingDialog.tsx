@@ -206,7 +206,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
                       <CalendarIcon className="mr-3 h-4 w-4 text-[#C5A46D]" />
                       {checkIn ? format(checkIn, "dd.MM.yyyy") : <span className="text-[#A8A49B]/50">{b.selectDate}</span>}
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-[#111417] border-[rgba(197,164,109,0.22)] text-[#F5F2EB]" align="start">
+                    <PopoverContent className="w-auto p-0 bg-[#111417] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] z-[100]" align="start">
                       <Calendar
                         mode="single"
                         selected={checkIn}
@@ -226,7 +226,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
                       <CalendarIcon className="mr-3 h-4 w-4 text-[#C5A46D]" />
                       {checkOut ? format(checkOut, "dd.MM.yyyy") : <span className="text-[#A8A49B]/50">{b.selectDate}</span>}
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-[#111417] border-[rgba(197,164,109,0.22)] text-[#F5F2EB]" align="start">
+                    <PopoverContent className="w-auto p-0 bg-[#111417] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] z-[100]" align="start">
                       <Calendar
                         mode="single"
                         selected={checkOut}

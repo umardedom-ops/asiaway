@@ -256,7 +256,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                 </div>
 
                 {/* RIGHT: Content Area */}
-                <div className="flex flex-col flex-1 overflow-hidden w-full md:w-[55%] lg:w-[50%] bg-[#0B0D0F] relative">
+                <div className="flex flex-col flex-1 min-h-0 overflow-hidden w-full md:w-[55%] lg:w-[50%] bg-[#0B0D0F] relative">
                   {/* Close Button for Desktop ONLY */}
                   <button
                     onClick={() => setIsDetailsOpen(false)}
@@ -326,7 +326,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
 
                   <div className="p-6 md:p-8 border-t border-[rgba(197,164,109,0.14)] bg-[#0B0D0F] shrink-0">
                     <div className="flex flex-col sm:flex-row gap-4">
-                      <Button onClick={() => { setIsDetailsOpen(false); setIsBookingOpen(true); }} className={`w-full sm:w-2/3 ${btnPrimary} h-14 text-[15px]`}>{t.nav.book}</Button>
+                      <Button onClick={() => { setIsDetailsOpen(false); setTimeout(() => setIsBookingOpen(true), 50); }} className={`w-full sm:w-2/3 ${btnPrimary} h-14 text-[15px]`}>{t.nav.book}</Button>
                       <Button onClick={() => setIsDetailsOpen(false)} className={`w-full sm:w-1/3 ${btnSecondary} h-14 text-[15px]`}>{mx.close}</Button>
                     </div>
                   </div>
