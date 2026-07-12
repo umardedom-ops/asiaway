@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import KanbanBoard from "./KanbanBoard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Home,
@@ -24,7 +25,7 @@ export default async function DashboardPage() {
   // 1. Barcha kvartiralarni olish
   const { data: apartments } = await supabase
     .from("apartments")
-    .select("id, status, monthly_lease_cost");
+    .select("id, title, status, monthly_lease_cost, kanban_status");
 
   const totalApts = apartments?.length || 0;
   const activeApts = apartments?.filter(a => a.status === "active").length || 0;
@@ -178,40 +179,10 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        {/* Bandlik statusi vizualizatsiyasi */}
-        <Card className="col-span-4 border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-          <CardHeader>
-            <CardTitle className="text-[18px] font-medium text-[#F5F2EB]">Apartamentlar holati</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Joriy bandlik darajasi</p>
-                <p className="text-[36px] font-medium text-[#F5F2EB]">{occupancyRate}%</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#C5A46D]/10 text-[#C5A46D]">
-                <Percent className="h-6 w-6" />
-              </div>
-            </div>
-            {/* Progress bar */}
-            <div className="h-3 w-full bg-[#0B0D0F] rounded-full overflow-hidden border border-[rgba(197,164,109,0.14)]">
-              <div 
-                className="h-full bg-[#C5A46D] transition-all duration-500" 
-                style={{ width: `${occupancyRate}%` }}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="bg-[#0B0D0F] p-5 rounded-[8px] border border-[rgba(197,164,109,0.14)]">
-                <div className="text-[#A8A49B] text-[12px] font-semibold uppercase tracking-[0.1em]">Band kvartiralar</div>
-                <div className="text-[24px] font-medium text-[#F5F2EB] mt-2">{occupiedCount} ta</div>
-              </div>
-              <div className="bg-[#0B0D0F] p-5 rounded-[8px] border border-[rgba(197,164,109,0.14)]">
-                <div className="text-[#A8A49B] text-[12px] font-semibold uppercase tracking-[0.1em]">Bo&apos;sh kvartiralar</div>
-                <div className="text-[24px] font-medium text-[#C5A46D] mt-2">{vacantCount} ta</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Realtime Kanban Doskasi */}
+        <div className="col-span-4">
+          <KanbanBoard initialData={apartments || []} />
+        </div>
 
         {/* Tezkor eslatmalar */}
         <Card className="col-span-3 border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">

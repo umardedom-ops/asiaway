@@ -45,29 +45,47 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
       }
 
-      // Admin emaillar ro'yxatini .env.local dan o'qiymiz
-      const approvedEmails = (process.env.ADMIN_EMAILS || "")
-        .split(",")
-        .map((email) => email.trim().toLowerCase());
+      // Role checking from profiles table
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
 
-      if (!user.email || !approvedEmails.includes(user.email.toLowerCase())) {
-        // Ruxsat berilmagan foydalanuvchini logout qilamiz va xato xabari bilan qaytaramiz
+      const role = profile?.role;
+
+      // If user is not in profiles table or has no role, restrict
+      if (!role) {
         await supabase.auth.signOut();
         url.pathname = "/dashboard/login";
         url.searchParams.set("error", "unauthorized");
         return NextResponse.redirect(url);
       }
-    } else {
-      // Agar foydalanuvchi allaqachon login qilgan va ruxsati bo'lsa, /dashboard ga yo'naltiramiz
-      if (user) {
-        const approvedEmails = (process.env.ADMIN_EMAILS || "")
-          .split(",")
-          .map((email) => email.trim().toLowerCase());
 
-        if (user.email && approvedEmails.includes(user.email.toLowerCase())) {
-          url.pathname = "/dashboard";
+      // Route Protection based on roles
+      if (url.pathname.startsWith('/dashboard/finance') && role !== 'shef') {
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+      
+      if (url.pathname.startsWith('/dashboard/staff') && role !== 'shef') {
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+
+      if (role === 'cleaning') {
+        // Cleaning staff can only see the tasks/cleaning page
+        if (!url.pathname.startsWith('/dashboard/tasks')) {
+          url.pathname = "/dashboard/tasks";
           return NextResponse.redirect(url);
         }
+      }
+
+    } else {
+      // If logging in and already auth'd
+      if (user) {
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
       }
     }
   }
