@@ -110,7 +110,7 @@ export async function POST(req: Request) {
       .eq('role', 'shef');
 
     if (botToken && subscribers && subscribers.length > 0) {
-      const pdfBlob = new Blob([pdfBuffer], { type: 'application/pdf' });
+      const pdfBlob = new Blob([pdfBuffer as any], { type: 'application/pdf' });
 
       for (const sub of subscribers) {
         const formData = new FormData();
@@ -125,7 +125,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(pdfBuffer as any, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
