@@ -177,13 +177,13 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
 
       {/* DETAIL MODAL */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent showCloseButton={false} className="max-w-[800px] sm:max-w-[800px] md:max-w-[960px] lg:max-w-[1100px] w-[calc(100%-2rem)] bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl h-[90vh] max-h-[90vh] md:h-[650px] lg:h-[750px] md:max-h-[85vh] flex flex-col">
+        <DialogContent showCloseButton={false} className="max-w-[800px] sm:max-w-[800px] md:max-w-[960px] lg:max-w-[1100px] w-[calc(100%-2rem)] bg-[#0B0D0F] border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[12px] overflow-hidden p-0 gap-0 shadow-2xl h-[85svh] max-h-[85svh] md:h-[650px] lg:h-[750px] md:max-h-[85vh] flex flex-col">
           {selectedApartment && (() => {
             const images = getApartmentImages(selectedApartment);
             return (
               <div className="flex flex-col md:flex-row h-full w-full overflow-hidden">
                 {/* LEFT: Image Slider */}
-                <div className="relative h-[300px] md:h-full w-full md:w-[45%] lg:w-[50%] shrink-0 group/slider overflow-hidden bg-black">
+                <div className="relative h-[240px] md:h-full w-full md:w-[45%] lg:w-[50%] shrink-0 group/slider overflow-hidden bg-black">
                   {/* Images */}
                   <div className="w-full h-full relative">
                     {images.map((imgUrl, index) => (
@@ -256,7 +256,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                 </div>
 
                 {/* RIGHT: Content Area */}
-                <div className="flex flex-col h-full w-full md:w-[55%] lg:w-[50%] bg-[#0B0D0F] relative">
+                <div className="flex flex-col flex-1 overflow-hidden w-full md:w-[55%] lg:w-[50%] bg-[#0B0D0F] relative">
                   {/* Close Button for Desktop ONLY */}
                   <button
                     onClick={() => setIsDetailsOpen(false)}
