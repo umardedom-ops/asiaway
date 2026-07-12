@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import PdfPrinter from "pdfmake";
+const PdfPrinter = require("pdfmake");
 
 // Standard fonts for pdfmake
 const fonts = {
