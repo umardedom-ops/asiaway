@@ -10,16 +10,9 @@ import { NextResponse } from "next/server";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://asiaway.vercel.app";
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const secret = url.searchParams.get("secret");
-  const expected = process.env.CRON_SECRET || "setup123";
-  if (secret !== expected) {
-    return NextResponse.json(
-      { error: "Noto'g'ri secret. ?secret=<CRON_SECRET> qo'shing." },
-      { status: 401 }
-    );
-  }
+export async function GET() {
+  // Parol talab qilinmaydi: bu endpoint faqat o'z saytimiz (SITE_URL) manziliga
+  // webhook o'rnatadi va hech qanday maxfiy ma'lumot qaytarmaydi — xavfsiz.
 
   // Barcha mumkin bo'lgan token nomlari (Vercel'да qaysi nomда bo'lsa ham)
   const bots: { role: string; token?: string }[] = [
