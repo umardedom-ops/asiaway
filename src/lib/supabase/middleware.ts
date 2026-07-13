@@ -77,6 +77,11 @@ export async function updateSession(request: NextRequest) {
         url.pathname = "/dashboard";
         return NextResponse.redirect(url);
       }
+
+      if (url.pathname.startsWith('/dashboard/income') && role !== 'shef') {
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
       
       if (url.pathname.startsWith('/dashboard/staff') && role !== 'shef') {
         url.pathname = "/dashboard";

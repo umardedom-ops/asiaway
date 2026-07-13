@@ -110,7 +110,7 @@ export async function createBooking(input: BookingInput) {
     );
 
     // Mijozни (mehmonни) avtomatik sinxronlash
-    await syncClientFromBooking(supabase, {
+    const client = await syncClientFromBooking(supabase, {
       name: input.guest_name,
       phone: input.guest_phone,
       email: input.guest_email,
@@ -118,8 +118,23 @@ export async function createBooking(input: BookingInput) {
       amount: input.total_price,
     });
 
+    // Simulyatsiya rejimida zaklat darhol "to'langan" → kirim kassasiga yozamiz.
+    // Real rejimda to'lov webhook orqali tasdiqlangач alohida yoziladi.
+    if (!realPayment && (input.deposit_amount || 0) > 0) {
+      await supabase.from("payments").insert([{
+        booking_id: newBooking.id,
+        client_id: client?.id || null,
+        guest_name: input.guest_name,
+        amount: input.deposit_amount,
+        method: input.payment_method,
+        kind: "deposit",
+        note: "Sayt broni — zaklat (onlayn)",
+      }]);
+    }
+
     // Cache tozalash
     revalidatePath("/dashboard/bookings");
+    revalidatePath("/dashboard/income");
     revalidatePath("/dashboard");
     
     return {

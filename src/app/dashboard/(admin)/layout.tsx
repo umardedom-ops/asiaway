@@ -12,7 +12,8 @@ import {
   Users,
   UsersRound,
   Wallet,
-  UserCog
+  UserCog,
+  BedDouble
 } from "lucide-react";
 
 interface LayoutProps {
@@ -40,10 +41,12 @@ export default async function AdminLayout({ children }: LayoutProps) {
     { name: "Boshqaruv paneli", href: "/dashboard", icon: LayoutDashboard },
     { name: "Apartamentlar", href: "/dashboard/apartments", icon: Home },
     { name: "Bronlar ro'yxati", href: "/dashboard/bookings", icon: CalendarCheck },
+    { name: "Mehmon joylashtirish", href: "/dashboard/guests", icon: BedDouble },
     { name: "CRM (Murojaatlar)", href: "/dashboard/crm", icon: Users },
     { name: "Mehmonlar", href: "/dashboard/clients", icon: UsersRound },
     ...(role === "shef"
       ? [
+          { name: "Kirim kassasi", href: "/dashboard/income", icon: Wallet },
           { name: "Kunlik kassa", href: "/dashboard/cashflow", icon: Wallet },
           { name: "Moliya", href: "/dashboard/finance", icon: Wallet },
           { name: "Egalarga to'lov", href: "/dashboard/owner-payments", icon: Building2 },

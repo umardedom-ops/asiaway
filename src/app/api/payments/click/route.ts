@@ -140,6 +140,16 @@ export async function POST(req: Request) {
       })
       .eq("id", booking.id);
 
+    // Kirim kassasiga yozuv
+    await supabase.from("payments").insert([{
+      booking_id: booking.id,
+      guest_name: booking.guest_name,
+      amount: Number(booking.deposit_amount || 0),
+      method: "click",
+      kind: "deposit",
+      note: "Sayt broni — zaklat (Click tasdiqlandi)",
+    }]);
+
     const { data: apt } = await supabase
       .from("apartments")
       .select("title")
