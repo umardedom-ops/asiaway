@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { notifyRole, fmtMoney } from "@/lib/telegram";
+import { sendOwnerPaymentReminders } from "@/lib/owner-reminders";
 
 // Vercel Cron orqali kunda 2 marta chaqiriladi (09:00 va 21:00)
 // Vercel dashboardida konfiguratsiya qilinadi: 0 9,21 * * *
@@ -70,57 +70,8 @@ export async function GET(req: Request) {
       }
     }
 
-    // ================================================================
-    // EGA'GA OYLIK TO'LOV ESLATMASI (biznes poydevori — o'z vaqtida to'lash)
-    // Har apartamentda lease_payment_day (oyning sanasi) bo'lsa:
-    // 3 kun oldin, 1 kun oldin va to'lov kunida shef botiga eslatma.
-    // ================================================================
-    let ownerReminders = 0;
-    const { data: aptsWithDay } = await supabase
-      .from("apartments")
-      .select("title, monthly_lease_cost, owner_name, owner_phone, lease_payment_day")
-      .eq("status", "active")
-      .gt("monthly_lease_cost", 0)
-      .not("lease_payment_day", "is", null);
-
-    if (aptsWithDay && aptsWithDay.length > 0) {
-      // Toshkent vaqti (UTC+5) bo'yicha bugungi sana
-      const nowTk = new Date(Date.now() + 5 * 60 * 60 * 1000);
-      const y = nowTk.getUTCFullYear();
-      const m = nowTk.getUTCMonth(); // 0-11
-      const todayDay = nowTk.getUTCDate();
-      const daysInThisMonth = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
-      const daysInNextMonth = new Date(Date.UTC(y, m + 2, 0)).getUTCDate();
-
-      for (const apt of aptsWithDay) {
-        const day = Number(apt.lease_payment_day);
-        // Fevral kabi qisqa oylarda 31 → oy oxiri
-        const effThis = Math.min(day, daysInThisMonth);
-        const effNext = Math.min(day, daysInNextMonth);
-        // Keyingi to'lov sanasigacha necha kun qoldi
-        const daysUntil =
-          effThis >= todayDay
-            ? effThis - todayDay
-            : daysInThisMonth - todayDay + effNext;
-
-        let label: string | null = null;
-        if (daysUntil === 0) label = "📌 BUGUN";
-        else if (daysUntil === 1) label = "⏰ ERTAGA";
-        else if (daysUntil === 3) label = "🔔 3 kundan keyin";
-        if (!label) continue;
-
-        await notifyRole(
-          "shef",
-          `💵 <b>EGAGA TO'LOV ESLATMASI</b>\n\n` +
-            `${label} — <b>${apt.title}</b> egasiga oylik to'lash kerak.\n\n` +
-            `💰 Summa: ${fmtMoney(Number(apt.monthly_lease_cost))}\n` +
-            `👤 Ega: ${apt.owner_name || "-"}\n` +
-            `📞 Tel: ${apt.owner_phone || "-"}\n` +
-            `📅 To'lov kuni: har oyning ${day}-sanasi`
-        );
-        ownerReminders++;
-      }
-    }
+    // Egaga oylik to'lov eslatmalari ([✅ To'landi] tugmasi bilan)
+    const ownerReminders = await sendOwnerPaymentReminders(supabase);
 
     return NextResponse.json({ success: true, messagesSent, ownerReminders });
 

@@ -72,10 +72,11 @@ ANIQLANGAN MUAMMOLAR (fazalarga bo'lingan):
 **2026-07-13 (Claude):** BARCHA 6 FAZA TUGADI. Kod to'liq; qolgani faqat QO'LDA SOZLASH (pastda).
 
 ## QO'SHIMCHA (2026-07-13, kechki sessiya)
-- [x] **Egaga to'lov kuni eslatmasi**: apartments.lease_payment_day (migratsiya `20260713000001_owner_payment_day.sql` — SQL Editorda RUN kerak), ApartmentForm'da "To'lov kuni (sana)" maydoni, check-expiring cron ichida shef botga eslatma (3 kun oldin / ertaga / bugun, Toshkent vaqti, qisqa oylar hisobga olingan).
+- [x] **Egaga to'lov kuni eslatmasi**: apartments.lease_payment_day (migratsiya `20260713000001_owner_payment_day.sql`), ApartmentForm'da "To'lov kuni (sana)" maydoni.
+- [x] **Eslatma v2 — [✅ To'landi] tugmasi bilan**: `src/lib/owner-reminders.ts` — kuniga 2 mahal (ikkala cron: 14:00 + 21:00 Toshkent), 3 kun oldin boshlanadi, to'lanmasa "KECHIKDI" bo'lib davom etadi. Tugma bosilgach (webhook `leasepaid:<apt>:<YYYY-MM>`): shu oy yopiladi (apartments.lease_last_paid_period, migratsiya `20260713000002_lease_paid_period.sql`) + summa Moliya'ga xarajat (category=rent) bo'lib avtomatik tushadi (takror yozilmaydi).
 
 ## ⚠️ QO'LDA QILINADIGAN ISHLAR (kod emas, sozlash)
-1. **Supabase SQL Editor**da yangi migratsiyalarni ishga tushirish: `supabase/migrations/20260713000000_payments.sql` + `20260713000001_owner_payment_day.sql`.
+1. **Supabase SQL Editor**da yangi migratsiyalarni ishga tushirish: `supabase/migrations/20260713000000_payments.sql` + `20260713000001_owner_payment_day.sql` + `20260713000002_lease_paid_period.sql`.
 2. **Vercel env** qo'shish: `CRON_SECRET` (ixtiyoriy random string), `TELEGRAM_BOT_SHEF_TOKEN`, `TELEGRAM_BOT_MENEJER_TOKEN`, `TELEGRAM_BOT_CLEANING_TOKEN` (BotFather'dan), `NEXT_PUBLIC_SITE_URL=https://asiaway.vercel.app`.
 3. **Telegram webhooklar**: har bot uchun `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://asiaway.vercel.app/api/telegram/webhook?token=<TOKEN>`.
 4. Botlarga kirish: guruh/shaxsiy chatda parol yozish (shef `start_shef_asiaway`, menejer `start_menejer_asiaway`, farrosh `start_cleaning_asiaway`).

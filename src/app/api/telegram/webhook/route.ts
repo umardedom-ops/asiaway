@@ -80,6 +80,51 @@ export async function POST(req: Request) {
             text: `${orig}\n\n— ${LEAD_STATUS_LABELS[value]}`,
           });
         }
+      } else if (kind === 'leasepaid' && id && value) {
+        // Egaga oylik to'landi: value = 'YYYY-MM' davr.
+        // 1) Shu oy uchun eslatmalarni yopamiz, 2) Moliya'ga xarajat yozamiz.
+        const { data: apt, error } = await supabase
+          .from('apartments')
+          .update({ lease_last_paid_period: value })
+          .eq('id', id)
+          .select('id, title, monthly_lease_cost')
+          .single();
+
+        if (!error && apt) {
+          // Takroriy xarajat yozmaslik uchun tekshiramiz
+          const { data: existing } = await supabase
+            .from('expenses')
+            .select('id')
+            .eq('apartment_id', apt.id)
+            .eq('category', 'rent')
+            .like('note', `%${value}%`)
+            .maybeSingle();
+
+          if (!existing) {
+            await supabase.from('expenses').insert([
+              {
+                category: 'rent',
+                amount: Number(apt.monthly_lease_cost || 0),
+                currency: 'USD',
+                spent_on: new Date().toISOString().split('T')[0],
+                apartment_id: apt.id,
+                note: `Egaga oylik (${value}) — bot orqali tasdiqlandi`,
+              },
+            ]);
+          }
+
+          answerText = `✅ ${apt.title} — ${value} oyi yopildi`;
+          if (chatId && messageId) {
+            const orig = cq.message?.text || '';
+            await tg(token, 'editMessageText', {
+              chat_id: chatId,
+              message_id: messageId,
+              text: `${orig}\n\n— ✅ TO'LANDI (${value}). Moliya'ga xarajat yozildi.`,
+            });
+          }
+        } else {
+          answerText = `Xato: ${error?.message || 'apartament topilmadi'}`;
+        }
       } else if (kind === 'task' && id && value === 'done') {
         const { data: task, error } = await supabase
           .from('tasks')

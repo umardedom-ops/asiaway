@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { notifyRole, fmtMoney } from "@/lib/telegram";
+import { sendOwnerPaymentReminders } from "@/lib/owner-reminders";
 
 // Shef uchun kunlik hisobot — Vercel Cron (vercel.json: 0 16 * * * = 21:00 Toshkent).
 export async function GET(req: Request) {
@@ -70,7 +71,10 @@ export async function GET(req: Request) {
 
     await notifyRole("shef", message);
 
-    return NextResponse.json({ success: true, occupancy, revenueToday });
+    // Egaga to'lov eslatmasi — kunning 2-mahali (kechki 21:00 Toshkent)
+    const ownerReminders = await sendOwnerPaymentReminders(supabase);
+
+    return NextResponse.json({ success: true, occupancy, revenueToday, ownerReminders });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: msg }, { status: 500 });
