@@ -21,13 +21,12 @@ export default async function CashflowPage() {
   since.setDate(since.getDate() - 30);
   const sinceStr = since.toISOString().split("T")[0];
 
-  const [{ data: bookingsRaw }, { data: expensesRaw }, { data: apts }] = await Promise.all([
+  const [{ data: paymentsRaw }, { data: expensesRaw }, { data: apts }] = await Promise.all([
     supabase
-      .from("bookings")
-      .select("id, guest_name, total_price, deposit_amount, created_at, check_in, booking_status, apartment_id")
-      .gte("created_at", `${sinceStr}T00:00:00Z`)
-      .neq("booking_status", "cancelled")
-      .order("created_at", { ascending: false }),
+      .from("payments")
+      .select("id, guest_name, amount, kind, method, paid_at")
+      .gte("paid_at", `${sinceStr}T00:00:00Z`)
+      .order("paid_at", { ascending: false }),
     supabase
       .from("expenses")
       .select("id, category, amount, spent_on, note, apartment_id")
@@ -36,17 +35,21 @@ export default async function CashflowPage() {
     supabase.from("apartments").select("id, title"),
   ]);
 
-  const bookings = bookingsRaw ?? [];
+  const payments = paymentsRaw ?? [];
   const expenses = expensesRaw ?? [];
   const aptTitle = (id: string | null) =>
     (apts ?? []).find((a) => a.id === id)?.title || "—";
+
+  // Kirim = haqiqatда olingan to'lovlar (payments), qaytarish manfiy.
+  const payAmount = (p: { amount: number; kind: string }) =>
+    Number(p.amount || 0) * (p.kind === "refund" ? -1 : 1);
 
   // Bugun / kecha uchun umumiy
   const todayKey = dateKey(new Date());
   const yKey = dateKey(new Date(Date.now() - 86400000));
 
   const incomeOn = (k: string) =>
-    bookings.filter((b) => dateKey(b.created_at) === k).reduce((s, b) => s + Number(b.total_price || 0), 0);
+    payments.filter((p) => dateKey(p.paid_at) === k).reduce((s, p) => s + payAmount(p), 0);
   const expenseOn = (k: string) =>
     expenses.filter((e) => dateKey(e.spent_on) === k).reduce((s, e) => s + Number(e.amount || 0), 0);
 
@@ -55,20 +58,20 @@ export default async function CashflowPage() {
   const ydayIn = incomeOn(yKey);
   const ydayOut = expenseOn(yKey);
 
-  const total30In = bookings.reduce((s, b) => s + Number(b.total_price || 0), 0);
+  const total30In = payments.reduce((s, p) => s + payAmount(p), 0);
   const total30Out = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
 
   // Kunma-kun birlashtirilgan ro'yxat
   const dayKeys = Array.from(
-    new Set([...bookings.map((b) => dateKey(b.created_at)), ...expenses.map((e) => dateKey(e.spent_on))])
+    new Set([...payments.map((p) => dateKey(p.paid_at)), ...expenses.map((e) => dateKey(e.spent_on))])
   ).sort((a, b) => (a < b ? 1 : -1));
 
   const days = dayKeys.map((k) => {
-    const dayBookings = bookings.filter((b) => dateKey(b.created_at) === k);
+    const dayPayments = payments.filter((p) => dateKey(p.paid_at) === k);
     const dayExpenses = expenses.filter((e) => dateKey(e.spent_on) === k);
-    const inc = dayBookings.reduce((s, b) => s + Number(b.total_price || 0), 0);
+    const inc = dayPayments.reduce((s, p) => s + payAmount(p), 0);
     const out = dayExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
-    return { key: k, dayBookings, dayExpenses, inc, out, net: inc - out };
+    return { key: k, dayPayments, dayExpenses, inc, out, net: inc - out };
   });
 
   const fmtDay = (k: string) =>
@@ -79,7 +82,7 @@ export default async function CashflowPage() {
       <div>
         <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">Kunlik kassa</h1>
         <p className="text-[14px] text-[#A8A49B] mt-2 font-light">
-          Oxirgi 30 kun — kunma-kun kirim (bronlar) va chiqim (xarajatlar).
+          Oxirgi 30 kun — kunma-kun haqiqiy kirim (to&apos;lovlar) va chiqim (xarajatlar).
         </p>
       </div>
 
@@ -111,12 +114,12 @@ export default async function CashflowPage() {
             <CardContent className="p-0">
               <table className="w-full text-[13px]">
                 <tbody>
-                  {d.dayBookings.map((b) => (
-                    <tr key={`in-${b.id}`} className="border-b border-[rgba(197,164,109,0.06)] last:border-0">
+                  {d.dayPayments.map((p) => (
+                    <tr key={`in-${p.id}`} className="border-b border-[rgba(197,164,109,0.06)] last:border-0">
                       <td className="px-6 py-2.5 w-8"><ArrowUpCircle className="h-3.5 w-3.5 text-emerald-400" /></td>
-                      <td className="px-2 py-2.5 text-[#F5F2EB]">Bron · {b.guest_name || "Mehmon"}</td>
-                      <td className="px-4 py-2.5 text-[#A8A49B] max-w-[160px] truncate">{aptTitle(b.apartment_id)}</td>
-                      <td className="px-6 py-2.5 text-right text-emerald-400 font-medium">+{money(b.total_price)}</td>
+                      <td className="px-2 py-2.5 text-[#F5F2EB]">{p.kind === "refund" ? "Qaytarish" : "To'lov"} · {p.guest_name || "Mehmon"}</td>
+                      <td className="px-4 py-2.5 text-[#A8A49B] max-w-[160px] truncate">{p.method}</td>
+                      <td className={`px-6 py-2.5 text-right font-medium ${p.kind === "refund" ? "text-red-400" : "text-emerald-400"}`}>{p.kind === "refund" ? "−" : "+"}{money(p.amount)}</td>
                     </tr>
                   ))}
                   {d.dayExpenses.map((e) => (

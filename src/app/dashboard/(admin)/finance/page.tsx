@@ -35,24 +35,27 @@ export default async function FinancePage() {
   );
   const income = monthBookings.reduce((s, b) => s + Number(b.total_price || 0), 0);
 
-  // Doimiy oylik xarajatlar
+  // Doimiy oylik xarajatlar. Arenda = monthly_lease_cost (kelishilgan oylik).
   const rentCost = apartments.filter((a) => a.status === "active").reduce((s, a) => s + Number(a.monthly_lease_cost || 0), 0);
   const salaryCost = staffList.filter((s) => s.active).reduce((s, x) => s + Number(x.monthly_salary || 0), 0);
 
-  // O'zgaruvchan xarajatlar (expenses jadvali, shu oy)
-  const variableTotal = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  // O'zgaruvchan xarajatlar (expenses jadvali, shu oy).
+  // MUHIM: 'rent' kategoriyasini CHIQARIB tashlaymiz — arenda allaqachon rentCost'да
+  // (monthly_lease_cost) hisoblangan. Aks holda egalar-to'lovi ikki marta sanaladi.
+  const variableExpenses = expenses.filter((e) => e.category !== "rent");
+  const variableTotal = variableExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
   const byCat: Record<string, number> = {};
-  for (const e of expenses) byCat[e.category] = (byCat[e.category] || 0) + Number(e.amount || 0);
+  for (const e of variableExpenses) byCat[e.category] = (byCat[e.category] || 0) + Number(e.amount || 0);
 
   const totalCost = rentCost + salaryCost + variableTotal;
   const profit = income - totalCost;
   const margin = income > 0 ? Math.round((profit / income) * 100) : 0;
 
-  // Apartament bo'yicha (shu oy daromadi vs tan narx)
+  // Apartament bo'yicha (shu oy daromadi vs tan narx). exp — rent'siz.
   const perApt = apartments.map((a) => {
     const inc = monthBookings.filter((b) => b.apartment_id === a.id).reduce((s, b) => s + Number(b.total_price || 0), 0);
     const lease = Number(a.monthly_lease_cost || 0);
-    const exp = expenses.filter((e) => e.apartment_id === a.id).reduce((s, e) => s + Number(e.amount || 0), 0);
+    const exp = variableExpenses.filter((e) => e.apartment_id === a.id).reduce((s, e) => s + Number(e.amount || 0), 0);
     return { id: a.id, title: a.title, inc, lease, exp, net: inc - lease - exp };
   }).sort((x, y) => y.net - x.net);
 
@@ -64,13 +67,13 @@ export default async function FinancePage() {
       <div>
         <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">Moliya · Hisob-kitob</h1>
         <p className="text-[14px] text-[#A8A49B] mt-2 font-light">
-          {monthLabel} — daromad, xarajat (arenda, kommunal, ish haqi) va sof foyda.
+          {monthLabel} — kutilgan daromad (bronlar), xarajat (arenda + ish haqi + boshqa) va sof foyda. Haqiqatда olingan pul → Kirim kassasi.
         </p>
       </div>
 
       {/* P&L kartalar */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Daromad (shu oy)" value={money(income)} icon={<TrendingUp className="h-4 w-4 text-emerald-400" />} sub={`${monthBookings.length} ta bron`} />
+        <StatCard title="Kutilgan daromad" value={money(income)} icon={<TrendingUp className="h-4 w-4 text-emerald-400" />} sub={`${monthBookings.length} ta bron · olingani Kirim kassasida`} />
         <StatCard title="Umumiy xarajat" value={money(totalCost)} icon={<TrendingDown className="h-4 w-4 text-red-400" />} sub={`Doimiy + o'zgaruvchan`} />
         <StatCard title="Sof foyda" value={money(profit)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={`Marja: ${margin}%`} accent={profit >= 0} />
         <StatCard title="Tan narx (arenda)" value={money(rentCost)} icon={<Building2 className="h-4 w-4 text-[#C5A46D]" />} sub={`Egalarga oylik`} />

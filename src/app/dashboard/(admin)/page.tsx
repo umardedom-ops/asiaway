@@ -76,14 +76,16 @@ export default async function DashboardPage() {
   const nextMonthStr = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 1)
     .toISOString().split("T")[0];
   const [{ data: monthExpenses }, { data: staffRows }] = await Promise.all([
-    supabase.from("expenses").select("amount").gte("spent_on", startOfMonthStr).lt("spent_on", nextMonthStr),
+    supabase.from("expenses").select("amount, category").gte("spent_on", startOfMonthStr).lt("spent_on", nextMonthStr),
     supabase.from("staff").select("monthly_salary, active"),
   ]);
   const rentCost = (apartments || []).filter((a) => a.status === "active")
     .reduce((s, a) => s + Number(a.monthly_lease_cost || 0), 0);
   const salaryCost = (staffRows || []).filter((s) => s.active)
     .reduce((s, x) => s + Number(x.monthly_salary || 0), 0);
-  const variableCost = (monthExpenses || []).reduce((s, e) => s + Number(e.amount || 0), 0);
+  // 'rent' kategoriyasini chiqaramiz — arenda rentCost'да allaqachon bor (double-count oldini olish)
+  const variableCost = (monthExpenses || []).filter((e) => e.category !== "rent")
+    .reduce((s, e) => s + Number(e.amount || 0), 0);
   const monthlyCost = rentCost + salaryCost + variableCost;
   const monthlyProfit = monthlyRevenue - monthlyCost;
 
@@ -133,7 +135,7 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="text-[28px] font-medium text-[#F5F2EB]">{formatUzbekPrice(monthlyRevenue)}</div>
             <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              Tasdiqlangan va to&apos;langanlar
+              Kutilgan (bronlar) · olingani Kirim kassasida
             </p>
           </CardContent>
         </Card>
