@@ -37,23 +37,39 @@ export default async function AdminLayout({ children }: LayoutProps) {
     role = profile?.role ?? null;
   }
 
-  const navigation = [
-    { name: "Boshqaruv paneli", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Apartamentlar", href: "/dashboard/apartments", icon: Home },
-    { name: "Bronlar ro'yxati", href: "/dashboard/bookings", icon: CalendarCheck },
-    { name: "Mehmon joylashtirish", href: "/dashboard/guests", icon: BedDouble },
-    { name: "CRM (Murojaatlar)", href: "/dashboard/crm", icon: Users },
-    { name: "Mehmonlar", href: "/dashboard/clients", icon: UsersRound },
-    ...(role === "shef"
-      ? [
-          { name: "Kirim kassasi", href: "/dashboard/income", icon: Wallet },
-          { name: "Kunlik kassa", href: "/dashboard/cashflow", icon: Wallet },
-          { name: "Moliya", href: "/dashboard/finance", icon: Wallet },
-          { name: "Egalarga to'lov", href: "/dashboard/owner-payments", icon: Building2 },
-          { name: "Xodimlar", href: "/dashboard/staff", icon: UserCog },
-        ]
-      : []),
+  const isShef = role === "shef";
+
+  // Rolga qarab guruhlangan menyu (menejer: operatsiya + kassa; shef: hammasi)
+  const sections: { title: string | null; items: { name: string; href: string; icon: typeof Home }[] }[] = [
+    { title: null, items: [
+      { name: "Boshqaruv paneli", href: "/dashboard", icon: LayoutDashboard },
+    ] },
+    { title: "Qabul", items: [
+      { name: "Bronlar", href: "/dashboard/bookings", icon: CalendarCheck },
+      { name: "Mehmon joylashtirish", href: "/dashboard/guests", icon: BedDouble },
+    ] },
+    { title: "Mijozlar", items: [
+      { name: "CRM (Murojaatlar)", href: "/dashboard/crm", icon: Users },
+      { name: "Mehmonlar bazasi", href: "/dashboard/clients", icon: UsersRound },
+    ] },
+    { title: "Obyektlar", items: [
+      { name: "Apartamentlar", href: "/dashboard/apartments", icon: Home },
+    ] },
+    { title: "Moliya", items: [
+      { name: "Kassa (kirim/chiqim)", href: "/dashboard/kassa", icon: Wallet },
+      ...(isShef ? [
+        { name: "Kunlik kassa", href: "/dashboard/cashflow", icon: Wallet },
+        { name: "Moliya (P&L)", href: "/dashboard/finance", icon: Wallet },
+        { name: "Egalarga to'lov", href: "/dashboard/owner-payments", icon: Building2 },
+      ] : []),
+    ] },
+    ...(isShef ? [{ title: "Jamoa", items: [
+      { name: "Xodimlar", href: "/dashboard/staff", icon: UserCog },
+    ] }] : []),
   ];
+
+  // Mobil uchun yassi ro'yxat
+  const navigation = sections.flatMap((s) => s.items);
 
   return (
     <div className="min-h-screen bg-[#0B0D0F] text-[#F5F2EB] flex font-sans">
@@ -62,23 +78,34 @@ export default async function AdminLayout({ children }: LayoutProps) {
         <div className="flex items-center space-x-3 px-2">
           <Building2 className="h-6 w-6 text-[#C5A46D]" />
           <span className="text-[20px] font-heading font-semibold tracking-wide text-[#F5F2EB]">AsiaWay</span>
-          <span className="text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 bg-[#C5A46D]/10 text-[#C5A46D] rounded border border-[#C5A46D]/20">Admin</span>
+          <span className="text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 bg-[#C5A46D]/10 text-[#C5A46D] rounded border border-[#C5A46D]/20">
+            {isShef ? "Shef" : "Menejer"}
+          </span>
         </div>
 
-        <nav className="flex-1 space-y-2">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="flex items-center space-x-3 px-4 py-3 rounded-[8px] text-[#A8A49B] hover:text-[#F5F2EB] hover:bg-[#C5A46D]/10 transition-colors group"
-              >
-                <Icon className="h-5 w-5 text-[#A8A49B] group-hover:text-[#C5A46D] transition-colors" />
-                <span className="font-medium text-[14px]">{item.name}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-5 overflow-y-auto custom-scrollbar -mr-2 pr-2">
+          {sections.map((section, si) => (
+            <div key={si} className="space-y-1">
+              {section.title && (
+                <div className="px-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#A8A49B]/50 mb-1.5">
+                  {section.title}
+                </div>
+              )}
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="flex items-center space-x-3 px-4 py-2.5 rounded-[8px] text-[#A8A49B] hover:text-[#F5F2EB] hover:bg-[#C5A46D]/10 transition-colors group"
+                  >
+                    <Icon className="h-[18px] w-[18px] text-[#A8A49B] group-hover:text-[#C5A46D] transition-colors shrink-0" />
+                    <span className="font-medium text-[13.5px]">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* User Info & Logout */}

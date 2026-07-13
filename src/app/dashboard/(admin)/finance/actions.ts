@@ -32,6 +32,8 @@ export async function addExpense(input: ExpenseInput) {
     return { success: false, error: error.message };
   }
   revalidatePath("/dashboard/finance");
+  revalidatePath("/dashboard/kassa");
+  revalidatePath("/dashboard/cashflow");
   revalidatePath("/dashboard");
   return { success: true };
 }
@@ -41,5 +43,6 @@ export async function deleteExpense(id: string) {
   const { error } = await supabase.from("expenses").delete().eq("id", id);
   if (error) return { success: false, error: error.message };
   revalidatePath("/dashboard/finance");
+  revalidatePath("/dashboard/kassa");
   return { success: true };
 }
