@@ -98,7 +98,7 @@ export default async function BookingsPage() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <BookingRowActions id={b.id} bookingStatus={b.booking_status} depositStatus={b.deposit_status} />
+                          <BookingRowActions id={b.id} bookingStatus={b.booking_status} depositStatus={b.deposit_status} booking={b} />
                         </td>
                       </tr>
                     );

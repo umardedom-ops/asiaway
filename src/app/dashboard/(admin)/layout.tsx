@@ -44,7 +44,9 @@ export default async function AdminLayout({ children }: LayoutProps) {
     { name: "Mehmonlar", href: "/dashboard/clients", icon: UsersRound },
     ...(role === "shef"
       ? [
+          { name: "Kunlik kassa", href: "/dashboard/cashflow", icon: Wallet },
           { name: "Moliya", href: "/dashboard/finance", icon: Wallet },
+          { name: "Egalarga to'lov", href: "/dashboard/owner-payments", icon: Building2 },
           { name: "Xodimlar", href: "/dashboard/staff", icon: UserCog },
         ]
       : []),

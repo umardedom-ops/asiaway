@@ -168,3 +168,20 @@
 @media (prefers-reduced-motion: reduce) {
   .marquee-track, .marquee-track-reverse { animation: none; }
 }
+
+/* Chek chop etish — faqat #print-area ko'rinadi, qolgani yashiriladi */
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  @page { margin: 12mm; }
+}

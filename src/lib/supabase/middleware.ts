@@ -67,6 +67,16 @@ export async function updateSession(request: NextRequest) {
         url.pathname = "/dashboard";
         return NextResponse.redirect(url);
       }
+
+      if (url.pathname.startsWith('/dashboard/owner-payments') && role !== 'shef') {
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+
+      if (url.pathname.startsWith('/dashboard/cashflow') && role !== 'shef') {
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
       
       if (url.pathname.startsWith('/dashboard/staff') && role !== 'shef') {
         url.pathname = "/dashboard";

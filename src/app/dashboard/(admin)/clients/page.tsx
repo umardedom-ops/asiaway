@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UsersRound, Repeat, Wallet } from "lucide-react";
+import { UsersRound, Repeat, Wallet, ChevronRight } from "lucide-react";
 import { CHANNEL_LABELS } from "../bookings/channels";
 
 export const revalidate = 0;
@@ -60,18 +61,21 @@ export default async function ClientsPage() {
                   <th className="text-left font-semibold px-4 py-3">Kanal</th>
                   <th className="text-left font-semibold px-4 py-3">Bosqich</th>
                   <th className="text-right font-semibold px-4 py-3">Tashriflar</th>
-                  <th className="text-right font-semibold px-6 py-3">Sarf</th>
+                  <th className="text-right font-semibold px-4 py-3">Sarf</th>
+                  <th className="px-6 py-3"></th>
                 </tr>
               </thead>
               <tbody>
                 {clients.length === 0 && (
-                  <tr><td colSpan={5} className="px-6 py-10 text-center text-[#A8A49B]">Hali mehmon yo&apos;q. Bron kiritilganда avtomatik qo&apos;shiladi.</td></tr>
+                  <tr><td colSpan={6} className="px-6 py-10 text-center text-[#A8A49B]">Hali mehmon yo&apos;q. Bron kiritilganда avtomatik qo&apos;shiladi.</td></tr>
                 )}
                 {clients.map((c) => (
-                  <tr key={c.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
+                  <tr key={c.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30 cursor-pointer group">
                     <td className="px-6 py-3">
-                      <div className="text-[#F5F2EB] font-medium">{c.full_name}</div>
-                      <div className="text-[11px] text-[#A8A49B]">{c.phone || "—"}</div>
+                      <Link href={`/dashboard/clients/${c.id}`} className="block">
+                        <div className="text-[#F5F2EB] font-medium group-hover:text-[#C5A46D] transition-colors">{c.full_name}</div>
+                        <div className="text-[11px] text-[#A8A49B]">{c.phone || "—"}</div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-[#A8A49B]">{CHANNEL_LABELS[c.channel] || c.channel || "—"}</td>
                     <td className="px-4 py-3">
@@ -80,7 +84,12 @@ export default async function ClientsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right text-[#F5F2EB]">{c.total_stays || 0}</td>
-                    <td className="px-6 py-3 text-right text-[#C5A46D] font-medium">{money(c.total_spent)}</td>
+                    <td className="px-4 py-3 text-right text-[#C5A46D] font-medium">{money(c.total_spent)}</td>
+                    <td className="px-6 py-3 text-right">
+                      <Link href={`/dashboard/clients/${c.id}`} className="inline-flex text-[#A8A49B] group-hover:text-[#C5A46D] transition-colors">
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

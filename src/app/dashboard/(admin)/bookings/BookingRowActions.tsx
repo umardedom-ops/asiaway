@@ -3,16 +3,20 @@
 import { useState } from "react";
 import { updateBookingStatus, updateDepositStatus } from "@/app/dashboard/bookings/actions";
 import { Button } from "@/components/ui/button";
-import { Check, X, CreditCard, Loader2 } from "lucide-react";
+import { Check, X, CreditCard, Loader2, Receipt } from "lucide-react";
+import InvoiceModal from "./InvoiceModal";
 
 interface BookingRowActionsProps {
   id: string;
   bookingStatus: string;
   depositStatus: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  booking?: any;
 }
 
-export default function BookingRowActions({ id, bookingStatus, depositStatus }: BookingRowActionsProps) {
+export default function BookingRowActions({ id, bookingStatus, depositStatus, booking }: BookingRowActionsProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
 
   const handleUpdateBooking = async (status: "confirmed" | "cancelled") => {
     setLoadingAction(status);
@@ -38,6 +42,22 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus }: 
 
   return (
     <div className="flex items-center justify-end space-x-2">
+      {/* Chek (invoice) — confirmed yoki completed bronlar uchun */}
+      {(bookingStatus === "confirmed" || bookingStatus === "completed") && (
+        <>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setInvoiceOpen(true)}
+            className="border-[rgba(197,164,109,0.4)] hover:bg-[#C5A46D]/10 text-[#C5A46D] hover:text-[#D4B77F] h-8 text-xs font-semibold space-x-1"
+          >
+            <Receipt className="h-3.5 w-3.5" />
+            <span>Chek</span>
+          </Button>
+          <InvoiceModal isOpen={invoiceOpen} onClose={() => setInvoiceOpen(false)} booking={booking} />
+        </>
+      )}
+
       {/* Deposit to'lovi tugmasi */}
       {depositStatus === "pending" && bookingStatus !== "cancelled" && (
         <Button
