@@ -6,6 +6,7 @@ import { createManualBooking } from "@/app/dashboard/bookings/actions";
 import { Loader2, Check } from "lucide-react";
 import { btnPrimary, btnSecondary } from "@/lib/ui";
 import { CHANNEL_LABELS } from "./channels";
+import DateField from "./DateField";
 
 const inputCls =
   "w-full h-11 rounded-[8px] border border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] px-3 text-[14px] text-[#F5F2EB] outline-none focus:border-[#C5A46D] transition-colors";
@@ -87,11 +88,11 @@ export default function ManualBookingForm({ apartments }: { apartments: any[] })
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2">
           <label className={labelCls}>Kelish sanasi *</label>
-          <input type="date" value={f.check_in} onChange={(e) => set("check_in", e.target.value)} className={inputCls} required />
+          <DateField value={f.check_in} onChange={(v) => { set("check_in", v); if (f.check_out && v && f.check_out <= v) set("check_out", ""); }} />
         </div>
         <div className="space-y-2">
           <label className={labelCls}>Ketish sanasi *</label>
-          <input type="date" value={f.check_out} onChange={(e) => set("check_out", e.target.value)} className={inputCls} required />
+          <DateField value={f.check_out} onChange={(v) => set("check_out", v)} min={f.check_in || undefined} />
         </div>
         <div className="space-y-2">
           <label className={labelCls}>Kechalar</label>
