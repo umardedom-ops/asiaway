@@ -75,6 +75,12 @@ ANIQLANGAN MUAMMOLAR (fazalarga bo'lingan):
 - [x] **Egaga to'lov kuni eslatmasi**: apartments.lease_payment_day (migratsiya `20260713000001_owner_payment_day.sql`), ApartmentForm'da "To'lov kuni (sana)" maydoni.
 - [x] **Eslatma v2 — [✅ To'landi] tugmasi bilan**: `src/lib/owner-reminders.ts` — kuniga 2 mahal (ikkala cron: 14:00 + 21:00 Toshkent), 3 kun oldin boshlanadi, to'lanmasa "KECHIKDI" bo'lib davom etadi. Tugma bosilgach (webhook `leasepaid:<apt>:<YYYY-MM>`): shu oy yopiladi (apartments.lease_last_paid_period, migratsiya `20260713000002_lease_paid_period.sql`) + summa Moliya'ga xarajat (category=rent) bo'lib avtomatik tushadi (takror yozilmaydi).
 
+## QO'SHIMCHA (2026-07-13, 3-sessiya — dashboard boshqaruv)
+- [x] **Egalarga to'lov sahifasi** `/dashboard/owner-payments` (shef): har apart egasiga oylik holati (kechikkan/bugun/N kun qoldi/to'langan), stat kartalar (oylik jami / to'langan / qolgan / kechikkan), [To'landi] tugmasi → Moliya'ga rent xarajati + shu oy yopiladi.
+- [x] **Kunlik kassa** `/dashboard/cashflow` (shef): oxirgi 30 kun kunma-kun kirim (bronlar) va chiqim (xarajatlar), bugun/kecha/30-kun sof stat.
+- [x] **Mehmon to'lov tarixi** `/dashboard/clients/[id]`: mehmonning barcha bronlari, umumiy sarf, tashriflar. Mehmonlar ro'yxatida qatorlar bosiladigan.
+- [x] **Professional CHEK** — InvoiceModal to'liq qayta yozildi (branding, kecha×narx qatori, zaklat chegirma, jami). Bookings jadvalida har confirmed/completed bronга **[Chek]** tugmasi. Print CSS faqat chekni chop etadi. PDF sifatida saqlash mumkin.
+
 ## ⚠️ QO'LDA QILINADIGAN ISHLAR (kod emas, sozlash)
 1. **Supabase SQL Editor**da yangi migratsiyalarni ishga tushirish: `supabase/migrations/20260713000000_payments.sql` + `20260713000001_owner_payment_day.sql` + `20260713000002_lease_paid_period.sql`.
 2. **Vercel env** qo'shish: `CRON_SECRET` (ixtiyoriy random string), `TELEGRAM_BOT_SHEF_TOKEN`, `TELEGRAM_BOT_MENEJER_TOKEN`, `TELEGRAM_BOT_CLEANING_TOKEN` (BotFather'dan), `NEXT_PUBLIC_SITE_URL=https://asiaway.vercel.app`.
