@@ -15,7 +15,7 @@ const TR: Record<Lang, {
     body: "Toshkent aeroportidan shaxsiy transfer bilan kutib olamiz va to'g'ridan-to'g'ri apartamentgacha kuzatib qo'yamiz. Uzoq yo'ldan so'ng — hech qanday tashvishsiz, bamaylixotir.",
     points: ["Shaxsiy avtomobilda transfer", "24/7 kutib olish va kuzatish", "Ismingiz bilan kutib olish (meet & greet)"],
     cta: "Bog'lanish",
-    free: "Rezidensiya ijarasida — bepul",
+    free: "Rezidensiya ijarasida — shunday xizmatimiz bor",
     badge: "Meet & Greet",
   },
   ru: {
@@ -24,7 +24,7 @@ const TR: Record<Lang, {
     body: "Встречаем в аэропорту Ташкента на личном авто и сопровождаем прямо до апартамента. После долгой дороги — спокойно и без забот.",
     points: ["Трансфер на личном авто", "Встреча и сопровождение 24/7", "Встреча с табличкой (meet & greet)"],
     cta: "Связаться",
-    free: "Бесплатно при аренде резиденции",
+    free: "Доступна услуга трансфера при аренде",
     badge: "Meet & Greet",
   },
   en: {
@@ -33,7 +33,7 @@ const TR: Record<Lang, {
     body: "We meet you at Tashkent airport with a private transfer and escort you straight to your residence. After a long journey — calm and completely worry-free.",
     points: ["Private car transfer", "24/7 meet & escort", "Personal meet & greet"],
     cta: "Get in touch",
-    free: "Free with your residence stay",
+    free: "Airport transfer service available",
     badge: "Meet & Greet",
   },
 };

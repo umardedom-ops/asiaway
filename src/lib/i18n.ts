@@ -58,7 +58,7 @@ export const T: Record<Lang, Dict> = {
       kicker: "SAVOL-JAVOB", title: "Ko'p Beriladigan Savollar",
       items: [
         { q: "Bron qanday amalga oshiriladi?", a: "Saytdan sanani tanlaysiz, ma'lumotlaringizni kiritasiz va zaklatni online to'laysiz — bron darhol tasdiqlanadi." },
-        { q: "Aeroport transferi bepulmi?", a: "Ha, har bir mehmon uchun aeroport yoki vokzaldan bepul kutib olish va kuzatib qo'yish xizmati kiritilgan." },
+        { q: "Aeroport transferi bormi?", a: "Ha, kelishuvga ko'ra aeroport yoki vokzaldan shaxsiy transfer xizmati taqdim etiladi." },
         { q: "Zaklat (depozit) qaytariladimi?", a: "Ha. Chiqishda hech qanday zarar bo'lmasa, depozit summasi to'liq qaytariladi." },
         { q: "Check-in va check-out vaqtlari qanday?", a: "Check-in 14:00 dan, check-out 12:00 gacha. Moslashuvchan vaqt uchun menejerimiz bilan bog'laning." },
         { q: "To'lov qanday usullarda amalga oshiriladi?", a: "Payme, Click va plastik kartalar orqali xavfsiz online to'lov." },
@@ -102,7 +102,7 @@ export const T: Record<Lang, Dict> = {
       kicker: "ВОПРОСЫ И ОТВЕТЫ", title: "Часто Задаваемые Вопросы",
       items: [
         { q: "Как оформить бронирование?", a: "Выберите даты на сайте, укажите свои данные и оплатите депозит онлайн — бронь подтверждается сразу." },
-        { q: "Трансфер из аэропорта бесплатный?", a: "Да, для каждого гостя включена бесплатная встреча и проводы из аэропорта или вокзала." },
+        { q: "Есть ли трансфер из аэропорта?", a: "Да, по запросу предоставляется услуга встречи и провода из аэропорта или вокзала." },
         { q: "Возвращается ли депозит?", a: "Да. Если при выезде нет повреждений, сумма депозита возвращается полностью." },
         { q: "Время заезда и выезда?", a: "Заезд с 14:00, выезд до 12:00. Для гибкого времени свяжитесь с нашим менеджером." },
         { q: "Какие способы оплаты?", a: "Безопасная онлайн-оплата через Payme, Click и банковские карты." },
@@ -146,7 +146,7 @@ export const T: Record<Lang, Dict> = {
       kicker: "Q & A", title: "Frequently Asked Questions",
       items: [
         { q: "How does booking work?", a: "Pick your dates on the site, enter your details and pay the deposit online — your booking is confirmed instantly." },
-        { q: "Is the airport transfer free?", a: "Yes, free airport or station pickup and drop-off is included for every guest." },
+        { q: "Is airport transfer available?", a: "Yes, private pickup and drop-off service from the airport or station is available upon request." },
         { q: "Is the deposit refundable?", a: "Yes. If there is no damage at checkout, the full deposit is refunded." },
         { q: "What are the check-in and check-out times?", a: "Check-in from 2:00 PM, check-out by 12:00 PM. Contact our manager for flexible timing." },
         { q: "What payment methods are available?", a: "Secure online payment via Payme, Click and bank cards." },
