@@ -128,6 +128,38 @@ export async function checkInBooking(id: string) {
   return { success: true };
 }
 
+// Walk-in: mehmonni HOZIR joylashtirish (bron + check-in bir amalda)
+export async function placeGuestNow(input: ManualBookingInput) {
+  const res = await createManualBooking({ ...input, booking_status: "confirmed" });
+  if (!res.success) return res;
+
+  // Eng so'nggi shu mehmon bronini topib check-in qilamiz
+  const supabase = await createClient();
+  const { data: bk } = await supabase
+    .from("bookings")
+    .select("id")
+    .eq("apartment_id", input.apartment_id)
+    .eq("guest_name", input.guest_name.trim())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (bk?.id) {
+    await supabase
+      .from("bookings")
+      .update({ checked_in_at: new Date().toISOString() })
+      .eq("id", bk.id);
+    if (input.guest_phone) {
+      await supabase.from("clients").update({ stage: "staying" }).eq("phone", input.guest_phone.trim());
+    }
+  }
+
+  revalidatePath("/dashboard/guests");
+  revalidatePath("/dashboard/reception");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 export async function updateBookingStatus(id: string, status: "pending" | "confirmed" | "cancelled" | "completed") {
   const supabase = await createClient();
 
