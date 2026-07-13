@@ -92,6 +92,16 @@ Oqim: **CRM → Bron → Mehmon joylashtirish (turibdi) → Checkout**.
 - [x] **Kirim kassasi** `/dashboard/income` (shef): har to'lov sana+soatgacha jurnal, qo'lда to'lov qo'shish. Avtomat: sayt broni, Payme/Click webhook, qo'lда bron zaklati.
 - [x] **Kanban ikkala doska**: bosh sahifада Mijozlar voronkasi (Kutilmoqda→Turibdi→Chiqdi) + mavjud tozalash doskasi.
 
+## QAYTA TUZISH (2026-07-13, 5-sessiya — UX + rollar + mantiq)
+Egadan feedback: menyu ko'p, mantiqsiz. Tuzatildi:
+- [x] **Mantiqiy buglar**: Moliyada arenda DOUBLE-COUNT (monthly_lease_cost + 'rent' xarajat) — tuzatildi. Uch xil "kirim" (bron/kassa/kunlik) izchillashtirildi — Kunlik kassa endi payments'дан. Label: "Kutilgan daromad" (bron) vs "olingan" (kassa). "Hozir turibdi" ta'rifi izchil (faqat check-in).
+- [x] **Rolga moslangan guruhlangan sidebar** (`layout.tsx`): seksiyalar (Qabul/Mijozlar/Obyektlar/Moliya/Jamoa). Menejer: operatsiya + Kassa. Shef: hammasi.
+- [x] **Birlashgan Kassa** `/dashboard/kassa`: 1 sahifa 2 tab (Kirim/prixod + Chiqim/rasxod), qo'lда ikkalasi. Menejerga ochiq.
+- [x] **Qabul bo'limi** `/dashboard/reception`: 3 tab (Bronlar · Joylashtirish+walk-in · Xonalar holati). Walk-in = mehmonni hozir joylashtirish (placeGuestNow: bron+check-in).
+- [x] **Checkout → avtomat chek**: checkout bosilганда InvoiceModal (PDF) o'zi ochiladi.
+- [x] **Farrosh RASM bilan tasdiqlash**: TaskCard'да kamera/rasm → Supabase Storage ("apartments" bucket, proofs/ yo'l) → proof_image_url. Menejer staff'да "Dalil rasm" ko'radi.
+- ESLATMA: farrosh rasm yuklashi uchun "apartments" storage bucket authenticated upload'ga ruxsat berishi kerak (apartament formasi ishlagani uchun bor).
+
 ## ⚠️ QO'LDA QILINADIGAN ISHLAR (kod emas, sozlash)
 1. **Supabase SQL Editor**da yangi migratsiyalarni ishga tushirish: `20260713000000_payments.sql` + `20260713000001_owner_payment_day.sql` + `20260713000002_lease_paid_period.sql` + **`20260713000003_guest_lifecycle_payments.sql`** (eng yangi — checked_in_at + payments).
 2. **Vercel env** qo'shish: `CRON_SECRET` (ixtiyoriy random string), `TELEGRAM_BOT_SHEF_TOKEN`, `TELEGRAM_BOT_MENEJER_TOKEN`, `TELEGRAM_BOT_CLEANING_TOKEN` (BotFather'dan), `NEXT_PUBLIC_SITE_URL=https://asiaway.vercel.app`.
