@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { syncClientFromBooking } from "@/lib/clients-sync";
+import { notifyRole, fmtMoney, fmtDate } from "@/lib/telegram";
+import { paymentConfigured, buildCheckoutUrl } from "@/lib/payments";
 
 export interface BookingInput {
   apartment_id: string;
@@ -21,6 +23,18 @@ export async function createBooking(input: BookingInput) {
   const supabase = await createClient();
 
   try {
+    // 0. Eski to'lanmagan (2 soatdan oshgan) sayt bronlarini bekor qilamiz —
+    // sanalarni abadiy band qilib qolmasin.
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    await supabase
+      .from("bookings")
+      .update({ booking_status: "cancelled" })
+      .eq("apartment_id", input.apartment_id)
+      .eq("booking_status", "pending")
+      .eq("deposit_status", "pending")
+      .not("payment_provider", "is", null)
+      .lt("created_at", twoHoursAgo);
+
     // 1. Sanalar bandligini tekshirish (Overlap validation)
     const { data: overlappingBookings, error: checkError } = await supabase
       .from("bookings")
@@ -41,7 +55,12 @@ export async function createBooking(input: BookingInput) {
       };
     }
 
-    // 2. Yangi bron yaratish (Simulated to'lov to'langandan so'ng)
+    // 2. Yangi bron yaratish.
+    // Real to'lov rejimi (Payme/Click env sozlangan): bron 'pending' bo'lib turadi,
+    // webhook to'lovni tasdiqlagach 'paid'+'confirmed' bo'ladi.
+    // Simulate rejim (env yo'q): hozirgidek darhol tasdiqlanadi.
+    const realPayment = paymentConfigured(input.payment_method);
+
     const { data: newBooking, error: insertError } = await supabase
       .from("bookings")
       .insert([
@@ -55,8 +74,9 @@ export async function createBooking(input: BookingInput) {
           nights: input.nights,
           total_price: input.total_price,
           deposit_amount: input.deposit_amount,
-          deposit_status: "paid", // Zaklat to'lov simulyatsiyasi muvaffaqiyatli o'tdi
-          booking_status: "confirmed", // Avtomatik tasdiqlash
+          deposit_status: realPayment ? "pending" : "paid",
+          booking_status: realPayment ? "pending" : "confirmed",
+          payment_provider: realPayment ? input.payment_method : "simulate",
         },
       ])
       .select()
@@ -65,6 +85,29 @@ export async function createBooking(input: BookingInput) {
     if (insertError) {
       throw insertError;
     }
+
+    // Real rejimda checkout havolasini qaytaramiz
+    const paymentUrl = realPayment
+      ? buildCheckoutUrl(input.payment_method, newBooking.id, input.deposit_amount)
+      : null;
+
+    // Menejer botiga yangi bron xabari
+    const { data: apt } = await supabase
+      .from("apartments")
+      .select("title")
+      .eq("id", input.apartment_id)
+      .maybeSingle();
+    await notifyRole(
+      "menejer",
+      `🔔 <b>YANGI BRON (sayt)</b>\n\n` +
+        `🏠 ${apt?.title || "Apartament"}\n` +
+        `👤 ${input.guest_name}\n` +
+        `📞 ${input.guest_phone}\n` +
+        `📅 ${fmtDate(input.check_in)} → ${fmtDate(input.check_out)} (${input.nights} kecha)\n` +
+        `💰 Jami: ${fmtMoney(input.total_price)} · Zaklat: ${fmtMoney(input.deposit_amount)}\n` +
+        `💳 To'lov: ${input.payment_method}` +
+        (realPayment ? "\n⏳ Zaklat to'lovi kutilmoqda..." : "")
+    );
 
     // Mijozни (mehmonни) avtomatik sinxronlash
     await syncClientFromBooking(supabase, {
@@ -82,6 +125,7 @@ export async function createBooking(input: BookingInput) {
     return {
       success: true,
       booking: newBooking,
+      paymentUrl,
     };
   } catch (error: any) {
     console.error("Booking error:", error);

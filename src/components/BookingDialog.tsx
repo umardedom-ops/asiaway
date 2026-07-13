@@ -113,26 +113,11 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
     totalPrice = nights * Number(apartment.price_per_day);
   }
 
-  const handleNextToPayment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!checkIn || !checkOut || checkOut <= checkIn) {
-      setErrorMsg(b.errorDates);
-      return;
-    }
-    if (guestPhone.length < 9) {
-      setErrorMsg(b.errorPhone);
-      return;
-    }
-    setErrorMsg(null);
-    setStep(2);
-  };
+  // Real to'lov rejimi: NEXT_PUBLIC_PAYMENTS_MODE=real bo'lsa karta-simulyatsiya
+  // o'rniga Payme/Click checkout sahifasiga yo'naltiriladi.
+  const realPayments = process.env.NEXT_PUBLIC_PAYMENTS_MODE === "real";
 
-  const handleSimulatePayment = async () => {
-    if (cardNumber.replace(/\s/g, "").length < 16) {
-      setErrorMsg(b.errorCard);
-      return;
-    }
-
+  const submitBooking = async () => {
     setIsSubmitting(true);
     setErrorMsg(null);
 
@@ -156,6 +141,10 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
       if (!res.success) {
         setErrorMsg(res.error || b.errorGeneric);
         setStep(1);
+      } else if (res.paymentUrl) {
+        // Payme/Click checkout sahifasiga o'tamiz — to'lov tasdiqlangach
+        // webhook bronni 'confirmed' qiladi.
+        window.location.href = res.paymentUrl;
       } else {
         setBookingResult(res.booking);
         setStep(3);
@@ -167,6 +156,33 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleNextToPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!checkIn || !checkOut || checkOut <= checkIn) {
+      setErrorMsg(b.errorDates);
+      return;
+    }
+    if (guestPhone.length < 9) {
+      setErrorMsg(b.errorPhone);
+      return;
+    }
+    setErrorMsg(null);
+    if (realPayments) {
+      // Karta formasi kerak emas — bron yaratib checkout'ga yo'naltiramiz
+      submitBooking();
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleSimulatePayment = async () => {
+    if (cardNumber.replace(/\s/g, "").length < 16) {
+      setErrorMsg(b.errorCard);
+      return;
+    }
+    await submitBooking();
   };
 
   const formatPrice = (amount: number) => {
@@ -358,10 +374,16 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
 
               <Button
                 type="submit"
-                disabled={nights === 0}
+                disabled={nights === 0 || isSubmitting}
                 className={`w-full ${btnPrimary} h-14 text-[15px] mt-4`}
               >
-                {b.nextStep}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {b.payingBtn}
+                  </>
+                ) : (
+                  b.nextStep
+                )}
               </Button>
             </form>
           </div>

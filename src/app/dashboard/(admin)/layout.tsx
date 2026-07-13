@@ -25,14 +25,29 @@ export default async function AdminLayout({ children }: LayoutProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Rolni aniqlaymiz — Moliya va Xodimlar faqat shefga ko'rinadi
+  let role: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    role = profile?.role ?? null;
+  }
+
   const navigation = [
     { name: "Boshqaruv paneli", href: "/dashboard", icon: LayoutDashboard },
     { name: "Apartamentlar", href: "/dashboard/apartments", icon: Home },
     { name: "Bronlar ro'yxati", href: "/dashboard/bookings", icon: CalendarCheck },
     { name: "CRM (Murojaatlar)", href: "/dashboard/crm", icon: Users },
     { name: "Mehmonlar", href: "/dashboard/clients", icon: UsersRound },
-    { name: "Moliya", href: "/dashboard/finance", icon: Wallet },
-    { name: "Xodimlar", href: "/dashboard/staff", icon: UserCog },
+    ...(role === "shef"
+      ? [
+          { name: "Moliya", href: "/dashboard/finance", icon: Wallet },
+          { name: "Xodimlar", href: "/dashboard/staff", icon: UserCog },
+        ]
+      : []),
   ];
 
   return (

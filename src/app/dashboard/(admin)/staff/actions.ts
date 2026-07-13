@@ -43,7 +43,24 @@ export async function setTaskStatus(id: string, status: string) {
   patch.completed_at = status === "done" ? new Date().toISOString() : null;
   const { error } = await supabase.from("tasks").update(patch).eq("id", id);
   if (error) return { success: false, error: error.message };
+
+  // Tozalash vazifasi yakunlansa — xona statusi "available" (bo'sh/toza)
+  if (status === "done") {
+    const { data: task } = await supabase
+      .from("tasks")
+      .select("type, apartment_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (task?.type === "cleaning" && task.apartment_id) {
+      await supabase
+        .from("apartments")
+        .update({ kanban_status: "available" })
+        .eq("id", task.apartment_id);
+    }
+  }
+
   revalidatePath("/dashboard/staff");
+  revalidatePath("/dashboard/tasks");
   return { success: true };
 }
 

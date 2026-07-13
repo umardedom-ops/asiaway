@@ -1,6 +1,8 @@
 // Mijoz (mehmon) lifecycle yordamchilari — bronlar bilan avtomatik sinxron.
 // createClient (server) tashqaridan beriladi, shuning uchun bu fayl agnostik.
 
+import { notifyRole } from "@/lib/telegram";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SB = any;
 
@@ -99,17 +101,46 @@ export async function onBookingCompleted(
           .limit(1)
           .maybeSingle();
 
-        await supabase.from("tasks").insert([
-          {
-            title: `Tozalash — ${booking.guest_name || "mehmon"} ketgach`,
-            type: "cleaning",
-            apartment_id: booking.apartment_id,
-            assigned_to: cleaner?.id || null,
-            status: "todo",
-            priority: "high",
-            due_date: booking.check_out || new Date().toISOString().split("T")[0],
-          },
-        ]);
+        const { data: newTask } = await supabase
+          .from("tasks")
+          .insert([
+            {
+              title: `Tozalash — ${booking.guest_name || "mehmon"} ketgach`,
+              type: "cleaning",
+              apartment_id: booking.apartment_id,
+              assigned_to: cleaner?.id || null,
+              status: "todo",
+              priority: "high",
+              due_date: booking.check_out || new Date().toISOString().split("T")[0],
+            },
+          ])
+          .select("id")
+          .single();
+
+        // Xona statusi: tozalanishi kerak
+        await supabase
+          .from("apartments")
+          .update({ kanban_status: "dirty" })
+          .eq("id", booking.apartment_id);
+
+        // Farrosh botiga topshiriq (tugma bosilsa vazifa yopiladi + xona "available")
+        const { data: apt } = await supabase
+          .from("apartments")
+          .select("title, address")
+          .eq("id", booking.apartment_id)
+          .maybeSingle();
+
+        await notifyRole(
+          "cleaning",
+          `🧹 <b>TOZALASH KERAK</b>\n\n` +
+            `🏠 ${apt?.title || "Apartament"}\n` +
+            (apt?.address ? `📍 ${apt.address}\n` : "") +
+            `👤 Mehmon chiqib ketdi: ${booking.guest_name || "-"}\n` +
+            `📅 Chiqish sanasi: ${booking.check_out || "-"}`,
+          newTask?.id
+            ? [[{ text: "✅ Tozalandi", callback_data: `task:${newTask.id}:done` }]]
+            : undefined
+        );
       }
     }
   } catch (e) {

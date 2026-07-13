@@ -1,0 +1,92 @@
+// Telegram bot yordamchilari — 3 rol (shef / menejer / cleaning) uchun xabar yuborish.
+// Xatolar YUTILADI: telegram ishlamasa ham asosiy oqim (bron/lead) buzilmasligi shart.
+// Service-role klient ishlatiladi, chunki saytdan kelgan anonim so'rovlarda ham
+// bot_subscribers jadvalini o'qish kerak (RLS faqat authenticated ga ruxsat beradi).
+
+import { createClient } from "@supabase/supabase-js";
+
+export type BotRole = "shef" | "menejer" | "cleaning";
+
+export interface InlineButton {
+  text: string;
+  callback_data: string;
+}
+
+function botToken(role: BotRole): string | undefined {
+  const map: Record<BotRole, string | undefined> = {
+    shef: process.env.TELEGRAM_BOT_SHEF_TOKEN,
+    menejer: process.env.TELEGRAM_BOT_MENEJER_TOKEN,
+    cleaning: process.env.TELEGRAM_BOT_CLEANING_TOKEN,
+  };
+  // Alohida bot sozlanmagan bo'lsa shef botiga tushadi (bitta bot rejimi)
+  return map[role] || process.env.TELEGRAM_BOT_SHEF_TOKEN;
+}
+
+function serviceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
+export async function sendToChat(
+  token: string,
+  chatId: number | string,
+  text: string,
+  buttons?: InlineButton[][]
+) {
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "HTML",
+        ...(buttons ? { reply_markup: { inline_keyboard: buttons } } : {}),
+      }),
+    });
+  } catch (e) {
+    console.error("telegram sendToChat:", e);
+  }
+}
+
+/**
+ * Rolga obuna bo'lgan BARCHA chatlarga xabar yuboradi.
+ * Obunachi yo'q yoki token yo'q bo'lsa — jimgina o'tib ketadi.
+ */
+export async function notifyRole(
+  role: BotRole,
+  text: string,
+  buttons?: InlineButton[][]
+) {
+  try {
+    const token = botToken(role);
+    if (!token) return;
+
+    const supabase = serviceClient();
+    if (!supabase) return;
+
+    const { data: subs } = await supabase
+      .from("bot_subscribers")
+      .select("chat_id")
+      .eq("role", role);
+
+    if (!subs || subs.length === 0) return;
+
+    await Promise.all(
+      subs.map((s) => sendToChat(token, s.chat_id, text, buttons))
+    );
+  } catch (e) {
+    console.error("telegram notifyRole:", e);
+  }
+}
+
+export function fmtMoney(n: number | null | undefined): string {
+  return `$${Number(n || 0).toLocaleString("en-US")}`;
+}
+
+export function fmtDate(d: string | null | undefined): string {
+  if (!d) return "-";
+  return String(d).split("T")[0];
+}

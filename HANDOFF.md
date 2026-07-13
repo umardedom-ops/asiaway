@@ -1,6 +1,17 @@
 # ASIA WAY — HANDOFF (Claude / Antigravity / Codex uchun umumiy kontekst)
 
-> Har qanday AI vosita ishni davom ettirishdan OLDIN shu faylni o'qisin.
+> Har qanday AI vosita ishni davom ettirishdan OLDIN shu faylni va **REJA-PMS.md** ni o'qisin.
+
+## 🆕 2026-07-13 YANGILANISH (Claude, PMS ideal-holat sessiyasi)
+To'liq PMS funksionallik qo'shildi — batafsil holat va qo'lda sozlash ro'yxati **REJA-PMS.md** da:
+- **Farrosh paneli**: `/dashboard/tasks` (mobil, [Tozalandi] → xona avtomatik "available"). Cleaning roli endi 404 ko'rmaydi.
+- **Telegram 3-bot avtomatizatsiya**: yangi bron/lead → menejer botga (inline tugmalar bilan), checkout → farrosh botga [✅ Tozalandi] tugmasi, kunlik hisobot → shef botga (`/api/cron/daily-report`). Yagona webhook: `/api/telegram/webhook` (callback_query bilan). Yordamchi: `src/lib/telegram.ts`.
+- **To'lovlar**: Payme (JSON-RPC `/api/payments/payme`) va Click (`/api/payments/click`) to'liq yozilgan; env yo'qligida avtomatik simulyatsiya rejimi. Yangi migratsiya: `supabase/migrations/20260713000000_payments.sql` — **SQL Editorda ishga tushirish SHART**.
+- **SEO**: metadata/OG/twitter, `sitemap.ts`, `robots.ts`, LodgingBusiness + Accommodation JSON-LD, yangi SSR sahifa `/apartments/[id]`.
+- **ERP hook**: `/api/erp/export` (Bearer ERP_API_KEY).
+- **cron tuzatildi**: check-expiring ustun nomlari (`booking_status`, `monthly_lease_cost`) + `vercel.json` cron jadval.
+- Build xatosiz, smoke-test o'tdi, push qilingan.
+- Eslatma: pastdagi "QOLGAN VAZIFALAR" 3-band (BookingDialog i18n) ESKIRGAN — allaqachon qilingan.
 
 ## ✅ JORIY HOLAT (2026-07-08)
 - **Jonli sayt:** https://asiaway.vercel.app (Vercel, Production, `Ready`).

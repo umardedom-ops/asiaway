@@ -25,8 +25,8 @@ export async function GET(req: Request) {
     // 3 kundan keyin tugaydigan bronlarni olish
     const { data: expiringBookings, error } = await supabase
       .from('bookings')
-      .select('id, check_out, apartments(title, cost_price, owner_phone)')
-      .eq('status', 'confirmed')
+      .select('id, check_out, apartments(title, monthly_lease_cost, owner_phone)')
+      .eq('booking_status', 'confirmed')
       // Faqat kuniga to'g'ri keladiganlarni olamiz (vaqtni hisobga olmasdan)
       .gte('check_out', `${targetDateStr}T00:00:00Z`)
       .lt('check_out', `${targetDateStr}T23:59:59Z`);
@@ -54,7 +54,7 @@ export async function GET(req: Request) {
       const apt = Array.isArray(booking.apartments) ? booking.apartments[0] : booking.apartments;
       if (!apt) continue;
 
-      const message = `⚠️ Diqqat! ${apt.title} ijarasi tugashiga 3 kun qoldi.\n\nUshbu apartament uchun tan narx: ${apt.cost_price}$, Egasi raqami: ${apt.owner_phone || "Mavjud emas"}.\nBronni yopishingiz (uzaytirishingiz) kerak!`;
+      const message = `⚠️ Diqqat! ${apt.title} ijarasi tugashiga 3 kun qoldi.\n\nUshbu apartament uchun tan narx: ${apt.monthly_lease_cost}$, Egasi raqami: ${apt.owner_phone || "Mavjud emas"}.\nBronni yopishingiz (uzaytirishingiz) kerak!`;
 
       for (const sub of subscribers) {
         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {

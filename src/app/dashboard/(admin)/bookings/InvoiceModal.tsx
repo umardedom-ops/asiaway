@@ -61,7 +61,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
           <div className="flex justify-between mb-6">
             <div>
               <p className="font-bold">Mijoz:</p>
-              <p>{booking?.clients?.full_name || "Noma'lum"}</p>
+              <p>{booking?.clients?.full_name || booking?.guest_name || "Noma'lum"}</p>
             </div>
             <div className="text-right">
               <p className="font-bold">Chek No:</p>
