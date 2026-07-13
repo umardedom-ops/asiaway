@@ -29,15 +29,19 @@ export default async function GuestsPage() {
   const apartments = aptsRaw ?? [];
   const bookings = bookingsRaw ?? [];
 
-  // Bugungi kunda apartda kim turibdi (check_in <= today < check_out)
+  // Xona bandligi — bugungi kun bron oralig'iga to'g'ri kelsa band (sana asosida)
   const occupantOf = (aptId: string) =>
     bookings.find(
       (b) => b.apartment_id === aptId && b.check_in <= today && b.check_out > today
     );
 
-  // Hozir turgan mehmonlar (joylashtirilgan yoki bugungi kun bandiga to'g'ri keladi)
-  const staying = bookings.filter(
-    (b) => b.checked_in_at || (b.check_in <= today && b.check_out > today)
+  // "Hozir turibdi" — faqat JOYLASHTIRILGAN (check-in qilingan) mehmonlar.
+  // Voronka bilan bir xil ta'rif (chalkashlik bo'lmasin).
+  const staying = bookings.filter((b) => b.checked_in_at);
+
+  // Bugun keladi (kutilmoqda) — sana bugun, lekin hali joylashtirilmagan
+  const arrivingToday = bookings.filter(
+    (b) => !b.checked_in_at && b.check_in === today
   );
 
   const occupiedCount = apartments.filter((a) => occupantOf(a.id)).length;
@@ -53,10 +57,21 @@ export default async function GuestsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <StatCard title="Hozir turibdi" value={`${staying.length} ta`} icon={<Users className="h-4 w-4 text-purple-300" />} sub="Yashayotgan mehmonlar" />
+        <StatCard title="Hozir turibdi" value={`${staying.length} ta`} icon={<Users className="h-4 w-4 text-purple-300" />} sub="Joylashtirilgan mehmonlar" />
         <StatCard title="Band xonalar" value={`${occupiedCount} ta`} icon={<DoorClosed className="h-4 w-4 text-red-400" />} sub="Bugun band" />
         <StatCard title="Bo'sh xonalar" value={`${freeCount} ta`} icon={<DoorOpen className="h-4 w-4 text-blue-400" />} sub="Tayyor" accent />
       </div>
+
+      {arrivingToday.length > 0 && (
+        <div className="flex items-start gap-3 rounded-[12px] border border-emerald-500/20 bg-emerald-500/5 p-4 text-[13px]">
+          <CalendarDays className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="text-[#F5F2EB]">
+            Bugun <b className="text-emerald-400">{arrivingToday.length} ta</b> mehmon keladi (hali joylashtirilmagan):{" "}
+            <span className="text-[#A8A49B]">{arrivingToday.map((b) => b.guest_name).join(", ")}</span>.
+            <span className="text-[#A8A49B]"> Bronlar sahifasidan &quot;Joylashtirish&quot; bosing.</span>
+          </div>
+        </div>
+      )}
 
       {/* Xonalar bandligi tablosi */}
       <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
