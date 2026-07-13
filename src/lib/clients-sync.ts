@@ -13,9 +13,9 @@ type SB = any;
 export async function syncClientFromBooking(
   supabase: SB,
   input: { name: string; phone: string; email?: string | null; channel?: string; amount?: number }
-) {
+): Promise<{ id: string } | null> {
   const phone = (input.phone || "").trim();
-  if (!phone) return;
+  if (!phone) return null;
   try {
     const { data: existing } = await supabase
       .from("clients")
@@ -38,21 +38,28 @@ export async function syncClientFromBooking(
           stage: stays > 1 ? "repeat" : "booked",
         })
         .eq("id", existing.id);
+      return { id: existing.id as string };
     } else {
-      await supabase.from("clients").insert([
-        {
-          full_name: input.name || "Mehmon",
-          phone,
-          email: input.email || null,
-          channel: input.channel || "direct",
-          stage: "booked",
-          total_stays: 1,
-          total_spent: amount,
-        },
-      ]);
+      const { data: created } = await supabase
+        .from("clients")
+        .insert([
+          {
+            full_name: input.name || "Mehmon",
+            phone,
+            email: input.email || null,
+            channel: input.channel || "direct",
+            stage: "booked",
+            total_stays: 1,
+            total_spent: amount,
+          },
+        ])
+        .select("id")
+        .single();
+      return created ? { id: created.id as string } : null;
     }
   } catch (e) {
     console.error("syncClientFromBooking:", e);
+    return null;
   }
 }
 

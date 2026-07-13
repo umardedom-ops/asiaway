@@ -7,12 +7,23 @@ import ManualBookingForm from "../ManualBookingForm";
 
 export const revalidate = 0;
 
-export default async function NewBookingPage() {
+export default async function NewBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lead?: string; name?: string; phone?: string; telegram?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const { data: apartments } = await supabase
     .from("apartments")
-    .select("id, title")
+    .select("id, title, price_per_day, deposit_amount")
     .order("floor", { ascending: false });
+
+  const prefill = {
+    leadId: sp.lead || "",
+    name: sp.name || "",
+    phone: sp.phone || "",
+  };
 
   return (
     <div className="space-y-8">
@@ -24,13 +35,17 @@ export default async function NewBookingPage() {
         </Link>
         <div>
           <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">Qo&apos;lда bron qo&apos;shish</h1>
-          <p className="text-[14px] text-[#A8A49B] mt-1 font-light">Airbnb, Booking, Instagram, WhatsApp yoki telefon orqali kelgan bronni kiriting.</p>
+          <p className="text-[14px] text-[#A8A49B] mt-1 font-light">
+            {prefill.leadId
+              ? `CRM mijozi (${prefill.name}) bronга o'tkazilmoqda — sana va xona tanlang.`
+              : "Airbnb, Booking, Instagram, WhatsApp yoki telefon orqali kelgan bronni kiriting."}
+          </p>
         </div>
       </div>
 
       <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
         <CardContent className="p-8">
-          <ManualBookingForm apartments={apartments ?? []} />
+          <ManualBookingForm apartments={apartments ?? []} prefill={prefill} />
         </CardContent>
       </Card>
     </div>

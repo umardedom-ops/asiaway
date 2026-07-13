@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createManualBooking } from "@/app/dashboard/bookings/actions";
+import { getBookedDates } from "@/app/actions/booking";
 import { Loader2, Check } from "lucide-react";
 import { btnPrimary, btnSecondary } from "@/lib/ui";
 import { CHANNEL_LABELS } from "./channels";
@@ -12,21 +13,55 @@ const inputCls =
   "w-full h-11 rounded-[8px] border border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] px-3 text-[14px] text-[#F5F2EB] outline-none focus:border-[#C5A46D] transition-colors";
 const labelCls = "text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]";
 
+interface Prefill { leadId?: string; name?: string; phone?: string }
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function ManualBookingForm({ apartments }: { apartments: any[] }) {
+export default function ManualBookingForm({ apartments, prefill }: { apartments: any[]; prefill?: Prefill }) {
   const router = useRouter();
   const [f, setF] = useState({
-    apartment_id: "", guest_name: "", guest_phone: "", guest_email: "",
+    apartment_id: "", guest_name: prefill?.name || "", guest_phone: prefill?.phone || "", guest_email: "",
     channel: "airbnb", check_in: "", check_out: "",
     total_price: "", deposit_amount: "", deposit_status: "paid", booking_status: "confirmed",
   });
   const [state, setState] = useState<"idle" | "saving" | "error">("idle");
   const [err, setErr] = useState("");
+  const [bookedRanges, setBookedRanges] = useState<{ start: Date; end: Date }[]>([]);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   const nights = f.check_in && f.check_out
     ? Math.round((new Date(f.check_out).getTime() - new Date(f.check_in).getTime()) / 86400000)
     : 0;
+
+  const selectedApt = apartments.find((a) => a.id === f.apartment_id);
+
+  // Apartament tanlanganda band sanalarni yuklaymiz (kalendarda bloklash uchun)
+  useEffect(() => {
+    if (!f.apartment_id) { setBookedRanges([]); return; }
+    getBookedDates(f.apartment_id).then((r) => setBookedRanges(r)).catch(() => setBookedRanges([]));
+  }, [f.apartment_id]);
+
+  // Sana/apartament o'zgarsa — narx va zaklatni avtomat to'ldiramiz (agar bo'sh bo'lsa)
+  useEffect(() => {
+    if (selectedApt && nights > 0) {
+      const autoTotal = nights * Number(selectedApt.price_per_day || 0);
+      setF((p) => ({
+        ...p,
+        total_price: p.total_price && Number(p.total_price) > 0 ? p.total_price : String(autoTotal),
+        deposit_amount: p.deposit_amount && Number(p.deposit_amount) > 0 ? p.deposit_amount : String(selectedApt.deposit_amount || 0),
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [f.apartment_id, f.check_in, f.check_out]);
+
+  // Band sana tekshiruvi (kalendarda o'chirish uchun)
+  const isBooked = (date: Date) => {
+    const d = new Date(date); d.setHours(0, 0, 0, 0);
+    return bookedRanges.some(({ start, end }) => {
+      const s = new Date(start); s.setHours(0, 0, 0, 0);
+      const e = new Date(end); e.setHours(0, 0, 0, 0);
+      return d >= s && d < e;
+    });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +78,7 @@ export default function ManualBookingForm({ apartments }: { apartments: any[] })
       deposit_amount: Number(f.deposit_amount) || 0,
       deposit_status: f.deposit_status as "pending" | "paid" | "refunded",
       booking_status: f.booking_status as "pending" | "confirmed" | "completed",
+      lead_id: prefill?.leadId || undefined,
     });
     if (res.success) { router.push("/dashboard/bookings"); router.refresh(); }
     else { setErr(res.error || "Xatolik"); setState("error"); }
@@ -88,11 +124,11 @@ export default function ManualBookingForm({ apartments }: { apartments: any[] })
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2">
           <label className={labelCls}>Kelish sanasi *</label>
-          <DateField value={f.check_in} onChange={(v) => { set("check_in", v); if (f.check_out && v && f.check_out <= v) set("check_out", ""); }} />
+          <DateField value={f.check_in} onChange={(v) => { set("check_in", v); if (f.check_out && v && f.check_out <= v) set("check_out", ""); }} isBooked={f.apartment_id ? isBooked : undefined} />
         </div>
         <div className="space-y-2">
           <label className={labelCls}>Ketish sanasi *</label>
-          <DateField value={f.check_out} onChange={(v) => set("check_out", v)} min={f.check_in || undefined} />
+          <DateField value={f.check_out} onChange={(v) => set("check_out", v)} min={f.check_in || undefined} isBooked={f.apartment_id ? isBooked : undefined} />
         </div>
         <div className="space-y-2">
           <label className={labelCls}>Kechalar</label>

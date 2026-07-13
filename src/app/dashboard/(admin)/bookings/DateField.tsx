@@ -10,15 +10,23 @@ export default function DateField({
   value,
   onChange,
   min,
+  isBooked,
   placeholder = "Sana tanlang",
 }: {
   value: string;
   onChange: (v: string) => void;
   min?: string; // 'yyyy-MM-dd' — bundan oldingilar bloklanadi
+  isBooked?: (date: Date) => boolean; // band (🔴) — tanlab bo'lmaydi
   placeholder?: string;
 }) {
   const selected = value ? new Date(value + "T00:00:00") : undefined;
   const minDate = min ? new Date(min + "T00:00:00") : undefined;
+
+  const disabled = (date: Date) => {
+    if (minDate && date < minDate) return true;
+    if (isBooked && isBooked(date)) return true;
+    return false;
+  };
 
   return (
     <Popover>
@@ -38,7 +46,9 @@ export default function DateField({
           mode="single"
           selected={selected}
           onSelect={(d?: Date) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
-          disabled={minDate ? (date: Date) => date < minDate : undefined}
+          disabled={disabled}
+          modifiers={isBooked ? { booked: (date: Date) => isBooked(date) } : undefined}
+          modifiersClassNames={{ booked: "line-through text-red-400/60 opacity-50" }}
         />
       </PopoverContent>
     </Popover>

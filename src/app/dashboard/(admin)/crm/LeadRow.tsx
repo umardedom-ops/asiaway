@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { updateLeadStatus } from "./actions";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { CalendarPlus } from "lucide-react";
 
 export default function LeadRow({ lead }: { lead: any }) {
+  const router = useRouter();
   const [status, setStatus] = useState(lead.status || "new");
   const [notes, setNotes] = useState(lead.notes || "");
   const [isPending, startTransition] = useTransition();
@@ -14,6 +17,17 @@ export default function LeadRow({ lead }: { lead: any }) {
     startTransition(async () => {
       await updateLeadStatus(lead.id, status, notes);
     });
+  };
+
+  // CRM → Bron: bron formasini mijoz ma'lumoti bilan to'ldirilgan holda ochadi
+  const toBooking = () => {
+    const q = new URLSearchParams({
+      lead: lead.id,
+      name: lead.name || "",
+      phone: lead.phone || "",
+      ...(lead.telegram ? { telegram: lead.telegram } : {}),
+    });
+    router.push(`/dashboard/bookings/new?${q.toString()}`);
   };
 
   const STATUS_LABELS: Record<string, string> = {
@@ -57,6 +71,14 @@ export default function LeadRow({ lead }: { lead: any }) {
             <div className="text-[12px] text-[#C5A46D] mt-1 capitalize font-medium tracking-wide">
               Manba: {lead.source || "Sayt"}
             </div>
+            {status !== "won" && (
+              <Button
+                onClick={toBooking}
+                className="mt-3 bg-[#C5A46D] text-[#0B0D0F] hover:bg-[#D4B77F] h-9 px-4 text-[12px] font-semibold gap-1.5"
+              >
+                <CalendarPlus className="h-3.5 w-3.5" /> Bronga o&apos;tkazish
+              </Button>
+            )}
           </div>
         </div>
 

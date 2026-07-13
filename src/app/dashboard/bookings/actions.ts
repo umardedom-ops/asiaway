@@ -17,6 +17,7 @@ export interface ManualBookingInput {
   deposit_amount: number;
   deposit_status: "pending" | "paid" | "refunded";
   booking_status: "pending" | "confirmed" | "completed";
+  lead_id?: string;
 }
 
 export async function createManualBooking(input: ManualBookingInput) {
@@ -43,7 +44,7 @@ export async function createManualBooking(input: ManualBookingInput) {
     return { success: false, error: "Bu sanalarда apartament allaqachon band" };
   }
 
-  const { error } = await supabase.from("bookings").insert([{
+  const { data: newBooking, error } = await supabase.from("bookings").insert([{
     apartment_id: input.apartment_id,
     guest_name: input.guest_name.trim(),
     guest_phone: input.guest_phone?.trim() || "",
@@ -56,11 +57,13 @@ export async function createManualBooking(input: ManualBookingInput) {
     deposit_amount: input.deposit_amount || 0,
     deposit_status: input.deposit_status || "pending",
     booking_status: input.booking_status || "confirmed",
-  }]);
+    lead_id: input.lead_id || null,
+  }]).select("id").single();
 
   if (error) return { success: false, error: error.message };
 
-  await syncClientFromBooking(supabase, {
+  // Mijozни clients jadvaliga qo'shamiz/yangilaymiz (Mehmonlar bo'limi)
+  const client = await syncClientFromBooking(supabase, {
     name: input.guest_name,
     phone: input.guest_phone,
     email: input.guest_email,
@@ -68,7 +71,59 @@ export async function createManualBooking(input: ManualBookingInput) {
     amount: input.total_price,
   });
 
+  // Zaklat to'langan bo'lsa — kirim kassasiga avtomat yozuv
+  if (newBooking && input.deposit_status === "paid" && (input.deposit_amount || 0) > 0) {
+    await supabase.from("payments").insert([{
+      booking_id: newBooking.id,
+      client_id: client?.id || null,
+      guest_name: input.guest_name.trim(),
+      amount: input.deposit_amount,
+      method: input.channel === "airbnb" || input.channel === "booking" ? "otkazma" : "naqd",
+      kind: "deposit",
+      note: `Qo'lда bron — zaklat (${input.channel})`,
+    }]);
+  }
+
+  // Lead'dan kelgan bo'lsa — CRM'да "muvaffaqiyatli" (won) qilamiz
+  if (input.lead_id) {
+    await supabase.from("leads").update({ status: "won" }).eq("id", input.lead_id);
+    revalidatePath("/dashboard/crm");
+  }
+
   revalidatePath("/dashboard/bookings");
+  revalidatePath("/dashboard/clients");
+  revalidatePath("/dashboard/cashflow");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
+// Joylashtirish (check-in): mehmon apartga kirdi → "hozir turgan mehmonlar"ga o'tadi
+export async function checkInBooking(id: string) {
+  const supabase = await createClient();
+
+  const { data: bk } = await supabase
+    .from("bookings")
+    .select("guest_phone, booking_status")
+    .eq("id", id)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ checked_in_at: new Date().toISOString(), booking_status: "confirmed" })
+    .eq("id", id);
+  if (error) throw new Error(`Joylashtirishda xatolik: ${error.message}`);
+
+  // Mijoz bosqichi → "staying" (yashamoqda)
+  if (bk?.guest_phone) {
+    await supabase
+      .from("clients")
+      .update({ stage: "staying" })
+      .eq("phone", bk.guest_phone.trim());
+  }
+
+  revalidatePath("/dashboard/bookings");
+  revalidatePath("/dashboard/guests");
+  revalidatePath("/dashboard/clients");
   revalidatePath("/dashboard");
   return { success: true };
 }
@@ -76,16 +131,26 @@ export async function createManualBooking(input: ManualBookingInput) {
 export async function updateBookingStatus(id: string, status: "pending" | "confirmed" | "cancelled" | "completed") {
   const supabase = await createClient();
 
-  // Oldingi holatni olamiz (faqat yangi "completed" da avto-tozalash ochilsin)
+  // Oldingi holatni olamiz (avto-hisob va avto-tozalash uchun)
   const { data: prev } = await supabase
     .from("bookings")
-    .select("booking_status, apartment_id, guest_name, guest_phone, check_out")
+    .select("booking_status, apartment_id, guest_name, guest_phone, check_out, nights, total_price, apartments(price_per_day)")
     .eq("id", id)
     .maybeSingle();
 
+  // Checkout'да narx 0 bo'lsa — nights × price_per_day avtomat hisoblanadi
+  const patch: Record<string, unknown> = { booking_status: status };
+  if (status === "completed" && prev && Number(prev.total_price || 0) === 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const apt: any = Array.isArray(prev.apartments) ? prev.apartments[0] : prev.apartments;
+    const perNight = Number(apt?.price_per_day || 0);
+    const nights = Number(prev.nights || 0);
+    if (perNight > 0 && nights > 0) patch.total_price = perNight * nights;
+  }
+
   const { error } = await supabase
     .from("bookings")
-    .update({ booking_status: status })
+    .update(patch)
     .eq("id", id);
 
   if (error) {
@@ -101,6 +166,7 @@ export async function updateBookingStatus(id: string, status: "pending" | "confi
       check_out: prev.check_out,
     });
     revalidatePath("/dashboard/staff");
+    revalidatePath("/dashboard/guests");
   }
 
   revalidatePath("/dashboard/bookings");

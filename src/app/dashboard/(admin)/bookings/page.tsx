@@ -87,7 +87,9 @@ export default async function BookingsPage() {
                           )}
                         </td>
                         <td className="px-4 py-4">
-                          {b.booking_status === "confirmed" ? (
+                          {b.booking_status === "confirmed" && b.checked_in_at ? (
+                            <Badge className="bg-purple-500/10 text-purple-300 hover:bg-purple-500/10 border border-purple-500/20">Hozir turibdi</Badge>
+                          ) : b.booking_status === "confirmed" ? (
                             <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20">Tasdiqlangan</Badge>
                           ) : b.booking_status === "cancelled" ? (
                             <Badge className="bg-red-500/10 text-red-400 hover:bg-red-500/10 border border-red-500/20">Bekor</Badge>
@@ -98,7 +100,7 @@ export default async function BookingsPage() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <BookingRowActions id={b.id} bookingStatus={b.booking_status} depositStatus={b.deposit_status} booking={b} />
+                          <BookingRowActions id={b.id} bookingStatus={b.booking_status} depositStatus={b.deposit_status} checkedIn={!!b.checked_in_at} booking={b} />
                         </td>
                       </tr>
                     );
