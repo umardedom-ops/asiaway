@@ -255,7 +255,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                 {/* Tan narx (biz egaga to'laydigan oylik) — foyda hisobi uchun */}
                 <div className="rounded-[12px] border border-[rgba(197,164,109,0.14)] bg-[#0B0D0F]/40 p-5 space-y-4">
                   <div className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Tan narx · Ega ma&apos;lumoti</div>
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div className="space-y-3">
                       <Label htmlFor="monthly_lease_cost" className="text-[11px] text-[#A8A49B] uppercase tracking-[0.08em] font-semibold">Egaga oylik ($)</Label>
                       <Input
@@ -286,6 +286,20 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                         placeholder="+998"
                         className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"
                       />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="lease_payment_day" className="text-[11px] text-[#A8A49B] uppercase tracking-[0.08em] font-semibold">To&apos;lov kuni (sana)</Label>
+                      <Input
+                        id="lease_payment_day"
+                        name="lease_payment_day"
+                        type="number"
+                        min={1}
+                        max={31}
+                        defaultValue={initialData?.lease_payment_day || ""}
+                        placeholder="Masalan: 5"
+                        className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"
+                      />
+                      <p className="text-[11px] text-[#A8A49B]/70 leading-snug">Har oyning shu sanasida egaga oylik to&apos;lanadi — shef botiga eslatma boradi.</p>
                     </div>
                   </div>
                 </div>

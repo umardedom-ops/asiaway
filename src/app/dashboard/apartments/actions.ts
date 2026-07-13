@@ -25,6 +25,10 @@ export async function saveApartment(prevState: any, formData: FormData) {
     const monthly_lease_cost = formData.get("monthly_lease_cost") ? Number(formData.get("monthly_lease_cost")) : 0;
     const owner_name = (formData.get("owner_name") as string) || null;
     const owner_phone = (formData.get("owner_phone") as string) || null;
+    // Egaga to'lov kuni (oyning sanasi, 1-31) — bot eslatmasi uchun
+    const leaseDayRaw = Number(formData.get("lease_payment_day"));
+    const lease_payment_day =
+      leaseDayRaw >= 1 && leaseDayRaw <= 31 ? Math.floor(leaseDayRaw) : null;
     
     // Qulayliklarni parse qilish
     const amenities = formData.getAll("amenities") as string[];
@@ -75,6 +79,7 @@ export async function saveApartment(prevState: any, formData: FormData) {
       monthly_lease_cost,
       owner_name,
       owner_phone,
+      lease_payment_day,
     };
 
     let targetAptId = id;
