@@ -147,7 +147,7 @@ export default async function GuestsPage() {
                         <div className="text-[11px] text-[#A8A49B]/70">{b.nights} kecha</div>
                       </td>
                       <td className="px-4 py-3 text-right text-[#C5A46D] font-medium">{money(b.total_price)}</td>
-                      <td className="px-6 py-3 text-right"><GuestCheckoutButton id={b.id} /></td>
+                      <td className="px-6 py-3 text-right"><GuestCheckoutButton id={b.id} booking={{ ...b, apartment_title: apt?.title }} /></td>
                     </tr>
                   );
                 })}

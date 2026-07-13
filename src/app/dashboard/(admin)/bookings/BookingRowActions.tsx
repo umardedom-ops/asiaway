@@ -28,7 +28,11 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
 
   const handleCheckout = async () => {
     setLoadingAction("checkout");
-    try { await updateBookingStatus(id, "completed"); }
+    try {
+      await updateBookingStatus(id, "completed");
+      // Checkout tugagach — chek (PDF) oynasi avtomat ochiladi
+      setInvoiceOpen(true);
+    }
     catch (err: any) { alert(`Xatolik: ${err.message}`); }
     finally { setLoadingAction(null); }
   };
