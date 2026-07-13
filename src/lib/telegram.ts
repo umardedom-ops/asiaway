@@ -13,10 +13,15 @@ export interface InlineButton {
 }
 
 function botToken(role: BotRole): string | undefined {
+  // Muqobil nomlar ham qabul qilinadi (Vercel'da MANAGER/FARROSH deb qo'yilgan)
   const map: Record<BotRole, string | undefined> = {
     shef: process.env.TELEGRAM_BOT_SHEF_TOKEN,
-    menejer: process.env.TELEGRAM_BOT_MENEJER_TOKEN,
-    cleaning: process.env.TELEGRAM_BOT_CLEANING_TOKEN,
+    menejer:
+      process.env.TELEGRAM_BOT_MENEJER_TOKEN ||
+      process.env.TELEGRAM_BOT_MANAGER_TOKEN,
+    cleaning:
+      process.env.TELEGRAM_BOT_CLEANING_TOKEN ||
+      process.env.TELEGRAM_BOT_FARROSH_TOKEN,
   };
   // Alohida bot sozlanmagan bo'lsa shef botiga tushadi (bitta bot rejimi)
   return map[role] || process.env.TELEGRAM_BOT_SHEF_TOKEN;
