@@ -129,7 +129,7 @@ export default function HomeContent({ apartments, phones, address }: { apartment
             <BrandWordmark variant="header" />
           </a>
 
-          <nav className="hidden lg:flex items-center gap-9 text-[14px] font-medium tracking-wide absolute left-1/2 -translate-x-1/2">
+          <nav className="hidden lg:flex items-center justify-center flex-1 gap-6 xl:gap-9 text-[14px] font-medium tracking-wide mx-4">
             <a href="#about" className="text-[#F5F2EB]/85 hover:text-[#C5A46D] transition-colors">{t.nav.about}</a>
             <a href="#services" className="text-[#F5F2EB]/85 hover:text-[#C5A46D] transition-colors">{t.nav.services}</a>
             <a href="#catalog" className="text-[#F5F2EB]/85 hover:text-[#C5A46D] transition-colors">{t.nav.apartments}</a>
