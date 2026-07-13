@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import KanbanBoard from "./KanbanBoard";
+import GuestFunnelBoard from "./GuestFunnelBoard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Home,
@@ -33,7 +34,9 @@ export default async function DashboardPage() {
   // 2. Barcha bronlarni olish
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("id, total_price, check_in, check_out, booking_status");
+    .select("id, apartment_id, guest_name, total_price, check_in, check_out, booking_status, checked_in_at");
+
+  const aptTitle = (id: string) => (apartments || []).find((a) => a.id === id)?.title || "—";
 
   const totalBookings = bookings?.length || 0;
   
@@ -178,8 +181,11 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      {/* Mijozlar voronkasi (bron oqimi) */}
+      <GuestFunnelBoard bookings={bookings || []} aptTitle={aptTitle} />
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        {/* Realtime Kanban Doskasi */}
+        {/* Realtime Kanban Doskasi (tozalash holati) */}
         <div className="col-span-4">
           <KanbanBoard initialData={apartments || []} />
         </div>

@@ -81,8 +81,19 @@ ANIQLANGAN MUAMMOLAR (fazalarga bo'lingan):
 - [x] **Mehmon to'lov tarixi** `/dashboard/clients/[id]`: mehmonning barcha bronlari, umumiy sarf, tashriflar. Mehmonlar ro'yxatida qatorlar bosiladigan.
 - [x] **Professional CHEK** — InvoiceModal to'liq qayta yozildi (branding, kecha×narx qatori, zaklat chegirma, jami). Bookings jadvalida har confirmed/completed bronга **[Chek]** tugmasi. Print CSS faqat chekni chop etadi. PDF sifatida saqlash mumkin.
 
+## QO'SHIMCHA (2026-07-13, 4-sessiya — mehmon hayotiy sikli)
+Oqim: **CRM → Bron → Mehmon joylashtirish (turibdi) → Checkout**.
+- [x] Migratsiya `20260713000003_guest_lifecycle_payments.sql`: bookings.checked_in_at, lead_id + `payments` jadvali (RUN kerak).
+- [x] **CRM → Bron**: LeadRow'да [Bronga o'tkazish] tugmasi → bron formasi mijoz ma'lumoti bilan to'ldiriladi (?lead=&name=&phone=); bron yaratilганда lead 'won', mijoz clients'ga.
+- [x] **Qo'lда bron**: champagne kalendar, apartament tanlanganда band sanalar 🔴 bloklanadi (getBookedDates), narx/zaklat avtomat, mijoz Mehmonlar'ga tushadi (avval faqat bronга tushardi — TUZATILDI).
+- [x] **Joylashtirish (check-in)**: Bronlar'да [Joylashtirish] → checked_in_at, "Hozir turibdi" badge, client.stage=staying.
+- [x] **Checkout avto-hisob**: total_price 0 bo'lsa nights×price avtomat.
+- [x] **Mehmon joylashtirish sahifasi** `/dashboard/guests`: xonalar bandligi tablosi (🔴 band xira / 🔵 bo'sh) + hozir turgan mehmonlar + checkout.
+- [x] **Kirim kassasi** `/dashboard/income` (shef): har to'lov sana+soatgacha jurnal, qo'lда to'lov qo'shish. Avtomat: sayt broni, Payme/Click webhook, qo'lда bron zaklati.
+- [x] **Kanban ikkala doska**: bosh sahifада Mijozlar voronkasi (Kutilmoqda→Turibdi→Chiqdi) + mavjud tozalash doskasi.
+
 ## ⚠️ QO'LDA QILINADIGAN ISHLAR (kod emas, sozlash)
-1. **Supabase SQL Editor**da yangi migratsiyalarni ishga tushirish: `supabase/migrations/20260713000000_payments.sql` + `20260713000001_owner_payment_day.sql` + `20260713000002_lease_paid_period.sql`.
+1. **Supabase SQL Editor**da yangi migratsiyalarni ishga tushirish: `20260713000000_payments.sql` + `20260713000001_owner_payment_day.sql` + `20260713000002_lease_paid_period.sql` + **`20260713000003_guest_lifecycle_payments.sql`** (eng yangi — checked_in_at + payments).
 2. **Vercel env** qo'shish: `CRON_SECRET` (ixtiyoriy random string), `TELEGRAM_BOT_SHEF_TOKEN`, `TELEGRAM_BOT_MENEJER_TOKEN`, `TELEGRAM_BOT_CLEANING_TOKEN` (BotFather'dan), `NEXT_PUBLIC_SITE_URL=https://asiaway.vercel.app`.
 3. **Telegram webhooklar**: har bot uchun `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://asiaway.vercel.app/api/telegram/webhook?token=<TOKEN>`.
 4. Botlarga kirish: guruh/shaxsiy chatda parol yozish (shef `start_shef_asiaway`, menejer `start_menejer_asiaway`, farrosh `start_cleaning_asiaway`).
