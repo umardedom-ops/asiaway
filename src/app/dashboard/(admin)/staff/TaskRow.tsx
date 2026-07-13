@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { setTaskStatus, deleteTask } from "./actions";
-import { Trash2, Loader2, Check, Play, RotateCcw } from "lucide-react";
+import { Trash2, Loader2, Check, Play, RotateCcw, Camera } from "lucide-react";
 import { TASK_STATUS_LABELS } from "./labels";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -23,6 +23,11 @@ export default function TaskRow({ task, staffName, aptTitle, typeLabel }: { task
       <td className="px-6 py-3 text-[#F5F2EB] max-w-[240px]">
         <div className="truncate">{task.title}</div>
         <div className="text-[11px] text-[#A8A49B]">{typeLabel}{task.due_date ? ` · ${task.due_date}` : ""}</div>
+        {task.proof_image_url && (
+          <a href={task.proof_image_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-[#C5A46D] hover:text-[#D4B77F] mt-1">
+            <Camera className="h-3 w-3" /> Dalil rasm
+          </a>
+        )}
       </td>
       <td className="px-4 py-3 text-[#A8A49B]">{staffName}</td>
       <td className="px-4 py-3 text-[#A8A49B] max-w-[160px] truncate">{aptTitle}</td>

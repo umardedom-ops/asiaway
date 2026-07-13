@@ -15,8 +15,8 @@ export async function startCleaningTask(taskId: string) {
   return { success: true };
 }
 
-// Farrosh "Tozalandi" bosganda: vazifa done + xona statusi available
-export async function completeCleaningTask(taskId: string) {
+// Farrosh "Tozalandi" bosganda: vazifa done + rasm (dalil) + xona statusi available
+export async function completeCleaningTask(taskId: string, proofUrl?: string) {
   const supabase = await createClient();
 
   const { data: task, error: taskErr } = await supabase
@@ -28,7 +28,11 @@ export async function completeCleaningTask(taskId: string) {
 
   const { error } = await supabase
     .from("tasks")
-    .update({ status: "done", completed_at: new Date().toISOString() })
+    .update({
+      status: "done",
+      completed_at: new Date().toISOString(),
+      ...(proofUrl ? { proof_image_url: proofUrl } : {}),
+    })
     .eq("id", taskId);
   if (error) return { success: false, error: error.message };
 
