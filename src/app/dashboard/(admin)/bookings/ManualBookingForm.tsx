@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createManualBooking } from "@/app/dashboard/bookings/actions";
+import { createManualBooking, placeGuestNow } from "@/app/dashboard/bookings/actions";
 import { getBookedDates } from "@/app/actions/booking";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, LogIn } from "lucide-react";
 import { btnPrimary, btnSecondary } from "@/lib/ui";
 import { CHANNEL_LABELS } from "./channels";
 import DateField from "./DateField";
@@ -13,7 +13,7 @@ const inputCls =
   "w-full h-11 rounded-[8px] border border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] px-3 text-[14px] text-[#F5F2EB] outline-none focus:border-[#C5A46D] transition-colors";
 const labelCls = "text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]";
 
-interface Prefill { leadId?: string; name?: string; phone?: string }
+interface Prefill { leadId?: string; name?: string; phone?: string; place?: boolean }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ManualBookingForm({ apartments, prefill }: { apartments: any[]; prefill?: Prefill }) {
@@ -26,6 +26,7 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
   const [state, setState] = useState<"idle" | "saving" | "error">("idle");
   const [err, setErr] = useState("");
   const [bookedRanges, setBookedRanges] = useState<{ start: Date; end: Date }[]>([]);
+  const [placeNow, setPlaceNow] = useState(!!prefill?.place); // "Hozir joylashtirish" (check-in)
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   const nights = f.check_in && f.check_out
@@ -66,7 +67,7 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setState("saving"); setErr("");
-    const res = await createManualBooking({
+    const payload = {
       apartment_id: f.apartment_id,
       guest_name: f.guest_name,
       guest_phone: f.guest_phone,
@@ -79,9 +80,13 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
       deposit_status: f.deposit_status as "pending" | "paid" | "refunded",
       booking_status: f.booking_status as "pending" | "confirmed" | "completed",
       lead_id: prefill?.leadId || undefined,
-    });
-    if (res.success) { router.push("/dashboard/bookings"); router.refresh(); }
-    else { setErr(res.error || "Xatolik"); setState("error"); }
+    };
+    // "Hozir joylashtirish" belgilangan bo'lsa — bron + check-in bir amalda
+    const res = placeNow ? await placeGuestNow(payload) : await createManualBooking(payload);
+    if (res.success) {
+      router.push(placeNow ? "/dashboard/guests" : "/dashboard/bookings");
+      router.refresh();
+    } else { setErr(res.error || "Xatolik"); setState("error"); }
   };
 
   return (
@@ -163,10 +168,17 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
         </div>
       </div>
 
+      {/* Hozir joylashtirish (check-in) tanlovi */}
+      <label className="flex items-center gap-3 pt-4 cursor-pointer select-none">
+        <input type="checkbox" checked={placeNow} onChange={(e) => setPlaceNow(e.target.checked)}
+          className="h-5 w-5 rounded border-[rgba(197,164,109,0.4)] bg-[#0B0D0F] accent-[#C5A46D]" />
+        <span className="text-[14px] text-[#F5F2EB]">Hozir joylashtirish (mehmon darrov &quot;turibdi&quot; holatiga o&apos;tadi)</span>
+      </label>
+
       <div className="flex gap-4 pt-4 border-t border-[rgba(197,164,109,0.14)]">
         <button type="submit" disabled={state === "saving"} className={`${btnPrimary} h-12 px-8 text-[15px] gap-2`}>
-          {state === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-          Bronni saqlash
+          {state === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : placeNow ? <LogIn className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+          {placeNow ? "Joylashtirish" : "Bronni saqlash"}
         </button>
         <button type="button" onClick={() => router.push("/dashboard/bookings")} className={`${btnSecondary} h-12 px-8 text-[15px]`}>
           Bekor qilish

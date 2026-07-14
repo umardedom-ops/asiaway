@@ -10,7 +10,7 @@ export const revalidate = 0;
 export default async function NewBookingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ lead?: string; name?: string; phone?: string; telegram?: string }>;
+  searchParams: Promise<{ lead?: string; name?: string; phone?: string; telegram?: string; place?: string }>;
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
@@ -23,6 +23,7 @@ export default async function NewBookingPage({
     leadId: sp.lead || "",
     name: sp.name || "",
     phone: sp.phone || "",
+    place: sp.place === "1",
   };
 
   return (
@@ -34,10 +35,12 @@ export default async function NewBookingPage({
           </Button>
         </Link>
         <div>
-          <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">Qo&apos;lда bron qo&apos;shish</h1>
+          <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">
+            {prefill.place ? "Mehmonni joylashtirish" : "Qo'lда bron qo'shish"}
+          </h1>
           <p className="text-[14px] text-[#A8A49B] mt-1 font-light">
             {prefill.leadId
-              ? `CRM mijozi (${prefill.name}) bronга o'tkazilmoqda — sana va xona tanlang.`
+              ? `CRM mijozi (${prefill.name}) — sana va xona tanlang.`
               : "Airbnb, Booking, Instagram, WhatsApp yoki telefon orqali kelgan bronni kiriting."}
           </p>
         </div>

@@ -4,98 +4,71 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateLeadStatus } from "./actions";
 import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, LogIn, Phone, MessageSquare, Save, Loader2 } from "lucide-react";
+import { btnPrimary, btnSecondary } from "@/lib/ui";
 
+const STATUS_LABELS: Record<string, string> = {
+  new: "Yangi", contacted: "Suhbatlashildi", waiting: "Kutmoqda", won: "Muvaffaqiyatli", lost: "Rad etdi",
+};
+const STATUS_STYLE: Record<string, string> = {
+  new: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  contacted: "bg-[#C5A46D]/10 text-[#C5A46D] border-[#C5A46D]/25",
+  waiting: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  won: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  lost: "bg-red-500/10 text-red-400 border-red-500/20",
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function LeadRow({ lead }: { lead: any }) {
   const router = useRouter();
   const [status, setStatus] = useState(lead.status || "new");
   const [notes, setNotes] = useState(lead.notes || "");
   const [isPending, startTransition] = useTransition();
 
-  const handleUpdate = () => {
-    startTransition(async () => {
-      await updateLeadStatus(lead.id, status, notes);
-    });
-  };
+  const handleUpdate = () => startTransition(async () => { await updateLeadStatus(lead.id, status, notes); });
 
-  // CRM → Bron: bron formasini mijoz ma'lumoti bilan to'ldirilgan holda ochadi
-  const toBooking = () => {
-    const q = new URLSearchParams({
-      lead: lead.id,
-      name: lead.name || "",
-      phone: lead.phone || "",
-      ...(lead.telegram ? { telegram: lead.telegram } : {}),
-    });
+  // CRM → Bron yoki Joylashtirish (mijoz ma'lumoti bilan to'ldirilgan holda ochiladi)
+  const goToBooking = (place: boolean) => {
+    const q = new URLSearchParams({ lead: lead.id, name: lead.name || "", phone: lead.phone || "" });
+    if (place) q.set("place", "1");
     router.push(`/dashboard/bookings/new?${q.toString()}`);
   };
 
-  const STATUS_LABELS: Record<string, string> = {
-    new: "Yangi",
-    contacted: "Suhbatlashildi",
-    waiting: "Kutmoqda",
-    won: "Muvaffaqiyatli",
-    lost: "Rad etdi",
-  };
-
-  const getStatusColor = (s: string) => {
-    switch (s) {
-      case "new": return "text-blue-400 bg-blue-400/10 border-blue-400/20";
-      case "contacted": return "text-[#C5A46D] bg-[#C5A46D]/10 border-[#C5A46D]/20";
-      case "waiting": return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
-      case "won": return "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
-      case "lost": return "text-red-400 bg-red-400/10 border-red-400/20";
-      default: return "text-[#A8A49B] bg-[#A8A49B]/10 border-[#A8A49B]/20";
-    }
-  };
-
   return (
-    <div className="bg-[#111417] border border-[rgba(197,164,109,0.14)] rounded-xl p-6 flex flex-col md:flex-row gap-6 hover:border-[#C5A46D]/30 transition-colors">
-      <div className="flex-1 space-y-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-[18px] font-heading font-medium text-[#F5F2EB]">{lead.name}</h3>
-            <div className="text-[14px] text-[#A8A49B] flex items-center space-x-3 mt-1">
-              <span>{lead.phone}</span>
-              {lead.whatsapp && <span>• WA: {lead.whatsapp}</span>}
-              {lead.telegram && <span>• TG: {lead.telegram}</span>}
-            </div>
-          </div>
-          <div className="text-right">
-            <span className={`text-[11px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded border ${getStatusColor(status)}`}>
-              {STATUS_LABELS[status] || status}
-            </span>
-            <div className="text-[12px] text-[#A8A49B] mt-2">
-              {format(new Date(lead.created_at), "dd MMM yyyy, HH:mm")}
-            </div>
-            <div className="text-[12px] text-[#C5A46D] mt-1 capitalize font-medium tracking-wide">
-              Manba: {lead.source || "Sayt"}
-            </div>
-            {status !== "won" && (
-              <Button
-                onClick={toBooking}
-                className="mt-3 bg-[#C5A46D] text-[#0B0D0F] hover:bg-[#D4B77F] h-9 px-4 text-[12px] font-semibold gap-1.5"
-              >
-                <CalendarPlus className="h-3.5 w-3.5" /> Bronga o&apos;tkazish
-              </Button>
-            )}
+    <div className="bg-[#111417] border border-[rgba(197,164,109,0.14)] rounded-[12px] overflow-hidden hover:border-[rgba(197,164,109,0.3)] transition-colors">
+      {/* Yuqori qism: ism + holat */}
+      <div className="flex items-start justify-between gap-4 p-5 pb-4">
+        <div className="min-w-0">
+          <h3 className="text-[17px] font-heading font-medium text-[#F5F2EB]">{lead.name}</h3>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-[13px] text-[#A8A49B]">
+            <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[#C5A46D]" /> {lead.phone}</span>
+            {lead.whatsapp && <span>WA: {lead.whatsapp}</span>}
+            {lead.telegram && <span>TG: {lead.telegram}</span>}
           </div>
         </div>
+        <div className="text-right shrink-0">
+          <span className={`inline-block text-[11px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded-full border ${STATUS_STYLE[status] || STATUS_STYLE.new}`}>
+            {STATUS_LABELS[status] || status}
+          </span>
+          <div className="text-[11px] text-[#A8A49B] mt-2">{format(new Date(lead.created_at), "dd MMM yyyy, HH:mm")}</div>
+          <div className="text-[11px] text-[#C5A46D] mt-0.5 capitalize">Manba: {lead.source || "Sayt"}</div>
+        </div>
+      </div>
 
-        {lead.message && (
-          <div className="bg-[#0B0D0F] p-4 rounded-lg border border-[rgba(197,164,109,0.08)]">
-            <p className="text-[14px] text-[#A8A49B] leading-relaxed italic">&quot;{lead.message}&quot;</p>
-          </div>
-        )}
+      {lead.message && (
+        <div className="mx-5 mb-4 flex gap-2.5 bg-[#0B0D0F] p-3.5 rounded-[8px] border border-[rgba(197,164,109,0.08)]">
+          <MessageSquare className="h-4 w-4 text-[#C5A46D]/60 shrink-0 mt-0.5" />
+          <p className="text-[13px] text-[#A8A49B] leading-relaxed italic">{lead.message}</p>
+        </div>
+      )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-          <div className="space-y-2">
-            <label className="text-[12px] font-medium text-[#A8A49B] uppercase tracking-wider">Mijoz holati</label>
-            <select 
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full h-11 bg-[#0B0D0F] border border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[8px] px-3 focus:outline-none focus:border-[#C5A46D] transition-colors"
-            >
+      {/* Pastki panel: holat + eslatma + amallar */}
+      <div className="border-t border-[rgba(197,164,109,0.1)] bg-[#0B0D0F]/40 p-4 flex flex-col lg:flex-row lg:items-end gap-3">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Mijoz holati</label>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}
+              className="w-full h-10 bg-[#111417] border border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[8px] px-3 text-[13.5px] focus:outline-none focus:border-[#C5A46D]">
               <option value="new">Yangi</option>
               <option value="contacted">Suhbatlashildi</option>
               <option value="waiting">Kutmoqda</option>
@@ -103,25 +76,27 @@ export default function LeadRow({ lead }: { lead: any }) {
               <option value="lost">Rad etdi</option>
             </select>
           </div>
-          <div className="space-y-2">
-            <label className="text-[12px] font-medium text-[#A8A49B] uppercase tracking-wider">Eslatma (Notes)</label>
-            <div className="flex space-x-3">
-              <input 
-                type="text"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Mijoz haqida xulosa..."
-                className="flex-1 h-11 bg-[#0B0D0F] border border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[8px] px-4 focus:outline-none focus:border-[#C5A46D] transition-colors placeholder:text-[#A8A49B]/40"
-              />
-              <Button 
-                onClick={handleUpdate}
-                disabled={isPending}
-                className="bg-[#C5A46D] text-[#0B0D0F] hover:bg-[#D4B77F] h-11 px-6 font-semibold"
-              >
-                {isPending ? "..." : "Saqlash"}
-              </Button>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Eslatma</label>
+            <div className="flex gap-2">
+              <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Mijoz haqida xulosa..."
+                className="flex-1 h-10 bg-[#111417] border border-[rgba(197,164,109,0.22)] text-[#F5F2EB] rounded-[8px] px-3 text-[13.5px] focus:outline-none focus:border-[#C5A46D] placeholder:text-[#A8A49B]/40" />
+              <button onClick={handleUpdate} disabled={isPending} title="Saqlash"
+                className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[8px] border border-[rgba(197,164,109,0.22)] text-[#A8A49B] hover:text-[#C5A46D] hover:border-[#C5A46D]/50 transition-colors">
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              </button>
             </div>
           </div>
+        </div>
+
+        {/* Amallar — HAR HOLATDA ko'rinadi */}
+        <div className="flex gap-2 shrink-0">
+          <button onClick={() => goToBooking(false)} className={`${btnPrimary} h-10 px-4 text-[12.5px] gap-1.5`}>
+            <CalendarPlus className="h-3.5 w-3.5" /> Bronga
+          </button>
+          <button onClick={() => goToBooking(true)} className={`${btnSecondary} h-10 px-4 text-[12.5px] gap-1.5`}>
+            <LogIn className="h-3.5 w-3.5" /> Joylashtirish
+          </button>
         </div>
       </div>
     </div>
