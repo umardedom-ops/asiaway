@@ -91,8 +91,12 @@ export async function addTask(input: {
 
   revalidatePath("/dashboard/staff");
   revalidatePath("/dashboard/tasks");
-  // notified.sent = nechta chatga ketdi; 0 bo'lsa reason'да sabab bor
-  return { success: true, notified };
+  // debug: qaysi xodim roli topildi va qaysi botga yuborildi (ekranda ko'rinadi)
+  return {
+    success: true,
+    notified,
+    debug: { assigned_to: input.assigned_to || null, staffRole, botRole: role },
+  };
 }
 
 export async function setTaskStatus(id: string, status: string) {

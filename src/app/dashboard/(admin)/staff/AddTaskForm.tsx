@@ -37,8 +37,10 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
       setTitle(""); setDueDate("");
       // Telegram xabari ketdimi? Ketmasa — sababini ko'rsatamiz
       const n = res.notified;
-      if (n && n.sent > 0) setInfo(`✅ Vazifa qo'shildi · Telegram (${n.role}) botiga yuborildi`);
-      else setInfo(`⚠️ Vazifa qo'shildi, lekin Telegram xabari YUBORILMADI — ${n?.reason || "noma'lum sabab"}`);
+      const d = res.debug;
+      const dbg = d ? ` [xodim roli: ${d.staffRole ?? "topilmadi"} → bot: ${d.botRole}]` : "";
+      if (n && n.sent > 0) setInfo(`✅ Vazifa qo'shildi · Telegram (${n.role}) botiga yuborildi${dbg}`);
+      else setInfo(`⚠️ Vazifa qo'shildi, lekin Telegram xabari YUBORILMADI — ${n?.reason || "noma'lum sabab"}${dbg}`);
     }
     else setErr(res.error || "Xatolik");
   };
