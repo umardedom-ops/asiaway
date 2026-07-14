@@ -17,13 +17,15 @@ export async function addStaff(input: { full_name: string; role: string; phone?:
   return { success: true };
 }
 
+import { notifyRole, type BotRole } from "@/lib/telegram";
+
 export async function addTask(input: {
   title: string; type: string; assigned_to?: string | null;
   apartment_id?: string | null; due_date?: string | null; priority?: string;
 }) {
   if (!input.title?.trim()) return { success: false, error: "Vazifa nomini kiriting" };
   const supabase = await createClient();
-  const { error } = await supabase.from("tasks").insert([{
+  const { error, data: task } = await supabase.from("tasks").insert([{
     title: input.title.trim(),
     type: input.type || "cleaning",
     assigned_to: input.assigned_to || null,
@@ -31,8 +33,40 @@ export async function addTask(input: {
     due_date: input.due_date || null,
     priority: input.priority || "normal",
     status: "todo",
-  }]);
+  }]).select("id").single();
+  
   if (error) return { success: false, error: error.message };
+
+  // Bildirishnoma jo'natish uchun qo'shimcha ma'lumotlarni olamiz
+  let aptTitle = "";
+  if (input.apartment_id) {
+    const { data: apt } = await supabase.from("apartments").select("title").eq("id", input.apartment_id).single();
+    if (apt) aptTitle = apt.title;
+  }
+
+  let staffName = "";
+  let role: BotRole = input.type === "cleaning" ? "cleaning" : "menejer";
+  
+  if (input.assigned_to) {
+    const { data: staff } = await supabase.from("staff").select("full_name, role").eq("id", input.assigned_to).single();
+    if (staff) {
+      staffName = staff.full_name;
+      if (staff.role === "cleaning" || staff.role === "menejer" || staff.role === "shef") {
+        role = staff.role as BotRole;
+      }
+    }
+  }
+
+  const aptLine = aptTitle ? `\n🏢 <b>Xona:</b> ${aptTitle}` : "";
+  const staffLine = staffName ? `\n👤 <b>Mas'ul:</b> ${staffName}` : "";
+  const dateLine = input.due_date ? `\n⏳ <b>Muddat:</b> ${input.due_date}` : "";
+  const prioLine = input.priority === "high" ? `\n⚠️ <b>Muhimlik:</b> Yuqori` : "";
+
+  const msg = `📝 <b>YANGI VAZIFA</b>\n\n📌 <b>Vazifa:</b> ${input.title}${aptLine}${staffLine}${dateLine}${prioLine}`;
+
+  // Rolga qarab Telegram botga yuborish
+  await notifyRole(role, msg);
+
   revalidatePath("/dashboard/staff");
   return { success: true };
 }
