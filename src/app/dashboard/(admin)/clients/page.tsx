@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UsersRound, Repeat, Wallet, ChevronRight } from "lucide-react";
+import { ChevronRight, CalendarClock, LogIn, BedDouble, LogOut } from "lucide-react";
 import { CHANNEL_LABELS } from "../bookings/channels";
 
 export const revalidate = 0;
@@ -28,26 +28,34 @@ const STAGE_STYLE: Record<string, string> = {
 
 export default async function ClientsPage() {
   const supabase = await createClient();
-  const { data: clientsRaw } = await supabase
-    .from("clients")
-    .select("*")
-    .order("total_spent", { ascending: false });
+  const today = new Date().toISOString().split("T")[0];
+
+  const [{ data: clientsRaw }, { data: bookingsRaw }] = await Promise.all([
+    supabase.from("clients").select("*").order("total_spent", { ascending: false }),
+    supabase.from("bookings").select("id, check_in, check_out, booking_status").neq("booking_status", "cancelled"),
+  ]);
 
   const clients = clientsRaw ?? [];
-  const repeatCount = clients.filter((c) => Number(c.total_stays || 0) > 1).length;
-  const totalSpent = clients.reduce((s, c) => s + Number(c.total_spent || 0), 0);
+  const bookings = bookingsRaw ?? [];
+
+  // Bron holati bo'yicha (kelish sanasiga qarab — bir-birini takrorlamaydi)
+  const bookedCount = bookings.filter((b) => b.booking_status === "confirmed" && b.check_in > today).length;
+  const arrivingToday = bookings.filter((b) => b.booking_status === "confirmed" && b.check_in === today).length;
+  const stayingCount = bookings.filter((b) => b.booking_status === "confirmed" && b.check_in < today && b.check_out > today).length;
+  const leftCount = bookings.filter((b) => b.booking_status === "completed").length;
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">Mehmonlar</h1>
-        <p className="text-[14px] text-[#A8A49B] mt-2 font-light">Bron qilgan mijozlar — bosqichi (lifecycle), tashriflar soni va umumiy sarf.</p>
+        <p className="text-[14px] text-[#A8A49B] mt-2 font-light">Bron qilgan, kelayotgan, turgan va chiqib ketgan mehmonlar. Ismni bosing — to&apos;lov tarixi chiqadi.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <MiniStat title="Mehmonlar" value={`${clients.length} ta`} icon={<UsersRound className="h-4 w-4 text-[#C5A46D]" />} sub="Jami baza" />
-        <MiniStat title="Takroriy" value={`${repeatCount} ta`} icon={<Repeat className="h-4 w-4 text-amber-400" />} sub="Bir martadan ko'p" />
-        <MiniStat title="Umumiy sarf" value={money(totalSpent)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub="Barcha mehmonlar" />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <MiniStat title="Bron qilganlar" value={`${bookedCount} ta`} icon={<CalendarClock className="h-4 w-4 text-[#C5A46D]" />} sub="Kelgusida keladi" />
+        <MiniStat title="Bugun keladi" value={`${arrivingToday} ta`} icon={<LogIn className="h-4 w-4 text-emerald-400" />} sub="Bugungi kelishlar" />
+        <MiniStat title="Hozir turibdi" value={`${stayingCount} ta`} icon={<BedDouble className="h-4 w-4 text-purple-300" />} sub="Yashayotganlar" />
+        <MiniStat title="Chiqib ketgan" value={`${leftCount} ta`} icon={<LogOut className="h-4 w-4 text-[#A8A49B]" />} sub="Yakunlangan" />
       </div>
 
       <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
