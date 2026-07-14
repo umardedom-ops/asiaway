@@ -5,6 +5,12 @@ import { addTask } from "./actions";
 import { Loader2, Plus } from "lucide-react";
 import { btnPrimary } from "@/lib/ui";
 import { TASK_TYPE_LABELS, inputCls } from "./labels";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { uz } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function AddTaskForm({ staff, apartments }: { staff: any[]; apartments: any[] }) {
@@ -56,9 +62,37 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
           {apartments.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
         </select>
       </div>
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 flex flex-col">
         <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Muddat</label>
-        <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={inputCls} />
+        <Popover>
+          <PopoverTrigger 
+            className={cn(
+              inputCls,
+              "justify-start text-left font-normal flex items-center h-[44px]",
+              !dueDate && "text-[#A8A49B]/50"
+            )}
+          >
+            <CalendarIcon className="mr-2.5 h-4 w-4 shrink-0 text-[#C5A46D]" />
+            {dueDate ? format(new Date(dueDate), "d MMMM yyyy", { locale: uz }) : <span>Sana tanlang</span>}
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 z-50 bg-[#111417] border-[rgba(197,164,109,0.14)]" align="start">
+            <Calendar
+              mode="single"
+              selected={dueDate ? new Date(dueDate) : undefined}
+              onSelect={(date) => {
+                if (date) {
+                  // YYYY-MM-DD formatida saqlaymiz, mahalliy vaqt o'zgarishini oldini olish uchun
+                  const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                  setDueDate(d.toISOString().split('T')[0]);
+                } else {
+                  setDueDate("");
+                }
+              }}
+              initialFocus
+              className="bg-[#111417] text-[#F5F2EB] [&_.rdp-day_button:hover]:bg-[#C5A46D]/20 [&_.rdp-day_button[data-selected=true]]:bg-[#C5A46D] [&_.rdp-day_button[data-selected=true]]:text-[#111417] [&_.rdp-button_previous]:border-[rgba(197,164,109,0.2)] [&_.rdp-button_next]:border-[rgba(197,164,109,0.2)]"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       <button type="submit" disabled={saving} className={`${btnPrimary} h-11 px-5 text-[14px] gap-2 col-span-2 lg:col-span-1`}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
