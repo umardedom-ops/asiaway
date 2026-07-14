@@ -235,3 +235,24 @@ export async function getBookingPayments(bookingId: string) {
   }
   return data || [];
 }
+
+export async function payBookingBalance(bookingId: string, amount: number, guestName: string, clientId?: string | null) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("payments").insert([{
+    booking_id: bookingId,
+    client_id: clientId || null,
+    guest_name: guestName,
+    amount: amount,
+    method: "naqd",
+    kind: "payment",
+    note: "Qoldiq to'lov",
+  }]);
+
+  if (error) {
+    throw new Error(`To'lov qo'shishda xatolik: ${error.message}`);
+  }
+
+  revalidatePath("/dashboard/bookings");
+  revalidatePath("/dashboard/reception");
+  return { success: true };
+}

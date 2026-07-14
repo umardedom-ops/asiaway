@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Printer, Plus, Trash2, Loader2 } from "lucide-react";
-import { getBookingPayments } from "@/app/dashboard/bookings/actions";
+import { Printer, Plus, Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { getBookingPayments, payBookingBalance } from "@/app/dashboard/bookings/actions";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Booking = any;
@@ -25,6 +25,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
   ]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [payingBalance, setPayingBalance] = useState(false);
 
   // Modal ochilганда — bron to'lovlarini yuklaymiz (haqiqiy olingan pul)
   useEffect(() => {
@@ -60,6 +61,20 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
   const aptTitle = booking?.apartments?.title || booking?.apartment_title || "Apartament";
   const guestName = booking?.clients?.full_name || booking?.guest_name || "Mehmon";
   const invoiceNo = booking?.id ? booking.id.slice(0, 8).toUpperCase() : "—";
+
+  const handlePayBalance = async () => {
+    if (balance <= 0 || !booking?.id) return;
+    setPayingBalance(true);
+    try {
+      await payBookingBalance(booking.id, balance, guestName, booking.client_id);
+      const p = await getBookingPayments(booking.id);
+      setPayments(p as Payment[]);
+    } catch (e: any) {
+      alert("Xatolik yuz berdi: " + e.message);
+    } finally {
+      setPayingBalance(false);
+    }
+  };
 
   // Chekni ALOHIDA oynada chop etamiz (modal ichida bo'sh chiqmasligi uchun)
   const printInvoice = () => {
@@ -177,6 +192,19 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
             <div className={`flex justify-between border-t-2 border-gray-800 pt-2 mt-1 text-[15px] font-bold ${balance > 0 ? "text-red-600" : "text-emerald-700"}`}>
               <span>{balance > 0 ? "QOLDIQ" : "TO'LIQ TO'LANDI"}</span><span>{money(Math.abs(balance))}</span>
             </div>
+            {balance > 0 && (
+              <div className="flex justify-end mt-3">
+                <Button 
+                  size="sm" 
+                  onClick={handlePayBalance} 
+                  disabled={payingBalance}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] h-8 px-4"
+                >
+                  {payingBalance ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-2" />}
+                  Qoldiq to'landi
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
