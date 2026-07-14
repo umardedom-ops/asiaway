@@ -175,11 +175,13 @@ export async function POST(req: Request) {
 
     if (role) {
       const supabase = serviceClient();
+      // MUHIM: onConflict (chat_id, role) — bir odam bir nechta botga (rolga)
+      // obuna bo'la oladi. Avval faqat chat_id edi va rol ustiga yozilib ketardi.
       const { error } = await supabase
         .from('bot_subscribers')
         .upsert(
           { chat_id: chatId, role, joined_at: new Date().toISOString() },
-          { onConflict: 'chat_id' }
+          { onConflict: 'chat_id,role' }
         );
       if (error) throw error;
 
