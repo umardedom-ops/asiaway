@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import KanbanBoard from "./KanbanBoard";
 import GuestFunnelBoard from "./GuestFunnelBoard";
 import PayButton from "./owner-payments/PayButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -257,43 +256,6 @@ export default async function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        {/* Realtime Kanban Doskasi (tozalash holati) */}
-        <div className="col-span-4">
-          <KanbanBoard initialData={apartments || []} />
-        </div>
-
-        {/* Tezkor eslatmalar */}
-        <Card className="col-span-3 border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-          <CardHeader>
-            <CardTitle className="text-[18px] font-medium text-[#F5F2EB]">Tezkor ko&apos;rsatkichlar</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center space-x-4 border-b border-[rgba(197,164,109,0.14)] pb-4">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#C5A46D]" />
-              <div className="flex-1 space-y-1">
-                <p className="text-[14px] font-medium text-[#F5F2EB]">Faol apartamentlar</p>
-                <p className="text-[12px] text-[#A8A49B] font-light">{activeApts} ta aktiv ijara obyekti</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 border-b border-[rgba(197,164,109,0.14)] pb-4">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#D4B77F]" />
-              <div className="flex-1 space-y-1">
-                <p className="text-[14px] font-medium text-[#F5F2EB]">Aeroport Transfer</p>
-                <p className="text-[12px] text-[#A8A49B] font-light">Mijozlar kutib olish xizmati taqdim etiladi</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#F5F2EB]" />
-              <div className="flex-1 space-y-1">
-                <p className="text-[14px] font-medium text-[#F5F2EB]">Nest One platformasi</p>
-                <p className="text-[12px] text-[#A8A49B] font-light">10 yillik apart-gostinitsa tajribasi</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
