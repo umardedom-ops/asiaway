@@ -57,6 +57,14 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
         </Link>
       </div>
 
+      {/* 4 ta tablo — har doim ko'rinadi */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <MiniStat title="Bron qilganlar" value={`${bookedCount} ta`} color="text-[#C5A46D]" sub="Kelgusida keladi" />
+        <MiniStat title="Bugun keladi" value={`${arrivingToday} ta`} color="text-emerald-400" sub="Bugungi kelishlar" />
+        <MiniStat title="Hozir turibdi" value={`${stayingCount} ta`} color="text-purple-300" sub="Yashayotganlar" />
+        <MiniStat title="Chiqib ketgan" value={`${leftCount} ta`} color="text-[#A8A49B]" sub="Yakunlangan" />
+      </div>
+
       {/* BRONLAR */}
       {tab === "bron" && (
         <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none overflow-hidden">
@@ -180,13 +188,6 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
       {/* MEHMONLAR BAZASI */}
       {tab === "mehmon" && (
         <div className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <MiniStat title="Bron qilganlar" value={`${bookedCount} ta`} color="text-[#C5A46D]" sub="Kelgusida keladi" />
-            <MiniStat title="Bugun keladi" value={`${arrivingToday} ta`} color="text-emerald-400" sub="Bugungi kelishlar" />
-            <MiniStat title="Hozir turibdi" value={`${stayingCount} ta`} color="text-purple-300" sub="Yashayotganlar" />
-            <MiniStat title="Chiqib ketgan" value={`${leftCount} ta`} color="text-[#A8A49B]" sub="Yakunlangan" />
-          </div>
-
           <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
             <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">Mehmonlar bazasi ({clients.length})</CardTitle></CardHeader>
             <CardContent className="p-0">
