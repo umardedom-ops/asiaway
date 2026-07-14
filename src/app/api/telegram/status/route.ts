@@ -39,6 +39,22 @@ export async function GET() {
   const counts: Record<string, number> = {};
   for (const s of data || []) counts[s.role] = (counts[s.role] || 0) + 1;
 
+  // Xodimlar va ular vazifa olganda QAYSI botga xabar ketishi
+  const { data: staff } = await supabase
+    .from("staff")
+    .select("full_name, role, active");
+
+  const botFor = (role?: string | null) =>
+    role === "cleaner" ? "cleaning" : role === "manager" ? "menejer" : "menejer";
+
+  const staffMap = (staff || []).map((s) => ({
+    ism: s.full_name,
+    baza_roli: s.role, // 'manager' | 'cleaner' | ... — vazifa yo'naltirish shu bo'yicha
+    xabar_ketadi: botFor(s.role),
+    obunachi_bormi: (counts[botFor(s.role)] || 0) > 0,
+    active: s.active,
+  }));
+
   return NextResponse.json({
     env,
     subscribers_total: data?.length || 0,
@@ -47,9 +63,10 @@ export async function GET() {
       menejer: counts.menejer || 0,
       cleaning: counts.cleaning || 0,
     },
+    xodimlar: staffMap,
     hint:
       (counts.menejer || 0) === 0
-        ? "Menejer roli ulanmagan! @asiawaymenejerdostupbot ga 'start_menejer_asiaway' yozing."
-        : "Menejer ulangan — lead xabari kelishi kerak.",
+        ? "Menejer roli ulanmagan! Menejer botiga 'start_menejer_asiaway' yozing."
+        : "Menejer ulangan. Agar xodimning baza_roli 'manager' bo'lmasa — vazifa noto'g'ri botga ketadi.",
   });
 }
