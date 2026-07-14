@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import ReceptionTabs from "./ReceptionTabs";
+import BookingStatCards from "../BookingStatCards";
 
 export const revalidate = 0;
 
@@ -28,6 +29,7 @@ export default async function ReceptionPage() {
           Bronlar, mehmon joylashtirish (walk-in) va xonalar bandligi — bitta joyda.
         </p>
       </div>
+      <BookingStatCards />
       <ReceptionTabs bookings={bookings ?? []} apartments={apartments ?? []} clients={clients ?? []} />
     </div>
   );
