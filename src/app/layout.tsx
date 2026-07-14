@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Manrope, Cormorant_Garamond } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 import LenisProvider from "@/components/LenisProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { Lang } from "@/lib/i18n";
 
 const manrope = Manrope({
   variable: "--font-sans",
@@ -78,14 +80,18 @@ const JSON_LD = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get("asiaway-lang")?.value as Lang | undefined;
+  const initialLang = langCookie || "uz";
+
   return (
     <html
-      lang="uz"
+      lang={initialLang}
       className={`${manrope.variable} ${cormorant.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
@@ -93,7 +99,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
-        <LanguageProvider>
+        <LanguageProvider initialLang={initialLang}>
           <LenisProvider>{children}</LenisProvider>
         </LanguageProvider>
       </body>

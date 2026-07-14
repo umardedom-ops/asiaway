@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, BedDouble, LogOut } from "lucide-react";
 import InvoiceModal from "./bookings/InvoiceModal";
+import { useDashLang } from "@/components/DashboardLangProvider";
 
 const fmtDate = (d?: string) =>
   d ? new Date(d).toLocaleDateString("uz-UZ", { day: "numeric", month: "short" }) : "—";
@@ -12,10 +13,10 @@ const fmtDate = (d?: string) =>
 type Row = any;
 
 // Mijozlar voronkasi: Kutilmoqda → Hozir turibdi → Chiqib ketdi.
-// Har karta bosilsa — o'sha mehmonning cheki (hisob-kitobi) ochiladi.
 export default function GuestFunnelBoard({ bookings, apartments }: { bookings: Row[]; apartments: Row[] }) {
   const [selected, setSelected] = useState<Row | null>(null);
   const aptTitle = (id: string) => apartments.find((a) => a.id === id)?.title || "—";
+  const d = useDashLang();
 
   const today = new Date().toISOString().split("T")[0];
   const waiting = bookings.filter((b) => b.booking_status === "confirmed" && !b.checked_in_at && b.check_out > today);
@@ -26,16 +27,16 @@ export default function GuestFunnelBoard({ bookings, apartments }: { bookings: R
     .slice(0, 12);
 
   const columns = [
-    { key: "waiting", title: "Kutilmoqda", items: waiting, icon: <Clock className="h-4 w-4" />, color: "text-emerald-400", dot: "bg-emerald-400" },
-    { key: "staying", title: "Hozir turibdi", items: staying, icon: <BedDouble className="h-4 w-4" />, color: "text-purple-300", dot: "bg-purple-300" },
-    { key: "left", title: "Chiqib ketdi", items: left, icon: <LogOut className="h-4 w-4" />, color: "text-[#A8A49B]", dot: "bg-[#A8A49B]" },
+    { key: "waiting", title: d.funnel.waiting, items: waiting, icon: <Clock className="h-4 w-4" />, color: "text-emerald-400", dot: "bg-emerald-400" },
+    { key: "staying", title: d.funnel.stayingNow, items: staying, icon: <BedDouble className="h-4 w-4" />, color: "text-purple-300", dot: "bg-purple-300" },
+    { key: "left", title: d.funnel.left, items: left, icon: <LogOut className="h-4 w-4" />, color: "text-[#A8A49B]", dot: "bg-[#A8A49B]" },
   ];
 
   return (
     <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
       <CardHeader>
-        <CardTitle className="text-[18px] font-medium text-[#F5F2EB]">Mijozlar voronkasi</CardTitle>
-        <p className="text-[12px] text-[#A8A49B] font-light">Kartani bosing — mehmonning cheki va hisob-kitobi chiqadi</p>
+        <CardTitle className="text-[18px] font-medium text-[#F5F2EB]">{d.funnel.title}</CardTitle>
+        <p className="text-[12px] text-[#A8A49B] font-light">{d.funnel.subtitle}</p>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -49,7 +50,7 @@ export default function GuestFunnelBoard({ bookings, apartments }: { bookings: R
               </div>
               <div className="space-y-2 min-h-[60px]">
                 {col.items.length === 0 && (
-                  <div className="text-[12px] text-[#A8A49B]/50 text-center py-4">Bo&apos;sh</div>
+                  <div className="text-[12px] text-[#A8A49B]/50 text-center py-4">{d.funnel.empty}</div>
                 )}
                 {col.items.map((b: Row) => (
                   <button

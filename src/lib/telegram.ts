@@ -70,13 +70,15 @@ export interface NotifyResult {
   reason?: string; // nima uchun yuborilmadi (diagnostika)
 }
 
+export type PayloadGenerator = (lang: string) => { text: string; buttons?: InlineButton[][] };
+
 /**
  * Rolga obuna bo'lgan BARCHA chatlarga xabar yuboradi.
  * Natijani qaytaradi — nima uchun yuborilmagani ko'rinsin (jim qolmasin).
  */
 export async function notifyRole(
   role: BotRole,
-  text: string,
+  payload: string | PayloadGenerator,
   buttons?: InlineButton[][]
 ): Promise<NotifyResult> {
   try {
@@ -88,7 +90,7 @@ export async function notifyRole(
 
     const { data: subs, error } = await supabase
       .from("bot_subscribers")
-      .select("chat_id")
+      .select("chat_id, lang")
       .eq("role", role);
 
     if (error) return { sent: 0, role, reason: `bot_subscribers xatosi: ${error.message}` };
@@ -98,7 +100,18 @@ export async function notifyRole(
 
     // Telegram javobini HAQIQATAN tekshiramiz (avval xato jim yutilardi)
     const results = await Promise.all(
-      subs.map((s) => sendToChat(token, s.chat_id, text, buttons))
+      subs.map((s) => {
+        const lang = s.lang || "uz";
+        let finalContent: { text: string; buttons?: InlineButton[][] };
+        
+        if (typeof payload === "function") {
+          finalContent = payload(lang);
+        } else {
+          finalContent = { text: payload, buttons };
+        }
+        
+        return sendToChat(token, s.chat_id, finalContent.text, finalContent.buttons);
+      })
     );
     const okCount = results.filter((r) => r.ok).length;
     const firstErr = results.find((r) => !r.ok)?.description;

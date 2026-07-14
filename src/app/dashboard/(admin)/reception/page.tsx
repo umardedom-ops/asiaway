@@ -1,12 +1,17 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { D, type Lang } from "@/lib/i18n";
 import ReceptionTabs from "./ReceptionTabs";
 import BookingStatCards from "../BookingStatCards";
 
 export const revalidate = 0;
 
-// Qabul — bron, joylashtirish va xonalar holati bitta bo'limda (tab bilan)
 export default async function ReceptionPage() {
   const supabase = await createClient();
+
+  const cookieStore = await cookies();
+  const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
+  const d = D[lang];
 
   const [{ data: bookings }, { data: apartments }, { data: clients }] = await Promise.all([
     supabase
@@ -24,9 +29,9 @@ export default async function ReceptionPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">Qabul</h1>
+        <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">{d.reception.title}</h1>
         <p className="text-[14px] text-[#A8A49B] mt-2 font-light">
-          Bronlar, mehmon joylashtirish (walk-in) va xonalar bandligi — bitta joyda.
+          {d.reception.subtitle}
         </p>
       </div>
       <BookingStatCards />

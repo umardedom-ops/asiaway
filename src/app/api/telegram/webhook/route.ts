@@ -22,10 +22,16 @@ const PASSWORDS = {
   cleaning: 'start_cleaning_asiaway'
 };
 
-const LEAD_STATUS_LABELS: Record<string, string> = {
-  contacted: "✅ Bog'lanildi",
-  waiting: "📵 Javob bermadi (kutilmoqda)",
-  lost: "❌ Bekor qilindi",
+const getLeadStatusLabel = (val: string, lang: string) => {
+  if (lang === 'ru') {
+    if (val === 'contacted') return "✅ Связались";
+    if (val === 'waiting') return "📵 Не ответил (ожидание)";
+    if (val === 'lost') return "❌ Отменено";
+  }
+  if (val === 'contacted') return "✅ Bog'lanildi";
+  if (val === 'waiting') return "📵 Javob bermadi (kutilmoqda)";
+  if (val === 'lost') return "❌ Bekor qilindi";
+  return val;
 };
 
 function serviceClient() {
@@ -49,6 +55,22 @@ async function tg(token: string, method: string, payload: Record<string, unknown
   }
 }
 
+async function sendLangMenu(token: string, chatId: number, lang: string) {
+  const text = lang === 'ru' ? "🌐 Выберите язык:" : "🌐 Tilni tanlang:";
+  await tg(token, 'sendMessage', {
+    chat_id: chatId,
+    text,
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: "🇺🇿 O'zbekcha", callback_data: "setlang:uz" },
+          { text: "🇷🇺 Русский", callback_data: "setlang:ru" }
+        ]
+      ]
+    }
+  });
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -65,28 +87,53 @@ export async function POST(req: Request) {
       const supabase = serviceClient();
 
       let answerText = 'Qabul qilindi';
+      
+      // Xodimning tilini aniqlaymiz
+      const { data: sub } = await supabase
+        .from('bot_subscribers')
+        .select('lang')
+        .eq('chat_id', chatId)
+        .limit(1)
+        .maybeSingle();
+      const lang = sub?.lang || 'uz';
 
       const [kind, id, value] = data.split(':');
 
-      if (kind === 'lead' && id && value && LEAD_STATUS_LABELS[value]) {
+      if (kind === 'setlang' && id) {
+        // Til o'rnatish: id bu yerda aslida qiymat (uz yoki ru)
+        const newLang = id;
+        await supabase
+          .from('bot_subscribers')
+          .update({ lang: newLang })
+          .eq('chat_id', chatId);
+          
+        answerText = newLang === 'ru' ? "✅ Язык изменен на Русский" : "✅ Til O'zbekchaga o'zgardi";
+        
+        if (chatId && messageId) {
+          await tg(token, 'editMessageText', {
+            chat_id: chatId,
+            message_id: messageId,
+            text: answerText,
+          });
+        }
+      } else if (kind === 'lead' && id && value) {
         const { error } = await supabase
           .from('leads')
           .update({ status: value })
           .eq('id', id);
-        answerText = error ? `Xato: ${error.message}` : LEAD_STATUS_LABELS[value];
+          
+        const label = getLeadStatusLabel(value, lang);
+        answerText = error ? (lang === 'ru' ? `Ошибка: ${error.message}` : `Xato: ${error.message}`) : label;
 
-        // Xabar ostiga natijani yozib, tugmalarni olib tashlaymiz
         if (!error && chatId && messageId) {
           const orig = cq.message?.text || '';
           await tg(token, 'editMessageText', {
             chat_id: chatId,
             message_id: messageId,
-            text: `${orig}\n\n— ${LEAD_STATUS_LABELS[value]}`,
+            text: `${orig}\n\n— ${label}`,
           });
         }
       } else if (kind === 'leasepaid' && id && value) {
-        // Egaga oylik to'landi: value = 'YYYY-MM' davr.
-        // 1) Shu oy uchun eslatmalarni yopamiz, 2) Moliya'ga xarajat yozamiz.
         const { data: apt, error } = await supabase
           .from('apartments')
           .update({ lease_last_paid_period: value })
@@ -95,7 +142,6 @@ export async function POST(req: Request) {
           .single();
 
         if (!error && apt) {
-          // Takroriy xarajat yozmaslik uchun tekshiramiz
           const { data: existing } = await supabase
             .from('expenses')
             .select('id')
@@ -117,43 +163,54 @@ export async function POST(req: Request) {
             ]);
           }
 
-          answerText = `✅ ${apt.title} — ${value} oyi yopildi`;
+          answerText = lang === 'ru' ? `✅ ${apt.title} — ${value} закрыт` : `✅ ${apt.title} — ${value} oyi yopildi`;
           if (chatId && messageId) {
             const orig = cq.message?.text || '';
+            const appendTxt = lang === 'ru' 
+              ? `\n\n— ✅ ОПЛАЧЕНО (${value}). Добавлено в Финансы.` 
+              : `\n\n— ✅ TO'LANDI (${value}). Moliya'ga xarajat yozildi.`;
+              
             await tg(token, 'editMessageText', {
               chat_id: chatId,
               message_id: messageId,
-              text: `${orig}\n\n— ✅ TO'LANDI (${value}). Moliya'ga xarajat yozildi.`,
+              text: `${orig}${appendTxt}`,
             });
           }
         } else {
-          answerText = `Xato: ${error?.message || 'apartament topilmadi'}`;
+          answerText = lang === 'ru' ? `Ошибка: ${error?.message || 'апартамент не найден'}` : `Xato: ${error?.message || 'apartament topilmadi'}`;
         }
       } else if (kind === 'draft' && id && (value === 'crm' || value === 'bron')) {
-        // Botda to'ldirilgan shablon → CRM yoki Bronga
         const d = await getDraft(supabase, id);
         if (!d) {
-          answerText = "Ma'lumot topilmadi (eskirgan)";
+          answerText = lang === 'ru' ? "Данные не найдены (устарели)" : "Ma'lumot topilmadi (eskirgan)";
         } else if (value === 'crm') {
           const res = await draftToLead(supabase, d);
-          answerText = res.ok ? '✅ CRM ga qo\'shildi' : `Xato: ${res.error}`;
+          answerText = res.ok 
+            ? (lang === 'ru' ? '✅ Добавлено в CRM' : '✅ CRM ga qo\'shildi') 
+            : (lang === 'ru' ? `Ошибка: ${res.error}` : `Xato: ${res.error}`);
+            
           if (res.ok && chatId && messageId) {
             const orig = cq.message?.text || '';
+            const appendTxt = lang === 'ru' ? `\n\n— 📋 ДОБАВЛЕНО В CRM ✅` : `\n\n— 📋 CRM GA QO'SHILDI ✅`;
             await tg(token, 'editMessageText', {
               chat_id: chatId,
               message_id: messageId,
-              text: `${orig}\n\n— 📋 CRM GA QO'SHILDI ✅`,
+              text: `${orig}${appendTxt}`,
             });
           }
         } else {
           const res = await draftToBooking(supabase, d);
-          answerText = res.ok ? '✅ Bronga qo\'shildi (tasdiqlash kutilmoqda)' : `Xato: ${res.error}`;
+          answerText = res.ok 
+            ? (lang === 'ru' ? '✅ Добавлено в Бронь (ожидает)' : '✅ Bronga qo\'shildi (tasdiqlash kutilmoqda)') 
+            : (lang === 'ru' ? `Ошибка: ${res.error}` : `Xato: ${res.error}`);
+            
           if (res.ok && chatId && messageId) {
             const orig = cq.message?.text || '';
+            const appendTxt = lang === 'ru' ? `\n\n— 📅 ДОБАВЛЕНО В БРОНЬ ✅ (подтвердите в дашборде)` : `\n\n— 📅 BRONGA QO'SHILDI ✅ (dashboardda tasdiqlang)`;
             await tg(token, 'editMessageText', {
               chat_id: chatId,
               message_id: messageId,
-              text: `${orig}\n\n— 📅 BRONGA QO'SHILDI ✅ (dashboardda tasdiqlang)`,
+              text: `${orig}${appendTxt}`,
             });
           }
         }
@@ -165,21 +222,23 @@ export async function POST(req: Request) {
           .select('apartment_id, type')
           .single();
 
-        // Faqat TOZALASH vazifasi yopilganda xona "bo'sh/toza" bo'ladi
         if (!error && task?.type === 'cleaning' && task.apartment_id) {
           await supabase
             .from('apartments')
             .update({ kanban_status: 'available' })
             .eq('id', task.apartment_id);
         }
-        answerText = error ? `Xato: ${error.message}` : '✅ Rahmat! Vazifa bajarildi deb belgilandi';
+        answerText = error 
+          ? (lang === 'ru' ? `Ошибка: ${error.message}` : `Xato: ${error.message}`) 
+          : (lang === 'ru' ? '✅ Спасибо! Задача отмечена как выполненная' : '✅ Rahmat! Vazifa bajarildi deb belgilandi');
 
         if (!error && chatId && messageId) {
           const orig = cq.message?.text || '';
+          const appendTxt = lang === 'ru' ? `\n\n— ✅ УБРАНО` : `\n\n— ✅ TOZALANDI`;
           await tg(token, 'editMessageText', {
             chat_id: chatId,
             message_id: messageId,
-            text: `${orig}\n\n— ✅ TOZALANDI`,
+            text: `${orig}${appendTxt}`,
           });
         }
       }
@@ -199,6 +258,7 @@ export async function POST(req: Request) {
 
     const chatId = body.message.chat.id;
     const text = body.message.text.trim();
+    const supabase = serviceClient();
 
     let role: 'shef' | 'menejer' | 'cleaning' | null = null;
     if (text === PASSWORDS.shef) role = 'shef';
@@ -206,9 +266,6 @@ export async function POST(req: Request) {
     else if (text === PASSWORDS.cleaning) role = 'cleaning';
 
     if (role) {
-      const supabase = serviceClient();
-      // MUHIM: onConflict (chat_id, role) — bir odam bir nechta botga (rolga)
-      // obuna bo'la oladi. Avval faqat chat_id edi va rol ustiga yozilib ketardi.
       const { error } = await supabase
         .from('bot_subscribers')
         .upsert(
@@ -217,31 +274,40 @@ export async function POST(req: Request) {
         );
       if (error) throw error;
 
-      // Shef/menejer uchun pastda doimiy tugma turadi
       const isStaff = role === 'shef' || role === 'menejer';
       await tg(token, 'sendMessage', {
         chat_id: chatId,
         text: `✅ Tabriklaymiz! Siz tizimga "${role.toUpperCase()}" ro'lida muvaffaqiyatli ulandingiz. Endi xabarlar sizga keladi.`,
         ...(isStaff ? { reply_markup: MAIN_KEYBOARD } : {}),
       });
+      
+      // Til tanlash menyusini yuborish
+      await sendLangMenu(token, chatId, 'uz');
 
       return NextResponse.json({ status: 'success', role });
     }
 
-    // ---------- 3. Shef/menejer uchun "Yangi mijoz" oqimi ----------
-    const supabase = serviceClient();
+    // ---------- 3. Shef/menejer uchun xabarlar ----------
     const { data: sub } = await supabase
       .from('bot_subscribers')
-      .select('role')
+      .select('role, lang')
       .eq('chat_id', chatId)
-      .in('role', ['shef', 'menejer'])
       .limit(1)
       .maybeSingle();
 
-    // Faqat ulangan shef/menejerga javob beramiz
     if (!sub) return NextResponse.json({ status: 'ignored_unauthorized' });
+    const lang = sub.lang || 'uz';
 
-    // 3a. Tugma yoki /yangi → shablon chiqadi
+    if (text === '/lang') {
+      await sendLangMenu(token, chatId, lang);
+      return NextResponse.json({ status: 'lang_menu_sent' });
+    }
+    
+    // Faqat ulangan shef/menejerga ruxsat
+    if (sub.role !== 'shef' && sub.role !== 'menejer') {
+      return NextResponse.json({ status: 'ignored_not_staff' });
+    }
+
     if (text === NEW_LEAD_BTN || text === '/yangi' || text === '/start') {
       await tg(token, 'sendMessage', {
         chat_id: chatId,
@@ -252,22 +318,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: 'template_sent' });
     }
 
-    // 3b. To'ldirilgan shablon → xulosa + [CRM ga] [Bronga] tugmalari
     const draft = parseTemplate(text);
     if (draft) {
       const summary = await buildSummary(supabase, draft);
       const draftId = await saveDraft(supabase, chatId, draft);
 
       if (!draftId) {
-        await tg(token, 'sendMessage', { chat_id: chatId, text: '⚠️ Saqlashda xato. Qayta urinib ko\'ring.' });
+        await tg(token, 'sendMessage', { 
+          chat_id: chatId, 
+          text: lang === 'ru' ? '⚠️ Ошибка сохранения. Попробуйте еще раз.' : '⚠️ Saqlashda xato. Qayta urinib ko\'ring.' 
+        });
         return NextResponse.json({ status: 'draft_error' });
       }
 
       const buttons: { text: string; callback_data: string }[][] = [
-        [{ text: '📋 CRM ga', callback_data: `draft:${draftId}:crm` }],
+        [{ text: lang === 'ru' ? '📋 В CRM' : '📋 CRM ga', callback_data: `draft:${draftId}:crm` }],
       ];
       if (summary.canBook) {
-        buttons[0].push({ text: '📅 Bronga', callback_data: `draft:${draftId}:bron` });
+        buttons[0].push({ text: lang === 'ru' ? '📅 В Бронь' : '📅 Bronga', callback_data: `draft:${draftId}:bron` });
       }
 
       await tg(token, 'sendMessage', {
@@ -279,7 +347,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: 'draft_saved' });
     }
 
-    // Boshqa xabarlarni jim e'tiborsiz qoldiramiz
     return NextResponse.json({ status: 'ignored' });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);

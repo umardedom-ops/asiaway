@@ -79,21 +79,27 @@ export async function createLead(input: LeadInput) {
 
   await notifyRole(
     "menejer",
-    `📞 <b>QAYTA ALOQA SO'ROVI (sayt)</b>\n\n` +
-      `👤 ${input.name.trim()}\n` +
-      `📱 ${input.phone.trim()}\n` +
-      (contact ? `💬 ${contact}\n` : "") +
-      (input.message?.trim() ? `📝 ${input.message.trim()}\n` : "") +
-      `🌐 Til: ${input.lang || "-"}`,
-    leadId
-      ? [
-          [
-            { text: "✅ Bog'lanildi", callback_data: `lead:${leadId}:contacted` },
-            { text: "📵 Javob bermadi", callback_data: `lead:${leadId}:waiting` },
-          ],
-          [{ text: "❌ Bekor qilish", callback_data: `lead:${leadId}:lost` }],
-        ]
-      : undefined
+    (lang: string) => {
+      const isRu = lang === "ru";
+      const title = isRu ? "📞 <b>ЗАПРОС НА СВЯЗЬ (сайт)</b>" : "📞 <b>QAYTA ALOQA SO'ROVI (sayt)</b>";
+      const langLbl = isRu ? "🌐 Язык:" : "🌐 Til:";
+      const contactTxt = contact ? `💬 ${contact}\n` : "";
+      const msgTxt = input.message?.trim() ? `📝 ${input.message.trim()}\n` : "";
+      
+      const text = `${title}\n\n👤 ${input.name.trim()}\n📱 ${input.phone.trim()}\n${contactTxt}${msgTxt}${langLbl} ${input.lang || "-"}`;
+
+      const buttons = leadId
+        ? [
+            [
+              { text: isRu ? "✅ Связались" : "✅ Bog'lanildi", callback_data: `lead:${leadId}:contacted` },
+              { text: isRu ? "📵 Не ответил" : "📵 Javob bermadi", callback_data: `lead:${leadId}:waiting` },
+            ],
+            [{ text: isRu ? "❌ Отменить" : "❌ Bekor qilish", callback_data: `lead:${leadId}:lost` }],
+          ]
+        : undefined;
+
+      return { text, buttons };
+    }
   );
 
   return { success: true };

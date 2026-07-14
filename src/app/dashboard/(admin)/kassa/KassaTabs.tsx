@@ -7,14 +7,13 @@ import PaymentForm from "../income/PaymentForm";
 import DeletePaymentButton from "../income/DeletePaymentButton";
 import ExpenseForm, { EXPENSE_CATEGORIES } from "../finance/ExpenseForm";
 import DeleteExpenseButton from "../finance/DeleteExpenseButton";
+import { useDashLang } from "@/components/DashboardLangProvider";
 
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 const fmtDateTime = (d: string) =>
   new Date(d).toLocaleString("uz-UZ", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 const fmtDate = (d: string) => new Date(d).toLocaleDateString("uz-UZ", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-const METHOD_LABELS: Record<string, string> = { naqd: "Naqd", karta: "Karta", payme: "Payme", click: "Click", otkazma: "O'tkazma", boshqa: "Boshqa" };
-const KIND_LABELS: Record<string, string> = { deposit: "Zaklat", payment: "To'lov", refund: "Qaytarish" };
 const KIND_STYLE: Record<string, string> = {
   deposit: "bg-[#C5A46D]/10 text-[#C5A46D] border-[#C5A46D]/25",
   payment: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -29,6 +28,17 @@ export default function KassaTabs({
 }: { payments: Row[]; expenses: Row[]; bookings: Row[]; apartments: Row[] }) {
   const [tab, setTab] = useState<"kirim" | "chiqim" | "kunlik">("kirim");
   const aptTitle = (id: string | null) => apartments.find((a) => a.id === id)?.title || "—";
+  const d = useDashLang();
+
+  const isUz = d.common.save === "Saqlash";
+
+  const METHOD_LABELS: Record<string, string> = isUz 
+    ? { naqd: "Naqd", karta: "Karta", payme: "Payme", click: "Click", otkazma: "O'tkazma", boshqa: "Boshqa" }
+    : { naqd: "Наличные", karta: "Карта", payme: "Payme", click: "Click", otkazma: "Перевод", boshqa: "Другое" };
+
+  const KIND_LABELS: Record<string, string> = isUz
+    ? { deposit: "Zaklat", payment: "To'lov", refund: "Qaytarish" }
+    : { deposit: "Задаток", payment: "Оплата", refund: "Возврат" };
 
   // Kunlik oqim uchun — oxirgi 30 kun kunma-kun (kirim payments + chiqim expenses)
   const dk = (d: string) => new Date(d).toISOString().split("T")[0];
@@ -44,7 +54,7 @@ export default function KassaTabs({
     const out = de.reduce((s, e) => s + Number(e.amount || 0), 0);
     return { k, dp, de, inc, out, net: inc - out };
   });
-  const fmtDay = (k: string) => new Date(k).toLocaleDateString("uz-UZ", { day: "numeric", month: "long", weekday: "short" });
+  const fmtDay = (k: string) => new Date(k).toLocaleDateString(isUz ? "uz-UZ" : "ru-RU", { day: "numeric", month: "long", weekday: "short" });
 
   const tabBtn = (key: typeof tab, label: string, icon: React.ReactNode, active: string) => (
     <button onClick={() => setTab(key)}
@@ -53,40 +63,58 @@ export default function KassaTabs({
     </button>
   );
 
+  const t = isUz ? {
+    tabIn: "Kirim (prixod)", tabOut: "Chiqim (rasxod)", tabDay: "Kunlik oqim",
+    addIn: "Kirim qo'shish (mehmondan pul)", inLog: "Kirim jurnali",
+    date: "Sana / Soat", guest: "Mehmon", type: "Turi", method: "Usul", note: "Izoh", amount: "Summa", noIn: "Hali kirim yo'q.",
+    addOut: "Chiqim qo'shish (xarajat)", addOutSub: "Masalan: xodim mahsulotga pul oldi, kommunal, ta'mirlash, ish haqi.", outLog: "Chiqim jurnali",
+    dateOut: "Sana", catOut: "Turi", aptOut: "Apartament", noOut: "Hali chiqim yo'q.",
+    noAction: "Oxirgi 30 kunda harakat yo'q.",
+    paymentStr: "To'lov"
+  } : {
+    tabIn: "Приход", tabOut: "Расход", tabDay: "Ежедневный поток",
+    addIn: "Добавить приход (от гостя)", inLog: "Журнал приходов",
+    date: "Дата / Время", guest: "Гость", type: "Тип", method: "Способ", note: "Примечание", amount: "Сумма", noIn: "Приходов пока нет.",
+    addOut: "Добавить расход", addOutSub: "Например: продукты, коммунальные, ремонт, зарплата.", outLog: "Журнал расходов",
+    dateOut: "Дата", catOut: "Категория", aptOut: "Апартамент", noOut: "Расходов пока нет.",
+    noAction: "За последние 30 дней движений нет.",
+    paymentStr: "Оплата"
+  };
+
   return (
     <div className="space-y-6">
       {/* Tab bar */}
       <div className="inline-flex flex-wrap rounded-[10px] border border-[rgba(197,164,109,0.2)] bg-[#111417] p-1 gap-1">
-        {tabBtn("kirim", "Kirim (prixod)", <ArrowUpCircle className="h-4 w-4" />, "bg-emerald-500/15 text-emerald-400")}
-        {tabBtn("chiqim", "Chiqim (rasxod)", <ArrowDownCircle className="h-4 w-4" />, "bg-red-500/15 text-red-400")}
-        {tabBtn("kunlik", "Kunlik oqim", <CalendarRange className="h-4 w-4" />, "bg-[#C5A46D]/15 text-[#C5A46D]")}
+        {tabBtn("kirim", t.tabIn, <ArrowUpCircle className="h-4 w-4" />, "bg-emerald-500/15 text-emerald-400")}
+        {tabBtn("chiqim", t.tabOut, <ArrowDownCircle className="h-4 w-4" />, "bg-red-500/15 text-red-400")}
+        {tabBtn("kunlik", t.tabDay, <CalendarRange className="h-4 w-4" />, "bg-[#C5A46D]/15 text-[#C5A46D]")}
       </div>
 
       {tab === "kirim" ? (
         <>
           <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-            <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">Kirim qo&apos;shish (mehmondan pul)</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.addIn}</CardTitle></CardHeader>
             <CardContent><PaymentForm bookings={bookings} /></CardContent>
           </Card>
           <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-            <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">Kirim jurnali</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.inLog}</CardTitle></CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-[13px]">
                   <thead>
                     <tr className="text-[#A8A49B] text-[11px] uppercase tracking-[0.08em] border-b border-[rgba(197,164,109,0.14)]">
-                      <th className="text-left font-semibold px-6 py-3">Sana / Soat</th>
-                      <th className="text-left font-semibold px-4 py-3">Mehmon</th>
-                      <th className="text-left font-semibold px-4 py-3">Turi</th>
-                      <th className="text-left font-semibold px-4 py-3">Usul</th>
-                      <th className="text-left font-semibold px-4 py-3">Izoh</th>
-                      <th className="text-right font-semibold px-4 py-3">Summa</th>
+                      <th className="text-left font-semibold px-6 py-3">{t.date}</th>
+                      <th className="text-left font-semibold px-4 py-3">{t.guest}</th>
+                      <th className="text-left font-semibold px-4 py-3">{t.type}</th>
+                      <th className="text-left font-semibold px-4 py-3">{t.method}</th>
+                      <th className="text-left font-semibold px-4 py-3">{t.note}</th>
+                      <th className="text-right font-semibold px-4 py-3">{t.amount}</th>
                       <th className="px-6 py-3"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {payments.length === 0 && (
-                      <tr><td colSpan={7} className="px-6 py-10 text-center text-[#A8A49B]">Hali kirim yo&apos;q.</td></tr>
+                      <tr><td colSpan={7} className="px-6 py-10 text-center text-[#A8A49B]">{t.noIn}</td></tr>
                     )}
                     {payments.map((p) => (
                       <tr key={p.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
@@ -105,33 +133,33 @@ export default function KassaTabs({
             </CardContent>
           </Card>
         </>
-      ) : (
+      ) : tab === "chiqim" ? (
         <>
           <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
             <CardHeader>
-              <CardTitle className="text-[16px] font-medium text-[#F5F2EB]">Chiqim qo&apos;shish (xarajat)</CardTitle>
-              <p className="text-[12px] text-[#A8A49B] font-light">Masalan: xodim mahsulotga pul oldi, kommunal, ta&apos;mirlash, ish haqi.</p>
+              <CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.addOut}</CardTitle>
+              <p className="text-[12px] text-[#A8A49B] font-light">{t.addOutSub}</p>
             </CardHeader>
             <CardContent><ExpenseForm apartments={apartments} /></CardContent>
           </Card>
           <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-            <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">Chiqim jurnali</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.outLog}</CardTitle></CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-[13px]">
                   <thead>
                     <tr className="text-[#A8A49B] text-[11px] uppercase tracking-[0.08em] border-b border-[rgba(197,164,109,0.14)]">
-                      <th className="text-left font-semibold px-6 py-3">Sana</th>
-                      <th className="text-left font-semibold px-4 py-3">Turi</th>
-                      <th className="text-left font-semibold px-4 py-3">Apartament</th>
-                      <th className="text-left font-semibold px-4 py-3">Izoh</th>
-                      <th className="text-right font-semibold px-4 py-3">Summa</th>
+                      <th className="text-left font-semibold px-6 py-3">{t.dateOut}</th>
+                      <th className="text-left font-semibold px-4 py-3">{t.catOut}</th>
+                      <th className="text-left font-semibold px-4 py-3">{t.aptOut}</th>
+                      <th className="text-left font-semibold px-4 py-3">{t.note}</th>
+                      <th className="text-right font-semibold px-4 py-3">{t.amount}</th>
                       <th className="px-6 py-3"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {expenses.length === 0 && (
-                      <tr><td colSpan={6} className="px-6 py-10 text-center text-[#A8A49B]">Hali chiqim yo&apos;q.</td></tr>
+                      <tr><td colSpan={6} className="px-6 py-10 text-center text-[#A8A49B]">{t.noOut}</td></tr>
                     )}
                     {expenses.map((e) => (
                       <tr key={e.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
@@ -149,13 +177,11 @@ export default function KassaTabs({
             </CardContent>
           </Card>
         </>
-      )}
-
-      {tab === "kunlik" && (
+      ) : (
         <div className="space-y-4">
           {days.length === 0 && (
             <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-              <CardContent className="py-10 text-center text-[#A8A49B]">Oxirgi 30 kunda harakat yo&apos;q.</CardContent>
+              <CardContent className="py-10 text-center text-[#A8A49B]">{t.noAction}</CardContent>
             </Card>
           )}
           {days.map((d) => (
@@ -174,7 +200,7 @@ export default function KassaTabs({
                     {d.dp.map((p) => (
                       <tr key={`in-${p.id}`} className="border-b border-[rgba(197,164,109,0.06)] last:border-0">
                         <td className="px-6 py-2.5 w-8"><ArrowUpCircle className="h-3.5 w-3.5 text-emerald-400" /></td>
-                        <td className="px-2 py-2.5 text-[#F5F2EB]">{KIND_LABELS[p.kind] || "To'lov"} · {p.guest_name || "Mehmon"}</td>
+                        <td className="px-2 py-2.5 text-[#F5F2EB]">{KIND_LABELS[p.kind] || t.paymentStr} · {p.guest_name || t.guest}</td>
                         <td className="px-4 py-2.5 text-[#A8A49B]">{METHOD_LABELS[p.method] || p.method}</td>
                         <td className={`px-6 py-2.5 text-right font-medium ${p.kind === "refund" ? "text-red-400" : "text-emerald-400"}`}>{p.kind === "refund" ? "−" : "+"}{money(p.amount)}</td>
                       </tr>

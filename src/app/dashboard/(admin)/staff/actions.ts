@@ -73,20 +73,36 @@ export async function addTask(input: {
     ? botForStaffRole(staffRole)
     : input.type === "cleaning" ? "cleaning" : "menejer";
 
-  const aptLine = aptTitle ? `\n🏢 <b>Xona:</b> ${aptTitle}` : "";
-  const staffLine = staffName ? `\n👤 <b>Mas'ul:</b> ${staffName}` : "";
-  const dateLine = input.due_date ? `\n⏳ <b>Muddat:</b> ${input.due_date}` : "";
-  const prioLine = input.priority === "high" ? `\n⚠️ <b>Muhimlik:</b> Yuqori` : "";
-
-  const msg =
-    `📝 <b>YANGI VAZIFA</b> — ${TYPE_LABELS[input.type] || input.type}\n\n` +
-    `📌 <b>Vazifa:</b> ${input.title.trim()}${aptLine}${staffLine}${dateLine}${prioLine}`;
-
-  // Telegram botga yuborish + "Bajarildi" tugmasi (bosilsa vazifa yopiladi)
   const notified = await notifyRole(
     role,
-    msg,
-    task?.id ? [[{ text: "✅ Bajarildi", callback_data: `task:${task.id}:done` }]] : undefined
+    (lang: string) => {
+      const isRu = lang === "ru";
+      const taskTypesRu: Record<string, string> = {
+        cleaning: "Уборка", checkin: "Заселение", checkout: "Выселение",
+        maintenance: "Ремонт", shopping: "Покупки", other: "Другое",
+      };
+      
+      const typeLabel = isRu ? (taskTypesRu[input.type] || input.type) : (TYPE_LABELS[input.type] || input.type);
+      const title = isRu ? "📝 <b>НОВАЯ ЗАДАЧА</b>" : "📝 <b>YANGI VAZIFA</b>";
+      const lblTask = isRu ? "📌 <b>Задача:</b>" : "📌 <b>Vazifa:</b>";
+      const lblRoom = isRu ? "🏢 <b>Комната:</b>" : "🏢 <b>Xona:</b>";
+      const lblStaff = isRu ? "👤 <b>Ответственный:</b>" : "👤 <b>Mas'ul:</b>";
+      const lblDue = isRu ? "⏳ <b>Срок:</b>" : "⏳ <b>Muddat:</b>";
+      const lblPrio = isRu ? "⚠️ <b>Важность:</b> Высокая" : "⚠️ <b>Muhimlik:</b> Yuqori";
+
+      const aptLine = aptTitle ? `\n${lblRoom} ${aptTitle}` : "";
+      const staffLine = staffName ? `\n${lblStaff} ${staffName}` : "";
+      const dateLine = input.due_date ? `\n${lblDue} ${input.due_date}` : "";
+      const prioLine = input.priority === "high" ? `\n${lblPrio}` : "";
+
+      const text = `${title} — ${typeLabel}\n\n${lblTask} ${input.title.trim()}${aptLine}${staffLine}${dateLine}${prioLine}`;
+      
+      const buttons = task?.id 
+        ? [[{ text: isRu ? "✅ Выполнено" : "✅ Bajarildi", callback_data: `task:${task.id}:done` }]] 
+        : undefined;
+        
+      return { text, buttons };
+    }
   );
 
   revalidatePath("/dashboard/staff");

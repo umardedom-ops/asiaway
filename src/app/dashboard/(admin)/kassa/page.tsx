@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { D, type Lang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpCircle, ArrowDownCircle, Scale, Wallet } from "lucide-react";
 import KassaTabs from "./KassaTabs";
@@ -10,6 +12,10 @@ const dayKey = (d: string) => new Date(d).toISOString().split("T")[0];
 
 export default async function KassaPage() {
   const supabase = await createClient();
+
+  const cookieStore = await cookies();
+  const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
+  const d = D[lang];
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -32,22 +38,47 @@ export default async function KassaPage() {
   const monthIn = pays.filter((p) => p.paid_at >= monthStart).reduce((s, p) => s + sign(p), 0);
   const monthOut = exps.filter((e) => e.spent_on >= monthStartDate).reduce((s, e) => s + Number(e.amount || 0), 0);
 
-  const monthLabel = now.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
+  const monthLabel = now.toLocaleDateString(lang === "uz" ? "uz-UZ" : "ru-RU", { month: "long", year: "numeric" });
+
+  const textDict = {
+    uz: {
+      desc: "Mehmonlardan kirim (prixod), xarajatlar (rasxod) va kunlik oqim — bitta joyda.",
+      todayIn: "Bugun kirim",
+      todayOut: "Bugun chiqim", outLabel: "Rasxod",
+      monthIn: `${monthLabel} kirim`, monthOutSub: `Chiqim: ${money(monthOut)}`,
+      netCash: "Shu oy sof kassa", netCashSub: "Kirim − chiqim"
+    },
+    ru: {
+      desc: "Приходы от гостей, расходы и ежедневный поток средств — в одном месте.",
+      todayIn: "Приход сегодня",
+      todayOut: "Расход сегодня", outLabel: "Расход",
+      monthIn: `Приход за ${monthLabel}`, monthOutSub: `Расход: ${money(monthOut)}`,
+      netCash: "Чистая касса (мес)", netCashSub: "Приход − расход"
+    },
+    en: {
+      desc: "Guest payments (income), expenses and daily cash flow — in one place.",
+      todayIn: "Today income",
+      todayOut: "Today expense", outLabel: "Expense",
+      monthIn: `${monthLabel} income`, monthOutSub: `Expense: ${money(monthOut)}`,
+      netCash: "Net cash (month)", netCashSub: "Income − expense"
+    }
+  };
+  const t = textDict[lang];
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">Kassa</h1>
+        <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">{d.kassa.title}</h1>
         <p className="text-[14px] text-[#A8A49B] mt-2 font-light">
-          Mehmonlardan kirim (prixod), xarajatlar (rasxod) va kunlik oqim — bitta joyda.
+          {t.desc}
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Bugun kirim" value={money(todayIn)} icon={<ArrowUpCircle className="h-4 w-4 text-emerald-400" />} sub={todayKey} accent />
-        <StatCard title="Bugun chiqim" value={money(todayOut)} icon={<ArrowDownCircle className="h-4 w-4 text-red-400" />} sub="Rasxod" />
-        <StatCard title={`${monthLabel} kirim`} value={money(monthIn)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={`Chiqim: ${money(monthOut)}`} />
-        <StatCard title="Shu oy sof kassa" value={money(monthIn - monthOut)} icon={<Scale className="h-4 w-4 text-[#C5A46D]" />} sub="Kirim − chiqim" accent={monthIn - monthOut >= 0} />
+        <StatCard title={t.todayIn} value={money(todayIn)} icon={<ArrowUpCircle className="h-4 w-4 text-emerald-400" />} sub={todayKey} accent />
+        <StatCard title={t.todayOut} value={money(todayOut)} icon={<ArrowDownCircle className="h-4 w-4 text-red-400" />} sub={t.outLabel} />
+        <StatCard title={t.monthIn} value={money(monthIn)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={t.monthOutSub} />
+        <StatCard title={t.netCash} value={money(monthIn - monthOut)} icon={<Scale className="h-4 w-4 text-[#C5A46D]" />} sub={t.netCashSub} accent={monthIn - monthOut >= 0} />
       </div>
 
       <KassaTabs payments={pays} expenses={exps} bookings={bookings ?? []} apartments={apartments ?? []} />
@@ -57,7 +88,7 @@ export default async function KassaPage() {
 
 function StatCard({ title, value, icon, sub, accent }: { title: string; value: string; icon: React.ReactNode; sub: string; accent?: boolean }) {
   return (
-    <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+    <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none hover:border-[rgba(197,164,109,0.3)] transition-colors">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{title}</CardTitle>
         {icon}

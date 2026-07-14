@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { setTaskStatus, deleteTask } from "./actions";
 import { Trash2, Loader2, Check, Play, RotateCcw, Camera } from "lucide-react";
-import { TASK_STATUS_LABELS } from "./labels";
+import { useDashLang } from "@/components/DashboardLangProvider";
 
 const STATUS_STYLE: Record<string, string> = {
   todo: "bg-[#A8A49B]/10 text-[#A8A49B] border-[#A8A49B]/20",
@@ -17,6 +17,15 @@ export default function TaskRow({ task, staffName, aptTitle, typeLabel }: { task
   const [pending, start] = useTransition();
   const [busyDel, setBusyDel] = useState(false);
   const run = (fn: () => Promise<unknown>) => start(() => { fn(); });
+  const d = useDashLang();
+
+  const isUz = d.common.save === "Saqlash";
+
+  const TASK_STATUS_LABELS: Record<string, string> = isUz 
+    ? { todo: "Kutilmoqda", in_progress: "Jarayonda", done: "Bajarildi", cancelled: "Bekor qilingan" }
+    : { todo: "Ожидает", in_progress: "В процессе", done: "Сделано", cancelled: "Отменено" };
+
+  const proofStr = isUz ? "Dalil rasm" : "Фото-доказательство";
 
   return (
     <tr className="border-b border-[rgba(197,164,109,0.08)] last:border-0">
@@ -25,7 +34,7 @@ export default function TaskRow({ task, staffName, aptTitle, typeLabel }: { task
         <div className="text-[11px] text-[#A8A49B]">{typeLabel}{task.due_date ? ` · ${task.due_date}` : ""}</div>
         {task.proof_image_url && (
           <a href={task.proof_image_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-[#C5A46D] hover:text-[#D4B77F] mt-1">
-            <Camera className="h-3 w-3" /> Dalil rasm
+            <Camera className="h-3 w-3" /> {proofStr}
           </a>
         )}
       </td>
@@ -40,15 +49,15 @@ export default function TaskRow({ task, staffName, aptTitle, typeLabel }: { task
         <div className="flex items-center justify-end gap-2">
           {pending && <Loader2 className="h-4 w-4 animate-spin text-[#A8A49B]" />}
           {task.status !== "in_progress" && task.status !== "done" && (
-            <button onClick={() => run(() => setTaskStatus(task.id, "in_progress"))} aria-label="Boshlash" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors"><Play className="h-4 w-4" /></button>
+            <button onClick={() => run(() => setTaskStatus(task.id, "in_progress"))} aria-label={isUz ? "Boshlash" : "Начать"} className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors"><Play className="h-4 w-4" /></button>
           )}
           {task.status !== "done" && (
-            <button onClick={() => run(() => setTaskStatus(task.id, "done"))} aria-label="Bajarildi" className="text-[#A8A49B] hover:text-emerald-400 transition-colors"><Check className="h-4 w-4" /></button>
+            <button onClick={() => run(() => setTaskStatus(task.id, "done"))} aria-label={isUz ? "Bajarildi" : "Готово"} className="text-[#A8A49B] hover:text-emerald-400 transition-colors"><Check className="h-4 w-4" /></button>
           )}
           {task.status === "done" && (
-            <button onClick={() => run(() => setTaskStatus(task.id, "todo"))} aria-label="Qayta ochish" className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors"><RotateCcw className="h-4 w-4" /></button>
+            <button onClick={() => run(() => setTaskStatus(task.id, "todo"))} aria-label={isUz ? "Qayta ochish" : "Переоткрыть"} className="text-[#A8A49B] hover:text-[#C5A46D] transition-colors"><RotateCcw className="h-4 w-4" /></button>
           )}
-          <button onClick={async () => { setBusyDel(true); await deleteTask(task.id); setBusyDel(false); }} aria-label="O'chirish" className="text-[#A8A49B] hover:text-red-400 transition-colors">
+          <button onClick={async () => { setBusyDel(true); await deleteTask(task.id); setBusyDel(false); }} aria-label={isUz ? "O'chirish" : "Удалить"} className="text-[#A8A49B] hover:text-red-400 transition-colors">
             {busyDel ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           </button>
         </div>

@@ -99,14 +99,21 @@ export async function createBooking(input: BookingInput) {
       .maybeSingle();
     await notifyRole(
       "menejer",
-      `🔔 <b>YANGI BRON (sayt)</b>\n\n` +
-        `🏠 ${apt?.title || "Apartament"}\n` +
-        `👤 ${input.guest_name}\n` +
-        `📞 ${input.guest_phone}\n` +
-        `📅 ${fmtDate(input.check_in)} → ${fmtDate(input.check_out)} (${input.nights} kecha)\n` +
-        `💰 Jami: ${fmtMoney(input.total_price)} · Zaklat: ${fmtMoney(input.deposit_amount)}\n` +
-        `💳 To'lov: ${input.payment_method}` +
-        (realPayment ? "\n⏳ Zaklat to'lovi kutilmoqda..." : "")
+      (lang: string) => {
+        const isRu = lang === "ru";
+        const title = isRu ? "🔔 <b>НОВАЯ БРОНЬ (сайт)</b>" : "🔔 <b>YANGI BRON (sayt)</b>";
+        const aptTitle = apt?.title || (isRu ? "Апартамент" : "Apartament");
+        const dates = `${fmtDate(input.check_in)} → ${fmtDate(input.check_out)} (${input.nights} ${isRu ? "ночей" : "kecha"})`;
+        const amounts = isRu 
+          ? `💰 Итого: ${fmtMoney(input.total_price)} · Аванс: ${fmtMoney(input.deposit_amount)}`
+          : `💰 Jami: ${fmtMoney(input.total_price)} · Zaklat: ${fmtMoney(input.deposit_amount)}`;
+        const payMethod = isRu ? `💳 Оплата: ${input.payment_method}` : `💳 To'lov: ${input.payment_method}`;
+        const wait = realPayment ? (isRu ? "\n⏳ Ожидается оплата аванса..." : "\n⏳ Zaklat to'lovi kutilmoqda...") : "";
+
+        return {
+          text: `${title}\n\n🏠 ${aptTitle}\n👤 ${input.guest_name}\n📞 ${input.guest_phone}\n📅 ${dates}\n${amounts}\n${payMethod}${wait}`
+        };
+      }
     );
 
     // Mijozни (mehmonни) avtomatik sinxronlash

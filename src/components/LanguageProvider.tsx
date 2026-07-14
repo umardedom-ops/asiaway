@@ -11,22 +11,21 @@ interface Ctx {
 
 const LanguageContext = createContext<Ctx | null>(null);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("uz");
+export function LanguageProvider({ children, initialLang = "uz" }: { children: React.ReactNode, initialLang?: Lang }) {
+  const [lang, setLangState] = useState<Lang>(initialLang);
 
-  // localStorage'dan tiklash (client)
+  // localStorage'dan tiklash (client) - lekin cookie dan kelgan initialLang ustunroq
   useEffect(() => {
-    const saved = (typeof window !== "undefined" && localStorage.getItem("asiaway-lang")) as Lang | null;
-    if (saved && (saved === "uz" || saved === "ru" || saved === "en")) {
-      setLangState(saved);
-      document.documentElement.lang = saved;
-    }
-  }, []);
+    // Agar initialLang cookie orqali kelgan bo'lsa, o'shani o'rnatamiz
+    // yoki localstorage ni o'qiymiz
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     if (typeof window !== "undefined") {
       localStorage.setItem("asiaway-lang", l);
+      document.cookie = `asiaway-lang=${l}; path=/; max-age=31536000`; // 1 yil
       document.documentElement.lang = l;
     }
   }, []);
