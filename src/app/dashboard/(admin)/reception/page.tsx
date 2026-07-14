@@ -7,7 +7,7 @@ export const revalidate = 0;
 export default async function ReceptionPage() {
   const supabase = await createClient();
 
-  const [{ data: bookings }, { data: apartments }] = await Promise.all([
+  const [{ data: bookings }, { data: apartments }, { data: clients }] = await Promise.all([
     supabase
       .from("bookings")
       .select("*, apartments(title)")
@@ -17,6 +17,7 @@ export default async function ReceptionPage() {
       .select("id, title, floor, price_per_day, deposit_amount, status")
       .eq("status", "active")
       .order("floor", { ascending: false }),
+    supabase.from("clients").select("*").order("total_spent", { ascending: false }),
   ]);
 
   return (
@@ -27,7 +28,7 @@ export default async function ReceptionPage() {
           Bronlar, mehmon joylashtirish (walk-in) va xonalar bandligi — bitta joyda.
         </p>
       </div>
-      <ReceptionTabs bookings={bookings ?? []} apartments={apartments ?? []} />
+      <ReceptionTabs bookings={bookings ?? []} apartments={apartments ?? []} clients={clients ?? []} />
     </div>
   );
 }
