@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import KanbanBoard from "./KanbanBoard";
 import GuestFunnelBoard from "./GuestFunnelBoard";
+import PayButton from "./owner-payments/PayButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   TrendingUp,
@@ -8,6 +9,7 @@ import {
   Wallet,
   DoorOpen,
   BedDouble,
+  Building2,
 } from "lucide-react";
 
 export const revalidate = 0; // Dynamic rendering
@@ -24,7 +26,7 @@ export default async function DashboardPage() {
   // 1. Barcha kvartiralarni olish
   const { data: apartments } = await supabase
     .from("apartments")
-    .select("id, title, status, monthly_lease_cost, kanban_status");
+    .select("id, title, status, monthly_lease_cost, kanban_status, owner_name, owner_phone, lease_payment_day, lease_last_paid_period");
 
   const totalApts = apartments?.length || 0;
   const activeApts = apartments?.filter(a => a.status === "active").length || 0;
@@ -33,8 +35,6 @@ export default async function DashboardPage() {
   const { data: bookings } = await supabase
     .from("bookings")
     .select("id, apartment_id, guest_name, total_price, check_in, check_out, booking_status, checked_in_at");
-
-  const aptTitle = (id: string) => (apartments || []).find((a) => a.id === id)?.title || "—";
 
   const totalBookings = bookings?.length || 0;
   
@@ -48,9 +48,10 @@ export default async function DashboardPage() {
   const occupiedCount = activeBookingsToday.length;
   const vacantCount = activeApts - occupiedCount;
 
-  // Hozir turgan mehmonlar (joylashtirilgan — check-in qilingan)
+  // Hozir turgan mehmonlar — bugungi sana bron oralig'iga to'g'ri keladigan faol bronlar
+  // (check-in qilingan yoki sana bo'yicha hozir shu yerda). Completed/cancelled hisobga olinmaydi.
   const stayingCount = (bookings || []).filter(
-    (b) => b.checked_in_at && b.booking_status !== "completed" && b.booking_status !== "cancelled"
+    (b) => b.booking_status === "confirmed" && b.check_in <= today && b.check_out > today
   ).length;
 
   // Oylik bronlar soni (joriy oy uchun)
@@ -92,6 +93,23 @@ export default async function DashboardPage() {
   const monthlyCost = rentCost + salaryCost + variableCost;
   const monthlyProfit = monthlyRevenue - monthlyCost;
 
+  // Egalarga oylik to'lov (boshqaruv ichidagi bo'lim)
+  const nowTk = new Date(Date.now() + 5 * 60 * 60 * 1000);
+  const period = `${nowTk.getUTCFullYear()}-${String(nowTk.getUTCMonth() + 1).padStart(2, "0")}`;
+  const ownerRows = (apartments || [])
+    .filter((a) => a.status === "active" && Number(a.monthly_lease_cost || 0) > 0)
+    .map((a) => ({
+      id: a.id as string,
+      title: a.title as string,
+      owner_name: (a.owner_name as string) || "",
+      owner_phone: (a.owner_phone as string) || "",
+      cost: Number(a.monthly_lease_cost || 0),
+      payDay: a.lease_payment_day ? Number(a.lease_payment_day) : null,
+      paid: a.lease_last_paid_period === period,
+    }));
+  const ownerPaid = ownerRows.filter((r) => r.paid).reduce((s, r) => s + r.cost, 0);
+  const ownerPending = rentCost - ownerPaid;
+
   return (
     <div className="space-y-8">
       <div>
@@ -125,6 +143,20 @@ export default async function DashboardPage() {
             <div className="text-[28px] font-medium text-purple-300">{stayingCount} ta</div>
             <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
               Bandlik: {occupancyRate}%
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Egalarga oylik (jami) */}
+        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Egalarga oylik (jami)</CardTitle>
+            <Building2 className="h-4 w-4 text-[#C5A46D]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-[28px] font-medium text-[#C5A46D]">{formatUzbekPrice(rentCost)}</div>
+            <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
+              To&apos;langan: {formatUzbekPrice(ownerPaid)} · qolgan: {formatUzbekPrice(ownerPending)}
             </p>
           </CardContent>
         </Card>
@@ -174,8 +206,57 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Mijozlar voronkasi (bron oqimi) */}
-      <GuestFunnelBoard bookings={bookings || []} aptTitle={aptTitle} />
+      {/* Mijozlar voronkasi (bron oqimi) — kartalar bosiladi (chek/hisob) */}
+      <GuestFunnelBoard bookings={bookings || []} apartments={apartments || []} />
+
+      {/* Egalarga to'lov — boshqaruv ichidagi bo'lim */}
+      <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-[18px] font-medium text-[#F5F2EB]">Egalarga to&apos;lov ({period})</CardTitle>
+            <p className="text-[12px] text-[#A8A49B] font-light mt-1">Apart egalariga bir oyda beriladigan pul — &quot;To&apos;landi&quot; bosilsa Kassaga chiqim va Moliyaga tushadi.</p>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-[20px] font-medium text-[#C5A46D]">{formatUzbekPrice(rentCost)}</div>
+            <div className="text-[11px] text-[#A8A49B]">jami oylik</div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="text-[#A8A49B] text-[11px] uppercase tracking-[0.08em] border-b border-[rgba(197,164,109,0.14)]">
+                  <th className="text-left font-semibold px-6 py-3">Apartament</th>
+                  <th className="text-left font-semibold px-4 py-3">Ega</th>
+                  <th className="text-center font-semibold px-4 py-3">To&apos;lov kuni</th>
+                  <th className="text-right font-semibold px-4 py-3">Summa</th>
+                  <th className="text-right font-semibold px-6 py-3">Holat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ownerRows.length === 0 && (
+                  <tr><td colSpan={5} className="px-6 py-8 text-center text-[#A8A49B]">Apartamentlarga tan narx / to&apos;lov kuni kiritilmagan.</td></tr>
+                )}
+                {ownerRows.map((r) => (
+                  <tr key={r.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
+                    <td className="px-6 py-3 text-[#F5F2EB] font-medium max-w-[200px] truncate">{r.title}</td>
+                    <td className="px-4 py-3"><div className="text-[#F5F2EB]">{r.owner_name || "—"}</div><div className="text-[11px] text-[#A8A49B]">{r.owner_phone}</div></td>
+                    <td className="px-4 py-3 text-center text-[#A8A49B]">{r.payDay ? `${r.payDay}-sana` : "—"}</td>
+                    <td className="px-4 py-3 text-right text-[#F5F2EB] font-medium">{formatUzbekPrice(r.cost)}</td>
+                    <td className="px-6 py-3 text-right">
+                      {r.paid ? (
+                        <span className="text-[11px] text-emerald-400/90">✓ To&apos;langan</span>
+                      ) : (
+                        <div className="flex justify-end"><PayButton apartmentId={r.id} period={period} /></div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         {/* Realtime Kanban Doskasi (tozalash holati) */}

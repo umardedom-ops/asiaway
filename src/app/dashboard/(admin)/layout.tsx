@@ -57,7 +57,6 @@ export default async function AdminLayout({ children }: LayoutProps) {
       { name: "Kassa (kirim/chiqim)", href: "/dashboard/kassa", icon: Wallet },
       ...(isShef ? [
         { name: "Moliya (P&L)", href: "/dashboard/finance", icon: Wallet },
-        { name: "Egalarga to'lov", href: "/dashboard/owner-payments", icon: Building2 },
       ] : []),
     ] },
     ...(isShef ? [{ title: "Jamoa", items: [
