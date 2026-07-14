@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import {
+  NEW_LEAD_BTN, MAIN_KEYBOARD, TEMPLATE_TEXT,
+  parseTemplate, saveDraft, getDraft, buildSummary, draftToLead, draftToBooking,
+} from '@/lib/bot-lead';
 
 // Barcha botlar uchun yagona webhook.
 // Har bot uchun webhook shunday o'rnatiladi:
@@ -125,6 +129,34 @@ export async function POST(req: Request) {
         } else {
           answerText = `Xato: ${error?.message || 'apartament topilmadi'}`;
         }
+      } else if (kind === 'draft' && id && (value === 'crm' || value === 'bron')) {
+        // Botda to'ldirilgan shablon → CRM yoki Bronga
+        const d = await getDraft(supabase, id);
+        if (!d) {
+          answerText = "Ma'lumot topilmadi (eskirgan)";
+        } else if (value === 'crm') {
+          const res = await draftToLead(supabase, d);
+          answerText = res.ok ? '✅ CRM ga qo\'shildi' : `Xato: ${res.error}`;
+          if (res.ok && chatId && messageId) {
+            const orig = cq.message?.text || '';
+            await tg(token, 'editMessageText', {
+              chat_id: chatId,
+              message_id: messageId,
+              text: `${orig}\n\n— 📋 CRM GA QO'SHILDI ✅`,
+            });
+          }
+        } else {
+          const res = await draftToBooking(supabase, d);
+          answerText = res.ok ? '✅ Bronga qo\'shildi (tasdiqlash kutilmoqda)' : `Xato: ${res.error}`;
+          if (res.ok && chatId && messageId) {
+            const orig = cq.message?.text || '';
+            await tg(token, 'editMessageText', {
+              chat_id: chatId,
+              message_id: messageId,
+              text: `${orig}\n\n— 📅 BRONGA QO'SHILDI ✅ (dashboardda tasdiqlang)`,
+            });
+          }
+        }
       } else if (kind === 'task' && id && value === 'done') {
         const { data: task, error } = await supabase
           .from('tasks')
@@ -185,16 +217,70 @@ export async function POST(req: Request) {
         );
       if (error) throw error;
 
+      // Shef/menejer uchun pastda doimiy tugma turadi
+      const isStaff = role === 'shef' || role === 'menejer';
       await tg(token, 'sendMessage', {
         chat_id: chatId,
         text: `✅ Tabriklaymiz! Siz tizimga "${role.toUpperCase()}" ro'lida muvaffaqiyatli ulandingiz. Endi xabarlar sizga keladi.`,
+        ...(isStaff ? { reply_markup: MAIN_KEYBOARD } : {}),
       });
 
       return NextResponse.json({ status: 'success', role });
     }
 
+    // ---------- 3. Shef/menejer uchun "Yangi mijoz" oqimi ----------
+    const supabase = serviceClient();
+    const { data: sub } = await supabase
+      .from('bot_subscribers')
+      .select('role')
+      .eq('chat_id', chatId)
+      .in('role', ['shef', 'menejer'])
+      .limit(1)
+      .maybeSingle();
+
+    // Faqat ulangan shef/menejerga javob beramiz
+    if (!sub) return NextResponse.json({ status: 'ignored_unauthorized' });
+
+    // 3a. Tugma yoki /yangi → shablon chiqadi
+    if (text === NEW_LEAD_BTN || text === '/yangi' || text === '/start') {
+      await tg(token, 'sendMessage', {
+        chat_id: chatId,
+        text: TEMPLATE_TEXT,
+        parse_mode: 'HTML',
+        reply_markup: MAIN_KEYBOARD,
+      });
+      return NextResponse.json({ status: 'template_sent' });
+    }
+
+    // 3b. To'ldirilgan shablon → xulosa + [CRM ga] [Bronga] tugmalari
+    const draft = parseTemplate(text);
+    if (draft) {
+      const summary = await buildSummary(supabase, draft);
+      const draftId = await saveDraft(supabase, chatId, draft);
+
+      if (!draftId) {
+        await tg(token, 'sendMessage', { chat_id: chatId, text: '⚠️ Saqlashda xato. Qayta urinib ko\'ring.' });
+        return NextResponse.json({ status: 'draft_error' });
+      }
+
+      const buttons: { text: string; callback_data: string }[][] = [
+        [{ text: '📋 CRM ga', callback_data: `draft:${draftId}:crm` }],
+      ];
+      if (summary.canBook) {
+        buttons[0].push({ text: '📅 Bronga', callback_data: `draft:${draftId}:bron` });
+      }
+
+      await tg(token, 'sendMessage', {
+        chat_id: chatId,
+        text: summary.text,
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard: buttons },
+      });
+      return NextResponse.json({ status: 'draft_saved' });
+    }
+
     // Boshqa xabarlarni jim e'tiborsiz qoldiramiz
-    return NextResponse.json({ status: 'ignored_unauthorized' });
+    return NextResponse.json({ status: 'ignored' });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error('Webhook xatosi:', error);
