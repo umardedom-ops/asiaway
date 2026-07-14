@@ -3,13 +3,11 @@ import KanbanBoard from "./KanbanBoard";
 import GuestFunnelBoard from "./GuestFunnelBoard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Home,
-  CalendarCheck,
-  DollarSign,
   TrendingUp,
   TrendingDown,
   Wallet,
-  Percent,
+  DoorOpen,
+  BedDouble,
 } from "lucide-react";
 
 export const revalidate = 0; // Dynamic rendering
@@ -49,6 +47,11 @@ export default async function DashboardPage() {
   
   const occupiedCount = activeBookingsToday.length;
   const vacantCount = activeApts - occupiedCount;
+
+  // Hozir turgan mehmonlar (joylashtirilgan — check-in qilingan)
+  const stayingCount = (bookings || []).filter(
+    (b) => b.checked_in_at && b.booking_status !== "completed" && b.booking_status !== "cancelled"
+  ).length;
 
   // Oylik bronlar soni (joriy oy uchun)
   const currentMonthStart = new Date();
@@ -98,78 +101,66 @@ export default async function DashboardPage() {
 
       {/* Stats Cards Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Kvartiralar */}
+        {/* Bo'sh apartlar */}
         <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Apartamentlar</CardTitle>
-            <Home className="h-4 w-4 text-[#C5A46D]" />
+            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Bo&apos;sh apartlar</CardTitle>
+            <DoorOpen className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-[28px] font-medium text-[#F5F2EB]">{totalApts} ta</div>
+            <div className="text-[28px] font-medium text-blue-400">{vacantCount} ta</div>
             <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              <span className="text-[#C5A46D] font-medium">{vacantCount} ta bo&apos;sh</span> · {occupiedCount} ta band
+              <span className="text-red-400">{occupiedCount} ta band</span> · jami {activeApts} ta
             </p>
           </CardContent>
         </Card>
 
-        {/* Oylik Bronlar */}
+        {/* Hozir turgan mehmonlar */}
         <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Oylik bronlar</CardTitle>
-            <CalendarCheck className="h-4 w-4 text-[#C5A46D]" />
+            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Hozir turgan mehmonlar</CardTitle>
+            <BedDouble className="h-4 w-4 text-purple-300" />
           </CardHeader>
           <CardContent>
-            <div className="text-[28px] font-medium text-[#F5F2EB]">{monthlyBookings.length} ta</div>
+            <div className="text-[28px] font-medium text-purple-300">{stayingCount} ta</div>
             <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              Jami bronlar soni: {totalBookings} ta
+              Bandlik: {occupancyRate}%
             </p>
           </CardContent>
         </Card>
 
-        {/* Oylik Taxminiy Daromad */}
+        {/* Oylik Daromad (savdo) */}
         <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Oylik daromad</CardTitle>
-            <TrendingUp className="h-4 w-4 text-[#C5A46D]" />
+            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Oylik daromad (savdo)</CardTitle>
+            <TrendingUp className="h-4 w-4 text-emerald-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-[28px] font-medium text-[#F5F2EB]">{formatUzbekPrice(monthlyRevenue)}</div>
+            <div className="text-[28px] font-medium text-emerald-400">{formatUzbekPrice(monthlyRevenue)}</div>
             <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              Kutilgan (bronlar) · olingani Kirim kassasida
+              Bronlardan · olingani Kassada
             </p>
           </CardContent>
         </Card>
 
-        {/* Jami Daromad */}
-        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+        {/* Oylik Xarajat (tan narx + hammasi) */}
+        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Umumiy tushum</CardTitle>
-            <DollarSign className="h-4 w-4 text-[#C5A46D]" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-[28px] font-medium text-[#F5F2EB]">{formatUzbekPrice(totalRevenue)}</div>
-            <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              Loyiha ishga tushgandan buyon
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Oylik Xarajat */}
-        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Oylik xarajat</CardTitle>
+            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Oylik xarajat (rasxod)</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-[28px] font-medium text-[#F5F2EB]">{formatUzbekPrice(monthlyCost)}</div>
-            <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              Arenda + ish haqi + boshqa
-            </p>
+            <div className="text-[28px] font-medium text-red-400">{formatUzbekPrice(monthlyCost)}</div>
+            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-[12px] text-[#A8A49B]">
+              <span>Apartlar tan narxi (arenda): <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(rentCost)}</span></span>
+              <span>Ish haqi: <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(salaryCost)}</span></span>
+              <span>Boshqa xarajatlar: <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(variableCost)}</span></span>
+            </div>
           </CardContent>
         </Card>
 
         {/* Oylik Sof Foyda */}
-        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+        <Card className="border-[rgba(197,164,109,0.22)] bg-[#111417] rounded-[12px] shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Oylik sof foyda</CardTitle>
             <Wallet className="h-4 w-4 text-[#C5A46D]" />
@@ -177,7 +168,7 @@ export default async function DashboardPage() {
           <CardContent>
             <div className={`text-[28px] font-medium ${monthlyProfit >= 0 ? "text-[#C5A46D]" : "text-red-400"}`}>{formatUzbekPrice(monthlyProfit)}</div>
             <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              Daromad − xarajat
+              Savdo − rasxod
             </p>
           </CardContent>
         </Card>
