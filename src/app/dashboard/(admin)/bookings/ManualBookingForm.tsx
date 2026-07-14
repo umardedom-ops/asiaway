@@ -45,10 +45,13 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
   useEffect(() => {
     if (selectedApt && nights > 0) {
       const autoTotal = nights * Number(selectedApt.price_per_day || 0);
+      const defaultDeposit = Number(selectedApt.deposit_amount || 0);
+      const cappedDeposit = Math.min(autoTotal, defaultDeposit);
+
       setF((p) => ({
         ...p,
         total_price: p.total_price && Number(p.total_price) > 0 ? p.total_price : String(autoTotal),
-        deposit_amount: p.deposit_amount && Number(p.deposit_amount) > 0 ? p.deposit_amount : String(selectedApt.deposit_amount || 0),
+        deposit_amount: p.deposit_amount && Number(p.deposit_amount) > 0 ? p.deposit_amount : String(cappedDeposit),
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,6 +86,7 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
     };
     // "Hozir joylashtirish" belgilangan bo'lsa — bron + check-in bir amalda
     const res = placeNow ? await placeGuestNow(payload) : await createManualBooking(payload);
+    setState("idle");
     if (res.success) {
       router.push(placeNow ? "/dashboard/guests" : "/dashboard/bookings");
       router.refresh();

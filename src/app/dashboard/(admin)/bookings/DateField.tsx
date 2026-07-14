@@ -23,7 +23,11 @@ export default function DateField({
   const minDate = min ? new Date(min + "T00:00:00") : undefined;
 
   const disabled = (date: Date) => {
-    if (minDate && date < minDate) return true;
+    if (minDate) {
+      const d = new Date(date); d.setHours(0, 0, 0, 0);
+      const m = new Date(minDate); m.setHours(0, 0, 0, 0);
+      if (d < m) return true;
+    }
     if (isBooked && isBooked(date)) return true;
     return false;
   };
