@@ -39,9 +39,9 @@ export async function sendToChat(
   chatId: number | string,
   text: string,
   buttons?: InlineButton[][]
-) {
+): Promise<{ ok: boolean; description?: string }> {
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -51,8 +51,16 @@ export async function sendToChat(
         ...(buttons ? { reply_markup: { inline_keyboard: buttons } } : {}),
       }),
     });
+    const data = await res.json();
+    if (!data.ok) {
+      console.error("telegram sendMessage rad etdi:", data.description);
+      return { ok: false, description: data.description || "noma'lum Telegram xatosi" };
+    }
+    return { ok: true };
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     console.error("telegram sendToChat:", e);
+    return { ok: false, description: msg };
   }
 }
 
@@ -88,8 +96,17 @@ export async function notifyRole(
       return { sent: 0, role, reason: `"${role}" botiga hech kim ulanmagan (parol yozilmagan)` };
     }
 
-    await Promise.all(subs.map((s) => sendToChat(token, s.chat_id, text, buttons)));
-    return { sent: subs.length, role };
+    // Telegram javobini HAQIQATAN tekshiramiz (avval xato jim yutilardi)
+    const results = await Promise.all(
+      subs.map((s) => sendToChat(token, s.chat_id, text, buttons))
+    );
+    const okCount = results.filter((r) => r.ok).length;
+    const firstErr = results.find((r) => !r.ok)?.description;
+
+    if (okCount === 0) {
+      return { sent: 0, role, reason: `Telegram rad etdi: ${firstErr || "noma'lum"}` };
+    }
+    return { sent: okCount, role, ...(firstErr ? { reason: `qisman xato: ${firstErr}` } : {}) };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("telegram notifyRole:", e);
