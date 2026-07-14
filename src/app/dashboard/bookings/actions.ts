@@ -220,3 +220,18 @@ export async function updateDepositStatus(id: string, status: "pending" | "paid"
   revalidatePath("/dashboard/bookings");
   revalidatePath("/dashboard");
 }
+
+// Bir bron uchun barcha to'lovlar (chek uchun — haqiqatда olingan pul)
+export async function getBookingPayments(bookingId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("payments")
+    .select("id, amount, method, kind, note, paid_at")
+    .eq("booking_id", bookingId)
+    .order("paid_at", { ascending: true });
+  if (error) {
+    console.error("getBookingPayments:", error.message);
+    return [];
+  }
+  return data || [];
+}
