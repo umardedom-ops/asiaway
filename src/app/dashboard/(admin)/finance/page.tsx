@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, Building2, Users, Receipt } from "lucide-react";
-import ExpenseForm, { EXPENSE_CATEGORIES } from "./ExpenseForm";
-import DeleteExpenseButton from "./DeleteExpenseButton";
+import { EXPENSE_CATEGORIES } from "./ExpenseForm";
 
 export const revalidate = 0;
 
@@ -59,7 +58,6 @@ export default async function FinancePage() {
     return { id: a.id, title: a.title, inc, lease, exp, net: inc - lease - exp };
   }).sort((x, y) => y.net - x.net);
 
-  const aptTitle = (id: string | null) => apartments.find((a) => a.id === id)?.title || "—";
   const monthLabel = now.toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
 
   return (
@@ -130,47 +128,6 @@ export default async function FinancePage() {
         </Card>
       </div>
 
-      {/* Xarajat qo'shish */}
-      <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-        <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">Xarajat qo&apos;shish</CardTitle></CardHeader>
-        <CardContent><ExpenseForm apartments={apartments} /></CardContent>
-      </Card>
-
-      {/* Xarajatlar ro'yxati */}
-      <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-        <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">Xarajatlar ({monthLabel})</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="text-[#A8A49B] text-[11px] uppercase tracking-[0.08em] border-b border-[rgba(197,164,109,0.14)]">
-                  <th className="text-left font-semibold px-6 py-3">Sana</th>
-                  <th className="text-left font-semibold px-4 py-3">Turi</th>
-                  <th className="text-left font-semibold px-4 py-3">Apartament</th>
-                  <th className="text-left font-semibold px-4 py-3">Izoh</th>
-                  <th className="text-right font-semibold px-4 py-3">Summa</th>
-                  <th className="px-6 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenses.length === 0 && (
-                  <tr><td colSpan={6} className="px-6 py-8 text-center text-[#A8A49B]">Shu oyда xarajat yo&apos;q</td></tr>
-                )}
-                {expenses.map((e) => (
-                  <tr key={e.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0">
-                    <td className="px-6 py-3 text-[#A8A49B]">{e.spent_on}</td>
-                    <td className="px-4 py-3 text-[#F5F2EB]">{EXPENSE_CATEGORIES[e.category] || e.category}</td>
-                    <td className="px-4 py-3 text-[#A8A49B] max-w-[180px] truncate">{aptTitle(e.apartment_id)}</td>
-                    <td className="px-4 py-3 text-[#A8A49B] max-w-[220px] truncate">{e.note || "—"}</td>
-                    <td className="px-4 py-3 text-right text-[#F5F2EB] font-medium">{money(e.amount)}</td>
-                    <td className="px-6 py-3 text-right"><DeleteExpenseButton id={e.id} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
