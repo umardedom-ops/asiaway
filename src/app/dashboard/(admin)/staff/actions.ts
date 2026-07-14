@@ -83,7 +83,7 @@ export async function addTask(input: {
     `📌 <b>Vazifa:</b> ${input.title.trim()}${aptLine}${staffLine}${dateLine}${prioLine}`;
 
   // Telegram botga yuborish + "Bajarildi" tugmasi (bosilsa vazifa yopiladi)
-  await notifyRole(
+  const notified = await notifyRole(
     role,
     msg,
     task?.id ? [[{ text: "✅ Bajarildi", callback_data: `task:${task.id}:done` }]] : undefined
@@ -91,7 +91,8 @@ export async function addTask(input: {
 
   revalidatePath("/dashboard/staff");
   revalidatePath("/dashboard/tasks");
-  return { success: true };
+  // notified.sent = nechta chatga ketdi; 0 bo'lsa reason'да sabab bor
+  return { success: true, notified };
 }
 
 export async function setTaskStatus(id: string, status: string) {

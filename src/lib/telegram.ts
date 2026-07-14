@@ -56,34 +56,44 @@ export async function sendToChat(
   }
 }
 
+export interface NotifyResult {
+  sent: number;
+  role: BotRole;
+  reason?: string; // nima uchun yuborilmadi (diagnostika)
+}
+
 /**
  * Rolga obuna bo'lgan BARCHA chatlarga xabar yuboradi.
- * Obunachi yo'q yoki token yo'q bo'lsa — jimgina o'tib ketadi.
+ * Natijani qaytaradi — nima uchun yuborilmagani ko'rinsin (jim qolmasin).
  */
 export async function notifyRole(
   role: BotRole,
   text: string,
   buttons?: InlineButton[][]
-) {
+): Promise<NotifyResult> {
   try {
     const token = botToken(role);
-    if (!token) return;
+    if (!token) return { sent: 0, role, reason: `${role} uchun bot tokeni yo'q (Vercel env)` };
 
     const supabase = serviceClient();
-    if (!supabase) return;
+    if (!supabase) return { sent: 0, role, reason: "Supabase service kaliti yo'q" };
 
-    const { data: subs } = await supabase
+    const { data: subs, error } = await supabase
       .from("bot_subscribers")
       .select("chat_id")
       .eq("role", role);
 
-    if (!subs || subs.length === 0) return;
+    if (error) return { sent: 0, role, reason: `bot_subscribers xatosi: ${error.message}` };
+    if (!subs || subs.length === 0) {
+      return { sent: 0, role, reason: `"${role}" botiga hech kim ulanmagan (parol yozilmagan)` };
+    }
 
-    await Promise.all(
-      subs.map((s) => sendToChat(token, s.chat_id, text, buttons))
-    );
+    await Promise.all(subs.map((s) => sendToChat(token, s.chat_id, text, buttons)));
+    return { sent: subs.length, role };
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     console.error("telegram notifyRole:", e);
+    return { sent: 0, role, reason: msg };
   }
 }
 

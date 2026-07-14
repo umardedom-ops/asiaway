@@ -22,17 +22,24 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
   const [priority, setPriority] = useState("normal");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [info, setInfo] = useState("");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setErr("Vazifa nomini kiriting"); return; }
-    setSaving(true); setErr("");
+    setSaving(true); setErr(""); setInfo("");
     const res = await addTask({
       title, type, assigned_to: assignedTo || null,
       apartment_id: apartmentId || null, due_date: dueDate || null, priority,
     });
     setSaving(false);
-    if (res.success) { setTitle(""); setDueDate(""); }
+    if (res.success) {
+      setTitle(""); setDueDate("");
+      // Telegram xabari ketdimi? Ketmasa — sababini ko'rsatamiz
+      const n = res.notified;
+      if (n && n.sent > 0) setInfo(`✅ Vazifa qo'shildi · Telegram (${n.role}) botiga yuborildi`);
+      else setInfo(`⚠️ Vazifa qo'shildi, lekin Telegram xabari YUBORILMADI — ${n?.reason || "noma'lum sabab"}`);
+    }
     else setErr(res.error || "Xatolik");
   };
 
@@ -98,6 +105,11 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
         Qo&apos;shish
       </button>
       {err && <div className="col-span-full text-[13px] text-red-400">{err}</div>}
+      {info && (
+        <div className={`col-span-full text-[13px] ${info.startsWith("✅") ? "text-emerald-400" : "text-amber-400"}`}>
+          {info}
+        </div>
+      )}
     </form>
   );
 }
