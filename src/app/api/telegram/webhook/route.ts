@@ -130,16 +130,17 @@ export async function POST(req: Request) {
           .from('tasks')
           .update({ status: 'done', completed_at: new Date().toISOString() })
           .eq('id', id)
-          .select('apartment_id')
+          .select('apartment_id, type')
           .single();
 
-        if (!error && task?.apartment_id) {
+        // Faqat TOZALASH vazifasi yopilganda xona "bo'sh/toza" bo'ladi
+        if (!error && task?.type === 'cleaning' && task.apartment_id) {
           await supabase
             .from('apartments')
             .update({ kanban_status: 'available' })
             .eq('id', task.apartment_id);
         }
-        answerText = error ? `Xato: ${error.message}` : '✅ Rahmat! Xona toza deb belgilandi';
+        answerText = error ? `Xato: ${error.message}` : '✅ Rahmat! Vazifa bajarildi deb belgilandi';
 
         if (!error && chatId && messageId) {
           const orig = cq.message?.text || '';

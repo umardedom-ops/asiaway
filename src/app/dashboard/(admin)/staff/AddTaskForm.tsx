@@ -88,7 +88,6 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
                   setDueDate("");
                 }
               }}
-              initialFocus
               className="bg-[#111417] text-[#F5F2EB] [&_.rdp-day_button:hover]:bg-[#C5A46D]/20 [&_.rdp-day_button[data-selected=true]]:bg-[#C5A46D] [&_.rdp-day_button[data-selected=true]]:text-[#111417] [&_.rdp-button_previous]:border-[rgba(197,164,109,0.2)] [&_.rdp-button_next]:border-[rgba(197,164,109,0.2)]"
             />
           </PopoverContent>
