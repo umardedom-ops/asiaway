@@ -42,3 +42,6 @@ next-env.d.ts
 
 # staging (rasmlar Supabase Storage da)
 /r2-upload/
+
+# Lokal ishchi fayllar (maxfiy kalitlar bo'lishi mumkin — hech qachon push qilinmasin)
+scratch/

@@ -4,7 +4,45 @@
 > Har faza tugaganda `[x]` belgilanadi va "HOLAT IZOHI" yangilanadi.
 > Boshlashdan oldin: `HANDOFF.md` ni ham o'qing. Ish tugagach: commit + push (Vercel avtodeploy).
 
-**Yangilangan:** 2026-07-13
+**Yangilangan:** 2026-07-14
+
+---
+
+## 🔴 KEYINGI SESSIYA — DARROV SHULARDAN BOSHLA (2026-07-14)
+
+### 1. SUPABASE SQL — HALI RUN QILINMAGAN (eng muhim!)
+Botlar to'liq ishlashi uchun 2 ta migratsiya SQL Editor'da ishga tushirilishi SHART:
+- `supabase/migrations/20260714000000_bot_subscribers_multi_role.sql`
+- `supabase/migrations/20260714000001_bot_drafts.sql`
+
+**ILDIZ SABAB (topilgan):** `bot_subscribers.chat_id` PRIMARY KEY edi. Telegramda bir odamning
+chat_id'si BARCHA botlarda bir xil → shef botiga ulangach menejer botiga ulanganda
+upsert(onConflict:'chat_id') eski qator ustiga yozib rolni ALMASHTIRARDI. Shuning uchun
+menejer roli o'chib ketgan va menejerga na lead, na vazifa bormayotgan edi.
+Tasdiq: `/api/telegram/test?role=menejer` → `"menejer botiga hech kim ulanmagan"`.
+Yechim: PK→id(uuid), (chat_id,role) UNIQUE + webhook onConflict:'chat_id,role'. Kod tayyor, SQL kutilmoqda.
+
+**SQL bajarilgach:** 3 botga parolni QAYTA yozish kerak
+(`start_shef_asiaway`, `start_menejer_asiaway`, `start_cleaning_asiaway`) — endi rollar bir-birini o'chirmaydi.
+
+### 2. TUGALLANMAGAN SO'ROV (egadan)
+Bot shabloni hozir `<code>` blok — nusxalab, tahrirlab yuborish kerak. Ega so'radi:
+**"shuni tayor yozuvga chiqdigan qilsa buladimi, srazu raqam-ismlarni yozaman"**
+→ Ya'ni shablon **input maydoniga tayyor matn bo'lib tushsin** (nusxalash shart bo'lmasin),
+darrov ustiga yozib ketsin. Telegram Bot API'da buning yo'llari:
+  - `switch_inline_query_current_chat` inline tugma → matnni input'ga qo'yadi (eng yaqin yechim), yoki
+  - `force_reply` bilan maydonma-maydon so'rash (Ism? → Telefon? → Sana? ...), yoki
+  - inline tugmalar bilan qadam-baqadam (xona/kishi tanlash tugma bilan).
+  Tavsiya: **force_reply bilan qadam-baqadam** — eng qulay va xatosiz (draft bot_drafts'da yig'iladi).
+
+### 3. DIAGNOSTIKA ENDPOINTLARI (ishlab turibdi, kerak bo'lsa ishlat)
+- `/api/telegram/status` — env, obunachilar, xodimlar roli va qaysi botga xabar ketishi
+- `/api/telegram/test?role=menejer[&btn=1]` — test xabar + HAQIQIY natija/sabab
+- `/api/telegram/test-owner` — egalarga arenda eslatmasini qo'lda ishga tushirish
+- `/api/telegram/setup` — 3 botning webhook'ini avtomat o'rnatish
+
+### ⚠️ ESLATMA: Antigravity parallel ishlayapti
+Dashboardga i18n (`DashboardLangProvider`, uz/ru) qo'shyapti. **Ish boshlashdan oldin `git pull`.**
 
 ---
 
