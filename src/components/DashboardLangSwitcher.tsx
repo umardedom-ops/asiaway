@@ -32,13 +32,13 @@ export default function DashboardLangSwitcher() {
           key={o.code}
           onClick={() => setLang(o.code)}
           aria-pressed={lang === o.code}
-          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide transition-colors ${
+          className={`inline-flex items-center justify-center min-w-[36px] px-2.5 py-1 rounded-full text-[12px] font-bold tracking-wider transition-colors ${
             lang === o.code
               ? "bg-[#C5A46D] text-[#0B0D0F]"
               : "text-[#A8A49B] hover:text-[#F5F2EB]"
           }`}
         >
-          <span className="text-[13px]">{o.flag}</span> {o.label}
+          {o.label}
         </button>
       ))}
     </div>
