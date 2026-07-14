@@ -97,7 +97,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
   .foot{margin-top:26px;padding-top:14px;border-top:1px solid #e5e5e5;text-align:center;color:#999;font-size:12px}
 </style></head><body>
   <div class="hd">
-    <div><h1>ASIA WAY <span>APARTMENTS</span></h1><div class="muted">Nest One, Tashkent City</div><div class="muted">Tel: +998 99 000 00 00 · asiaway.uz</div></div>
+    <div><h1>ASIA WAY <span>APARTMENTS</span></h1><div class="muted">Nest One, Tashkent City</div><div class="muted">Tel: +998 77 380 33 30 · asiaway.uz</div></div>
     <div style="text-align:right"><div class="lbl">Chek raqami</div><div class="no">#${invoiceNo}</div><div class="muted" style="margin-top:8px">Sana: ${fmtDate(new Date().toISOString())}</div></div>
   </div>
   <div class="info">
