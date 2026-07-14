@@ -80,7 +80,7 @@ export default async function DashboardPage() {
   const nextMonthStr = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 1)
     .toISOString().split("T")[0];
   const [{ data: monthExpenses }, { data: staffRows }] = await Promise.all([
-    supabase.from("expenses").select("amount, category").gte("spent_on", startOfMonthStr).lt("spent_on", nextMonthStr),
+    supabase.from("expenses").select("amount, category, apartment_id").gte("spent_on", startOfMonthStr).lt("spent_on", nextMonthStr),
     supabase.from("staff").select("monthly_salary, active"),
   ]);
   const rentCost = (apartments || []).filter((a) => a.status === "active")
@@ -107,7 +107,8 @@ export default async function DashboardPage() {
       payDay: a.lease_payment_day ? Number(a.lease_payment_day) : null,
       paid: a.lease_last_paid_period === period,
     }));
-  const ownerPaid = ownerRows.filter((r) => r.paid).reduce((s, r) => s + r.cost, 0);
+  // Haqiqiy to'langan pul (Moliyadagi "rent" xarajatlar yig'indisi)
+  const ownerPaid = (monthExpenses || []).filter((e) => e.category === "rent").reduce((s, e) => s + Number(e.amount || 0), 0);
   const ownerPending = rentCost - ownerPaid;
 
   return (

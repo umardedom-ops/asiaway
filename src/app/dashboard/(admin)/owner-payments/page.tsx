@@ -23,20 +23,39 @@ type Status = "paid" | "due_soon" | "today" | "overdue" | "upcoming";
 
 export default async function OwnerPaymentsPage() {
   const supabase = await createClient();
-  const { data: aptsRaw } = await supabase
-    .from("apartments")
-    .select("id, title, monthly_lease_cost, owner_name, owner_phone, lease_payment_day, lease_last_paid_period, status")
-    .eq("status", "active")
-    .order("lease_payment_day", { ascending: true });
 
   const { y, m, day: todayDay, daysInMonth } = tashkentNow();
   const period = `${y}-${String(m + 1).padStart(2, "0")}`;
+  const startOfMonthStr = new Date(Date.UTC(y, m, 1)).toISOString().split("T")[0];
+  const nextMonthStr = new Date(Date.UTC(y, m + 1, 1)).toISOString().split("T")[0];
+
+  const [{ data: aptsRaw }, { data: monthExpenses }] = await Promise.all([
+    supabase
+      .from("apartments")
+      .select("id, title, monthly_lease_cost, owner_name, owner_phone, lease_payment_day, lease_last_paid_period, status")
+      .eq("status", "active")
+      .order("lease_payment_day", { ascending: true }),
+    supabase
+      .from("expenses")
+      .select("amount, apartment_id")
+      .eq("category", "rent")
+      .gte("spent_on", startOfMonthStr)
+      .lt("spent_on", nextMonthStr),
+  ]);
+
   const monthLabel = new Date(y, m, 1).toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
 
   const rows = (aptsRaw ?? []).map((a) => {
     const cost = Number(a.monthly_lease_cost || 0);
     const payDay = a.lease_payment_day ? Number(a.lease_payment_day) : null;
-    const paid = a.lease_last_paid_period === period;
+    
+    // Haqiqiy to'langan summa (shu oydagi rent xarajatlar yig'indisi)
+    const paidAmount = (monthExpenses || [])
+      .filter((e) => e.apartment_id === a.id)
+      .reduce((s, e) => s + Number(e.amount || 0), 0);
+      
+    // Agar kamida to'liq summa yoki status "paid" bo'lsa
+    const paid = a.lease_last_paid_period === period || paidAmount >= cost;
 
     let status: Status = "upcoming";
     let daysUntil: number | null = null;
@@ -51,14 +70,14 @@ export default async function OwnerPaymentsPage() {
       else status = "upcoming";
     }
 
-    return { ...a, cost, payDay, paid, status, daysUntil };
+    return { ...a, cost, payDay, paid, paidAmount, status, daysUntil };
   });
 
   const configured = rows.filter((r) => r.payDay && r.cost > 0);
   const totalMonthly = configured.reduce((s, r) => s + r.cost, 0);
-  const paidTotal = configured.filter((r) => r.paid).reduce((s, r) => s + r.cost, 0);
+  const paidTotal = configured.reduce((s, r) => s + r.paidAmount, 0);
   const overdueCount = configured.filter((r) => r.status === "overdue").length;
-  const pendingTotal = totalMonthly - paidTotal;
+  const pendingTotal = Math.max(0, totalMonthly - paidTotal);
 
   // Tartib: kechikkan → bugun → yaqin → kelgusi → to'langan
   const order: Record<Status, number> = { overdue: 0, today: 1, due_soon: 2, upcoming: 3, paid: 4 };
@@ -114,7 +133,12 @@ export default async function OwnerPaymentsPage() {
                     <td className="px-4 py-3 text-center text-[#A8A49B]">
                       {r.payDay ? `${r.payDay}-sana` : <span className="text-[#A8A49B]/50">belgilanmagan</span>}
                     </td>
-                    <td className="px-4 py-3 text-right text-[#F5F2EB] font-medium">{money(r.cost)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="text-[#F5F2EB] font-medium">{money(r.cost)}</div>
+                      {r.paidAmount > 0 && r.paidAmount < r.cost && (
+                        <div className="text-[11px] text-emerald-400">To'landi: {money(r.paidAmount)}</div>
+                      )}
+                    </td>
                     <td className="px-4 py-3"><StatusBadge status={r.status} daysUntil={r.daysUntil} /></td>
                     <td className="px-6 py-3 text-right">
                       {r.payDay && r.cost > 0 && !r.paid ? (

@@ -31,6 +31,13 @@ export async function addExpense(input: ExpenseInput) {
     console.error("addExpense:", error.message);
     return { success: false, error: error.message };
   }
+
+  // Agar chiqim "Arenda (egaga)" bo'lsa va apartament tanlangan bo'lsa, uni to'landi deb belgilab qo'yamiz (dashboardda ko'rinishi uchun)
+  if (input.category === "rent" && input.apartment_id) {
+    const d = new Date(input.spent_on || new Date().toISOString().split("T")[0]);
+    const period = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    await supabase.from("apartments").update({ lease_last_paid_period: period }).eq("id", input.apartment_id);
+  }
   revalidatePath("/dashboard/finance");
   revalidatePath("/dashboard/kassa");
   revalidatePath("/dashboard/cashflow");
