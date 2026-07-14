@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import GuestFunnelBoard from "./GuestFunnelBoard";
+import BookingStatCards from "./BookingStatCards";
 import PayButton from "./owner-payments/PayButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -115,6 +116,9 @@ export default async function DashboardPage() {
         <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">Boshqaruv paneli</h1>
         <p className="text-[14px] text-[#A8A49B] mt-2 font-light">Loyiha bo&apos;yicha real vaqtdagi statistika va hisobotlar</p>
       </div>
+
+      {/* 4 ta bron holati tablo */}
+      <BookingStatCards />
 
       {/* Stats Cards Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

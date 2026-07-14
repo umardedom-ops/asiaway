@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import BookingStatCards from "../BookingStatCards";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { btnPrimary } from "@/lib/ui";
@@ -34,6 +35,8 @@ export default async function BookingsPage() {
           </button>
         </Link>
       </div>
+
+      <BookingStatCards />
 
       {error ? (
         <div className="rounded-[8px] bg-red-950/20 p-4 text-red-400 border border-red-900/50 text-[14px]">
