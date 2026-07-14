@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpCircle, ArrowDownCircle, CalendarRange } from "lucide-react";
 import PaymentForm from "../income/PaymentForm";
 import DeletePaymentButton from "../income/DeletePaymentButton";
-import ExpenseForm, { EXPENSE_CATEGORIES } from "../finance/ExpenseForm";
+import ExpenseForm, { EXPENSE_CATEGORIES, EXPENSE_CATEGORIES_RU } from "../finance/ExpenseForm";
 import DeleteExpenseButton from "../finance/DeleteExpenseButton";
 import { useDashLang } from "@/components/DashboardLangProvider";
 
@@ -31,6 +31,8 @@ export default function KassaTabs({
   const d = useDashLang();
 
   const isUz = d.common.save === "Saqlash";
+
+  const expenseCats = isUz ? EXPENSE_CATEGORIES : EXPENSE_CATEGORIES_RU;
 
   const METHOD_LABELS: Record<string, string> = isUz 
     ? { naqd: "Naqd", karta: "Karta", payme: "Payme", click: "Click", otkazma: "O'tkazma", boshqa: "Boshqa" }
@@ -164,7 +166,7 @@ export default function KassaTabs({
                     {expenses.map((e) => (
                       <tr key={e.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
                         <td className="px-6 py-3 text-[#A8A49B] whitespace-nowrap">{fmtDate(e.spent_on)}</td>
-                        <td className="px-4 py-3 text-[#F5F2EB]">{EXPENSE_CATEGORIES[e.category] || e.category}</td>
+                        <td className="px-4 py-3 text-[#F5F2EB]">{expenseCats[e.category] || e.category}</td>
                         <td className="px-4 py-3 text-[#A8A49B] max-w-[160px] truncate">{aptTitle(e.apartment_id)}</td>
                         <td className="px-4 py-3 text-[#A8A49B] max-w-[220px] truncate">{e.note || "—"}</td>
                         <td className="px-4 py-3 text-right text-red-400 font-medium">−{money(e.amount)}</td>
@@ -208,7 +210,7 @@ export default function KassaTabs({
                     {d.de.map((e) => (
                       <tr key={`out-${e.id}`} className="border-b border-[rgba(197,164,109,0.06)] last:border-0">
                         <td className="px-6 py-2.5 w-8"><ArrowDownCircle className="h-3.5 w-3.5 text-red-400" /></td>
-                        <td className="px-2 py-2.5 text-[#F5F2EB]">{EXPENSE_CATEGORIES[e.category] || e.category}{e.note ? ` · ${e.note}` : ""}</td>
+                        <td className="px-2 py-2.5 text-[#F5F2EB]">{expenseCats[e.category] || e.category}{e.note ? ` · ${e.note}` : ""}</td>
                         <td className="px-4 py-2.5 text-[#A8A49B] max-w-[160px] truncate">{aptTitle(e.apartment_id)}</td>
                         <td className="px-6 py-2.5 text-right text-red-400 font-medium">−{money(e.amount)}</td>
                       </tr>

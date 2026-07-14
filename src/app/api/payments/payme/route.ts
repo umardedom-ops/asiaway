@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     const { data } = await supabase
       .from("bookings")
       .select(
-        "id, deposit_amount, deposit_status, booking_status, payment_transaction_id, payment_state, payment_created_ms, payment_perform_ms, payment_cancel_ms, payment_reason, guest_name"
+        "id, deposit_amount, fx_rate, deposit_status, booking_status, payment_transaction_id, payment_state, payment_created_ms, payment_perform_ms, payment_cancel_ms, payment_reason, guest_name"
       )
       .eq("id", bookingId)
       .maybeSingle();
@@ -89,7 +89,9 @@ export async function POST(req: Request) {
         if (!booking || booking.booking_status === "cancelled")
           return rpcError(id, ERR.ORDER_NOT_FOUND);
         if (booking.deposit_status === "paid") return rpcError(id, ERR.CANT_PERFORM);
-        const expectedAmount = usdToTiyin(Number(booking.deposit_amount || 0));
+        // AUDIT H7: bronga muzlatilgan kurs (fx_rate) ishlatiladi — kurs o'zgarsa ham
+        // eski bronning to'lov summasi o'zgarmaydi.
+        const expectedAmount = usdToTiyin(Number(booking.deposit_amount || 0), booking.fx_rate);
         if (Number(params.amount) !== expectedAmount)
           return rpcError(id, ERR.WRONG_AMOUNT);
         return rpcResult(id, { allow: true });
@@ -113,7 +115,9 @@ export async function POST(req: Request) {
         if (booking.payment_transaction_id && Number(booking.payment_state) === 1)
           return rpcError(id, ERR.CANT_PERFORM);
 
-        const expectedAmount = usdToTiyin(Number(booking.deposit_amount || 0));
+        // AUDIT H7: bronga muzlatilgan kurs (fx_rate) ishlatiladi — kurs o'zgarsa ham
+        // eski bronning to'lov summasi o'zgarmaydi.
+        const expectedAmount = usdToTiyin(Number(booking.deposit_amount || 0), booking.fx_rate);
         if (Number(params.amount) !== expectedAmount)
           return rpcError(id, ERR.WRONG_AMOUNT);
 

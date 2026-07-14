@@ -12,6 +12,20 @@ export interface InlineButton {
   callback_data: string;
 }
 
+/**
+ * HTML escape — parse_mode:"HTML" bilan yuborilgan xabarda MAJBURIY.
+ * Mijoz ismi/xabari ichidagi `<`, `>`, `&` Telegram'ni xabarni RAD ETISHGA majbur qiladi
+ * ("can't parse entities") va bildirishnoma JIM yo'qoladi.
+ * Dinamik (foydalanuvchi kiritgan) har bir qiymat shu funksiyadan o'tishi shart.
+ */
+export function esc(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  return String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function botToken(role: BotRole): string | undefined {
   // Muqobil nomlar ham qabul qilinadi (Vercel'da MANAGER/FARROSH deb qo'yilgan)
   const map: Record<BotRole, string | undefined> = {
@@ -40,23 +54,35 @@ export async function sendToChat(
   text: string,
   buttons?: InlineButton[][]
 ): Promise<{ ok: boolean; description?: string }> {
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  const post = (payload: Record<string, unknown>) =>
+    fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: "HTML",
-        ...(buttons ? { reply_markup: { inline_keyboard: buttons } } : {}),
-      }),
-    });
-    const data = await res.json();
-    if (!data.ok) {
-      console.error("telegram sendMessage rad etdi:", data.description);
-      return { ok: false, description: data.description || "noma'lum Telegram xatosi" };
+      body: JSON.stringify({ chat_id: chatId, ...payload }),
+    }).then((r) => r.json());
+
+  const markup = buttons ? { reply_markup: { inline_keyboard: buttons } } : {};
+
+  try {
+    const data = await post({ text, parse_mode: "HTML", ...markup });
+    if (data.ok) return { ok: true };
+
+    // FALLBACK: mijoz ismi/xabari ichidagi `<`, `>`, `&` HTML'ni buzsa Telegram rad etadi
+    // ("can't parse entities") va bildirishnoma JIM yo'qolardi. Endi teglarni olib
+    // tashlab, oddiy matn sifatida QAYTA yuboramiz — xabar hech qachon yo'qolmaydi.
+    const desc: string = data.description || "";
+    if (/can't parse entities|unsupported start tag|unclosed|entities/i.test(desc)) {
+      const plain = text.replace(/<[^>]*>/g, ""); // <b> va h.k. teglarni olib tashlaymiz
+      const retry = await post({ text: plain, ...markup });
+      if (retry.ok) {
+        console.warn("telegram: HTML rad etildi, oddiy matn bilan yuborildi:", desc);
+        return { ok: true, description: `HTML rad etildi (oddiy matn yuborildi): ${desc}` };
+      }
+      return { ok: false, description: retry.description || desc };
     }
-    return { ok: true };
+
+    console.error("telegram sendMessage rad etdi:", desc);
+    return { ok: false, description: desc || "noma'lum Telegram xatosi" };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("telegram sendToChat:", e);

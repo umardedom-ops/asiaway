@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { syncClientFromBooking, onBookingCompleted } from "@/lib/clients-sync";
+import { syncClientFromBooking, onBookingCompleted, onBookingCancelled } from "@/lib/clients-sync";
 
 // Qo'lда bron kiritish (Airbnb / Booking / Instagram / WhatsApp / Telegram / to'g'ridan-to'g'ri)
 export interface ManualBookingInput {
@@ -20,7 +20,12 @@ export interface ManualBookingInput {
   lead_id?: string;
 }
 
-export async function createManualBooking(input: ManualBookingInput) {
+/** Server action natijasi — muvaffaqiyatda `id`, xatoda `error`. */
+export type BookingResult =
+  | { success: true; id?: string; error?: undefined }
+  | { success: false; error: string; id?: undefined };
+
+export async function createManualBooking(input: ManualBookingInput): Promise<BookingResult> {
   if (!input.apartment_id) return { success: false, error: "Apartamentni tanlang" };
   if (!input.guest_name?.trim()) return { success: false, error: "Mehmon ismini kiriting" };
   if (!input.check_in || !input.check_out) return { success: false, error: "Sanalarni kiriting" };
@@ -60,7 +65,13 @@ export async function createManualBooking(input: ManualBookingInput) {
     lead_id: input.lead_id || null,
   }]).select("id").single();
 
-  if (error) return { success: false, error: error.message };
+  if (error) {
+    // DB'даги no_double_booking (EXCLUDE) cheklovi — race condition'ni bazaning o'zi to'sadi
+    if (error.code === "23P01" || /no_double_booking|exclusion/i.test(error.message)) {
+      return { success: false, error: "Bu sanalarda apartament allaqachon band" };
+    }
+    return { success: false, error: error.message };
+  }
 
   // Mijozни clients jadvaliga qo'shamiz/yangilaymiz (Mehmonlar bo'limi)
   const client = await syncClientFromBooking(supabase, {
@@ -94,7 +105,8 @@ export async function createManualBooking(input: ManualBookingInput) {
   revalidatePath("/dashboard/clients");
   revalidatePath("/dashboard/cashflow");
   revalidatePath("/dashboard");
-  return { success: true };
+  // id qaytariladi — placeGuestNow uni ism bo'yicha qidirmasligi uchun (audit M1)
+  return { success: true, id: newBooking?.id as string | undefined };
 }
 
 // Joylashtirish (check-in): mehmon apartga kirdi → "hozir turgan mehmonlar"ga o'tadi
@@ -129,29 +141,25 @@ export async function checkInBooking(id: string) {
 }
 
 // Walk-in: mehmonni HOZIR joylashtirish (bron + check-in bir amalda)
-export async function placeGuestNow(input: ManualBookingInput) {
+export async function placeGuestNow(input: ManualBookingInput): Promise<BookingResult> {
   const res = await createManualBooking({ ...input, booking_status: "confirmed" });
   if (!res.success) return res;
 
-  // Eng so'nggi shu mehmon bronini topib check-in qilamiz
-  const supabase = await createClient();
-  const { data: bk } = await supabase
-    .from("bookings")
-    .select("id")
-    .eq("apartment_id", input.apartment_id)
-    .eq("guest_name", input.guest_name.trim())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // AUDIT M1: avval bron ism bo'yicha qidirilardi — bir xil ismli ikki mehmon bo'lsa
+  // NOTO'G'RI bron check-in bo'lardi. Endi createManualBooking qaytargan aniq id ishlatiladi.
+  const bookingId = res.id;
+  if (!bookingId) {
+    return { success: false, error: "Bron yaratildi, lekin joylashtirib bo'lmadi (id yo'q)" };
+  }
 
-  if (bk?.id) {
-    await supabase
-      .from("bookings")
-      .update({ checked_in_at: new Date().toISOString() })
-      .eq("id", bk.id);
-    if (input.guest_phone) {
-      await supabase.from("clients").update({ stage: "staying" }).eq("phone", input.guest_phone.trim());
-    }
+  const supabase = await createClient();
+  await supabase
+    .from("bookings")
+    .update({ checked_in_at: new Date().toISOString() })
+    .eq("id", bookingId);
+
+  if (input.guest_phone) {
+    await supabase.from("clients").update({ stage: "staying" }).eq("phone", input.guest_phone.trim());
   }
 
   revalidatePath("/dashboard/guests");
@@ -166,18 +174,43 @@ export async function updateBookingStatus(id: string, status: "pending" | "confi
   // Oldingi holatni olamiz (avto-hisob va avto-tozalash uchun)
   const { data: prev } = await supabase
     .from("bookings")
-    .select("booking_status, apartment_id, guest_name, guest_phone, check_out, nights, total_price, apartments(price_per_day)")
+    .select("booking_status, apartment_id, guest_name, guest_phone, check_in, check_out, nights, total_price, apartments(price_per_day)")
     .eq("id", id)
     .maybeSingle();
 
-  // Checkout'да narx 0 bo'lsa — nights × price_per_day avtomat hisoblanadi
   const patch: Record<string, unknown> = { booking_status: status };
-  if (status === "completed" && prev && Number(prev.total_price || 0) === 0) {
+
+  // AUDIT M3 — CHECKOUT AVTO-HISOB
+  // Avval faqat total_price === 0 bo'lgandagina hisoblanardi. Endi:
+  //  - mehmon rejadan KECH chiqsa (bugun > check_out) → haqiqiy kunlar bo'yicha qayta hisob
+  //  - narx umuman qo'yilmagan bo'lsa → nights × price_per_day
+  if (status === "completed" && prev) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const apt: any = Array.isArray(prev.apartments) ? prev.apartments[0] : prev.apartments;
     const perNight = Number(apt?.price_per_day || 0);
-    const nights = Number(prev.nights || 0);
-    if (perNight > 0 && nights > 0) patch.total_price = perNight * nights;
+    const today = new Date().toISOString().split("T")[0];
+
+    // Haqiqiy chiqish sanasi: rejadagi check_out yoki bugun (agar kech chiqsa)
+    const actualOut = today > String(prev.check_out) ? today : String(prev.check_out);
+    const actualNights = Math.max(
+      1,
+      Math.round(
+        (new Date(actualOut).getTime() - new Date(String(prev.check_in)).getTime()) / 86400000
+      )
+    );
+
+    if (perNight > 0) {
+      const recalculated = actualNights * perNight;
+      const current = Number(prev.total_price || 0);
+
+      // Narx yo'q, YOKI mehmon rejadan ko'p turgan (qo'shimcha kecha) → to'g'rilaymiz.
+      // Menejer qo'lda kelishilgan chegirmali narx qo'ygan bo'lsa (0 < current < hisob) — TEGMAYMIZ.
+      if (current === 0 || actualNights > Number(prev.nights || 0)) {
+        patch.total_price = recalculated;
+        patch.nights = actualNights;
+        patch.check_out = actualOut;
+      }
+    }
   }
 
   const { error } = await supabase
@@ -199,6 +232,16 @@ export async function updateBookingStatus(id: string, status: "pending" | "confi
     });
     revalidatePath("/dashboard/staff");
     revalidatePath("/dashboard/guests");
+  }
+
+  // AUDIT M5 — bron BEKOR qilinsa mijoz statistikasi (LTV) qaytariladi.
+  // Avval faqat oshirilardi, hech qachon kamaymasdi → soxta LTV.
+  if (status === "cancelled" && prev && prev.booking_status !== "cancelled") {
+    await onBookingCancelled(supabase, {
+      guest_phone: prev.guest_phone,
+      total_price: prev.total_price,
+    });
+    revalidatePath("/dashboard/clients");
   }
 
   revalidatePath("/dashboard/bookings");

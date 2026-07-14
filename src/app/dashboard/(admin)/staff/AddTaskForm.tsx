@@ -4,13 +4,14 @@ import { useState } from "react";
 import { addTask } from "./actions";
 import { Loader2, Plus } from "lucide-react";
 import { btnPrimary } from "@/lib/ui";
-import { TASK_TYPE_LABELS, inputCls } from "./labels";
+import { TASK_TYPE_LABELS, TASK_TYPE_LABELS_RU, inputCls } from "./labels";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { uz } from "date-fns/locale";
+import { uz, ru } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDashLang } from "@/components/DashboardLangProvider";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function AddTaskForm({ staff, apartments }: { staff: any[]; apartments: any[] }) {
@@ -23,10 +24,12 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
+  const d = useDashLang();
+  const isRu = d.common.save === "Сохранить";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) { setErr("Vazifa nomini kiriting"); return; }
+    if (!title.trim()) { setErr(isRu ? "Введите название задачи" : "Vazifa nomini kiriting"); return; }
     setSaving(true); setErr(""); setInfo("");
     const res = await addTask({
       title, type, assigned_to: assignedTo || null,
@@ -35,44 +38,42 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
     setSaving(false);
     if (res.success) {
       setTitle(""); setDueDate("");
-      // Telegram xabari ketdimi? Ketmasa — sababini ko'rsatamiz
       const n = res.notified;
-      const d = res.debug;
-      const dbg = d ? ` [xodim roli: ${d.staffRole ?? "topilmadi"} → bot: ${d.botRole}]` : "";
-      if (n && n.sent > 0) setInfo(`✅ Vazifa qo'shildi · Telegram (${n.role}) botiga yuborildi${dbg}`);
-      else setInfo(`⚠️ Vazifa qo'shildi, lekin Telegram xabari YUBORILMADI — ${n?.reason || "noma'lum sabab"}${dbg}`);
+      const dbg = res.debug ? ` [роль: ${res.debug.staffRole ?? "не найдена"} → бот: ${res.debug.botRole}]` : "";
+      if (n && n.sent > 0) setInfo(`✅ ${isRu ? "Задача добавлена · Отправлено в Telegram (" + n.role + ")" : "Vazifa qo'shildi · Telegram (" + n.role + ") botiga yuborildi"}${dbg}`);
+      else setInfo(`⚠️ ${isRu ? "Задача добавлена, но в Telegram НЕ ОТПРАВЛЕНО — " : "Vazifa qo'shildi, lekin Telegram xabari YUBORILMADI — "}${n?.reason || (isRu ? "неизвестная причина" : "noma'lum sabab")}${dbg}`);
     }
-    else setErr(res.error || "Xatolik");
+    else setErr(res.error || (isRu ? "Ошибка" : "Xatolik"));
   };
 
   return (
     <form onSubmit={submit} className="grid grid-cols-2 lg:grid-cols-7 gap-3 items-end">
       <div className="space-y-1.5 col-span-2 lg:col-span-2">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Vazifa</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="masalan: 22-qavatni tozalash" className={inputCls} />
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Задача" : "Vazifa"}</label>
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={isRu ? "например: уборка 22 этажа" : "masalan: 22-qavatni tozalash"} className={inputCls} />
       </div>
       <div className="space-y-1.5">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Turi</label>
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Тип" : "Turi"}</label>
         <select value={type} onChange={(e) => setType(e.target.value)} className={inputCls}>
-          {Object.entries(TASK_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          {Object.entries(isRu ? TASK_TYPE_LABELS_RU : TASK_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
       </div>
       <div className="space-y-1.5">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Xodim</label>
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Сотрудник" : "Xodim"}</label>
         <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className={inputCls}>
-          <option value="">— Tanlanmagan —</option>
+          <option value="">— {isRu ? "Не выбран" : "Tanlanmagan"} —</option>
           {staff.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}
         </select>
       </div>
       <div className="space-y-1.5">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Apartament</label>
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Апартамент" : "Apartament"}</label>
         <select value={apartmentId} onChange={(e) => setApartmentId(e.target.value)} className={inputCls}>
           <option value="">—</option>
           {apartments.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
         </select>
       </div>
       <div className="space-y-1.5 flex flex-col">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Muddat</label>
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Срок" : "Muddat"}</label>
         <Popover>
           <PopoverTrigger 
             className={cn(
@@ -82,7 +83,7 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
             )}
           >
             <CalendarIcon className="mr-2.5 h-4 w-4 shrink-0 text-[#C5A46D]" />
-            {dueDate ? format(new Date(dueDate), "d MMMM yyyy", { locale: uz }) : <span>Sana tanlang</span>}
+            {dueDate ? format(new Date(dueDate), "d MMMM yyyy", { locale: isRu ? ru : uz }) : <span>{isRu ? "Выберите дату" : "Sana tanlang"}</span>}
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0 z-50 bg-[#111417] border-[rgba(197,164,109,0.14)]" align="start">
             <Calendar
@@ -104,11 +105,11 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
       </div>
       <button type="submit" disabled={saving} className={`${btnPrimary} h-11 px-5 text-[14px] gap-2 col-span-2 lg:col-span-1`}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-        Qo&apos;shish
+        {isRu ? "Добавить" : "Qo'shish"}
       </button>
       {err && <div className="col-span-full text-[13px] text-red-400">{err}</div>}
       {info && (
-        <div className={`col-span-full text-[13px] ${info.startsWith("✅") ? "text-emerald-400" : "text-amber-400"}`}>
+        <div className={`col-span-full text-[13px] ${info.includes("✅") ? "text-emerald-400" : "text-amber-400"}`}>
           {info}
         </div>
       )}

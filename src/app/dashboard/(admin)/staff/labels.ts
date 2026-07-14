@@ -6,6 +6,14 @@ export const ROLE_LABELS: Record<string, string> = {
   other: "Boshqa",
 };
 
+export const ROLE_LABELS_RU: Record<string, string> = {
+  manager: "Менеджер",
+  cleaner: "Уборщик(ца)",
+  maintenance: "Ремонтник",
+  driver: "Водитель",
+  other: "Другое",
+};
+
 export const TASK_TYPE_LABELS: Record<string, string> = {
   cleaning: "Tozalash",
   checkin: "Kutib olish",
@@ -15,11 +23,27 @@ export const TASK_TYPE_LABELS: Record<string, string> = {
   other: "Boshqa",
 };
 
+export const TASK_TYPE_LABELS_RU: Record<string, string> = {
+  cleaning: "Уборка",
+  checkin: "Встреча (Заезд)",
+  checkout: "Проводы (Выезд)",
+  maintenance: "Ремонт",
+  shopping: "Покупки",
+  other: "Другое",
+};
+
 export const TASK_STATUS_LABELS: Record<string, string> = {
   todo: "Kutilmoqda",
   in_progress: "Jarayonda",
   done: "Bajarilgan",
   cancelled: "Bekor qilingan",
+};
+
+export const TASK_STATUS_LABELS_RU: Record<string, string> = {
+  todo: "В ожидании",
+  in_progress: "В процессе",
+  done: "Выполнено",
+  cancelled: "Отменено",
 };
 
 export const inputCls =

@@ -154,3 +154,40 @@ export async function onBookingCompleted(
     console.error("onBookingCompleted:", e);
   }
 }
+
+/**
+ * Bron BEKOR qilinganda mijoz statistikasini qaytaradi (AUDIT M5).
+ * Muammo: syncClientFromBooking har bronda total_spent/total_stays ni oshiradi,
+ * lekin bron bekor qilinsa kamaytirilmasdi → mijoz LTV'si soxta o'sib borardi.
+ */
+export async function onBookingCancelled(
+  supabase: SB,
+  booking: { guest_phone?: string | null; total_price?: number | null }
+) {
+  try {
+    const phone = (booking.guest_phone || "").trim();
+    if (!phone) return;
+
+    const { data: client } = await supabase
+      .from("clients")
+      .select("id, total_stays, total_spent")
+      .eq("phone", phone)
+      .maybeSingle();
+    if (!client) return;
+
+    const stays = Math.max(0, Number(client.total_stays || 0) - 1);
+    const spent = Math.max(0, Number(client.total_spent || 0) - Number(booking.total_price || 0));
+
+    await supabase
+      .from("clients")
+      .update({
+        total_stays: stays,
+        total_spent: spent,
+        // Boshqa faol broni qolmagan bo'lsa — yana "lead" bosqichiga qaytadi
+        stage: stays > 1 ? "repeat" : stays === 1 ? "booked" : "lead",
+      })
+      .eq("id", client.id);
+  } catch (e) {
+    console.error("onBookingCancelled:", e);
+  }
+}

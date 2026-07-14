@@ -8,6 +8,7 @@ import { Loader2, Check, LogIn } from "lucide-react";
 import { btnPrimary, btnSecondary } from "@/lib/ui";
 import { CHANNEL_LABELS } from "./channels";
 import DateField from "./DateField";
+import { useDashLang } from "@/components/DashboardLangProvider";
 
 const inputCls =
   "w-full h-11 rounded-[8px] border border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] px-3 text-[14px] text-[#F5F2EB] outline-none focus:border-[#C5A46D] transition-colors";
@@ -67,6 +68,9 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
     });
   };
 
+  const d = useDashLang();
+  const isRu = d.common.save === "Сохранить";
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setState("saving"); setErr("");
@@ -90,7 +94,7 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
     if (res.success) {
       router.push(placeNow ? "/dashboard/guests" : "/dashboard/bookings");
       router.refresh();
-    } else { setErr(res.error || "Xatolik"); setState("error"); }
+    } else { setErr(res.error || (isRu ? "Ошибка" : "Xatolik")); setState("error"); }
   };
 
   return (
@@ -101,14 +105,14 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className={labelCls}>Apartament *</label>
+          <label className={labelCls}>{isRu ? "Апартамент *" : "Apartament *"}</label>
           <select value={f.apartment_id} onChange={(e) => set("apartment_id", e.target.value)} className={inputCls} required>
-            <option value="">— Tanlang —</option>
+            <option value="">— {isRu ? "Выберите" : "Tanlang"} —</option>
             {apartments.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
           </select>
         </div>
         <div className="space-y-2">
-          <label className={labelCls}>Kanal (qayerdan)</label>
+          <label className={labelCls}>{isRu ? "Канал (откуда)" : "Kanal (qayerdan)"}</label>
           <select value={f.channel} onChange={(e) => set("channel", e.target.value)} className={inputCls}>
             {Object.entries(CHANNEL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
@@ -117,11 +121,11 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2">
-          <label className={labelCls}>Mehmon ismi *</label>
+          <label className={labelCls}>{d.booking.guestName} *</label>
           <input value={f.guest_name} onChange={(e) => set("guest_name", e.target.value)} className={inputCls} required />
         </div>
         <div className="space-y-2">
-          <label className={labelCls}>Telefon</label>
+          <label className={labelCls}>{d.booking.guestPhone}</label>
           <input value={f.guest_phone} onChange={(e) => set("guest_phone", e.target.value)} placeholder="+998" className={inputCls} />
         </div>
         <div className="space-y-2">
@@ -132,60 +136,59 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2">
-          <label className={labelCls}>Kelish sanasi *</label>
+          <label className={labelCls}>{d.booking.checkIn} *</label>
           <DateField value={f.check_in} onChange={(v) => { set("check_in", v); if (f.check_out && v && f.check_out <= v) set("check_out", ""); }} isBooked={f.apartment_id ? isBooked : undefined} />
         </div>
         <div className="space-y-2">
-          <label className={labelCls}>Ketish sanasi *</label>
+          <label className={labelCls}>{d.booking.checkOut} *</label>
           <DateField value={f.check_out} onChange={(v) => set("check_out", v)} min={f.check_in || undefined} isBooked={f.apartment_id ? isBooked : undefined} />
         </div>
         <div className="space-y-2">
-          <label className={labelCls}>Kechalar</label>
-          <div className="h-11 flex items-center px-3 text-[14px] text-[#C5A46D] font-medium">{nights > 0 ? `${nights} kecha` : "—"}</div>
+          <label className={labelCls}>{isRu ? "Ночей" : "Kechalar"}</label>
+          <div className="h-11 flex items-center px-3 text-[14px] text-[#C5A46D] font-medium">{nights > 0 ? `${nights} ${isRu ? "ночей" : "kecha"}` : "—"}</div>
         </div>
       </div>
 
       <div className="grid md:grid-cols-4 gap-6">
         <div className="space-y-2">
-          <label className={labelCls}>Umumiy narx ($)</label>
+          <label className={labelCls}>{d.booking.totalPrice} ($)</label>
           <input type="number" min="0" value={f.total_price} onChange={(e) => set("total_price", e.target.value)} placeholder="0" className={inputCls} />
         </div>
         <div className="space-y-2">
-          <label className={labelCls}>Zaklat ($)</label>
+          <label className={labelCls}>{d.booking.depositAmount} ($)</label>
           <input type="number" min="0" value={f.deposit_amount} onChange={(e) => set("deposit_amount", e.target.value)} placeholder="0" className={inputCls} />
         </div>
         <div className="space-y-2">
-          <label className={labelCls}>Zaklat holati</label>
+          <label className={labelCls}>{isRu ? "Статус задатка" : "Zaklat holati"}</label>
           <select value={f.deposit_status} onChange={(e) => set("deposit_status", e.target.value)} className={inputCls}>
-            <option value="paid">To&apos;langan</option>
-            <option value="pending">Kutilmoqda</option>
-            <option value="refunded">Qaytarilgan</option>
+            <option value="paid">{isRu ? "Оплачено" : "To'langan"}</option>
+            <option value="pending">{isRu ? "Ожидается" : "Kutilmoqda"}</option>
+            <option value="refunded">{isRu ? "Возвращено" : "Qaytarilgan"}</option>
           </select>
         </div>
         <div className="space-y-2">
-          <label className={labelCls}>Bron holati</label>
+          <label className={labelCls}>{isRu ? "Статус брони" : "Bron holati"}</label>
           <select value={f.booking_status} onChange={(e) => set("booking_status", e.target.value)} className={inputCls}>
-            <option value="confirmed">Tasdiqlangan</option>
-            <option value="pending">Kutilmoqda</option>
-            <option value="completed">Yakunlangan</option>
+            <option value="confirmed">{d.reception.confirmed}</option>
+            <option value="pending">{d.reception.pending}</option>
+            <option value="completed">{d.reception.completed}</option>
           </select>
         </div>
       </div>
 
-      {/* Hozir joylashtirish (check-in) tanlovi */}
       <label className="flex items-center gap-3 pt-4 cursor-pointer select-none">
         <input type="checkbox" checked={placeNow} onChange={(e) => setPlaceNow(e.target.checked)}
           className="h-5 w-5 rounded border-[rgba(197,164,109,0.4)] bg-[#0B0D0F] accent-[#C5A46D]" />
-        <span className="text-[14px] text-[#F5F2EB]">Hozir joylashtirish (mehmon darrov &quot;turibdi&quot; holatiga o&apos;tadi)</span>
+        <span className="text-[14px] text-[#F5F2EB]">{isRu ? "Заселить сейчас (гость сразу переходит в статус «Проживает»)" : "Hozir joylashtirish (mehmon darrov \"turibdi\" holatiga o'tadi)"}</span>
       </label>
 
       <div className="flex gap-4 pt-4 border-t border-[rgba(197,164,109,0.14)]">
         <button type="submit" disabled={state === "saving"} className={`${btnPrimary} h-12 px-8 text-[15px] gap-2`}>
           {state === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : placeNow ? <LogIn className="h-4 w-4" /> : <Check className="h-4 w-4" />}
-          {placeNow ? "Joylashtirish" : "Bronni saqlash"}
+          {placeNow ? (isRu ? "Заселить" : "Joylashtirish") : d.booking.save}
         </button>
         <button type="button" onClick={() => router.push("/dashboard/bookings")} className={`${btnSecondary} h-12 px-8 text-[15px]`}>
-          Bekor qilish
+          {d.common.cancel}
         </button>
       </div>
     </form>

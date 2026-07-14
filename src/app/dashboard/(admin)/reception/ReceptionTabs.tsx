@@ -27,7 +27,7 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
 
   const staying = bookings.filter((b) => b.checked_in_at && b.booking_status !== "completed" && b.booking_status !== "cancelled");
   const arriving = bookings.filter((b) => !b.checked_in_at && b.booking_status === "confirmed" && b.check_in === today);
-  const occupantOf = (aptId: string) => bookings.find((b) => b.apartment_id === aptId && b.booking_status !== "cancelled" && b.booking_status !== "completed" && b.check_in <= today && b.check_out > today);
+  const occupantOf = (aptId: string) => staying.find((b) => b.apartment_id === aptId) || bookings.find((b) => b.apartment_id === aptId && b.booking_status !== "cancelled" && b.booking_status !== "completed" && b.check_in <= today && b.check_out > today);
 
   const tabs = [
     { key: "bron", label: d.reception.tabs.bookings, icon: <CalendarCheck className="h-4 w-4" /> },

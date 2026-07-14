@@ -81,8 +81,23 @@ export default async function DashboardPage() {
     supabase.from("expenses").select("amount, category, apartment_id").gte("spent_on", startOfMonthStr).lt("spent_on", nextMonthStr),
     supabase.from("staff").select("monthly_salary, active"),
   ]);
-  const rentCost = (apartments || []).filter((a) => a.status === "active")
-    .reduce((s, a) => s + Number(a.monthly_lease_cost || 0), 0);
+  // ARENDA (AUDIT M2): har apartament uchun max(kelishilgan oylik, qo'lda yozilgan rent xarajati)
+  // — shunda monthly_lease_cost=0 bo'lgan apartamentning haqiqiy arenda to'lovi yo'qolmaydi,
+  // va ikki marta ham sanalmaydi.
+  const rentExpByApt = new Map<string, number>();
+  let rentExpUnassigned = 0;
+  for (const e of (monthExpenses || []).filter((x) => x.category === "rent")) {
+    if (e.apartment_id) {
+      rentExpByApt.set(e.apartment_id, (rentExpByApt.get(e.apartment_id) || 0) + Number(e.amount || 0));
+    } else {
+      rentExpUnassigned += Number(e.amount || 0);
+    }
+  }
+  const rentCost =
+    (apartments || []).filter((a) => a.status === "active")
+      .reduce((s, a) => s + Math.max(Number(a.monthly_lease_cost || 0), rentExpByApt.get(a.id) || 0), 0) +
+    rentExpUnassigned;
+
   const salaryCost = (staffRows || []).filter((s) => s.active)
     .reduce((s, x) => s + Number(x.monthly_salary || 0), 0);
   const variableCost = (monthExpenses || []).filter((e) => e.category !== "rent")

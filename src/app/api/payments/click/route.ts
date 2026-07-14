@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   const { data: booking } = await supabase
     .from("bookings")
     .select(
-      "id, deposit_amount, deposit_status, booking_status, payment_transaction_id, payment_state, guest_name, guest_phone, apartment_id"
+      "id, deposit_amount, fx_rate, deposit_status, booking_status, payment_transaction_id, payment_state, guest_name, guest_phone, apartment_id"
     )
     .eq("id", merchantTransId)
     .maybeSingle();
@@ -79,7 +79,8 @@ export async function POST(req: Request) {
   }
 
   // Summani tekshirish (Click so'mda yuboradi)
-  const expectedSum = usdToTiyin(Number(booking.deposit_amount || 0)) / 100;
+  // AUDIT H7: bronga muzlatilgan kurs (fx_rate)
+  const expectedSum = usdToTiyin(Number(booking.deposit_amount || 0), booking.fx_rate) / 100;
   if (Math.abs(Number(amount) - expectedSum) > 0.01) {
     return respond({ error: CLICK_ERRORS.INVALID_AMOUNT, error_note: "Summa noto'g'ri" });
   }

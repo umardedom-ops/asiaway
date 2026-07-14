@@ -2,7 +2,7 @@
 
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { notifyRole } from "@/lib/telegram";
+import { notifyRole, esc } from "@/lib/telegram";
 
 // Service-role klient (RLS'ni chetlab o'tadi). `leads` jadvalida anonim
 // foydalanuvchi faqat INSERT qila oladi, SELECT yo'q — shuning uchun ID qaytarish
@@ -83,10 +83,11 @@ export async function createLead(input: LeadInput) {
       const isRu = lang === "ru";
       const title = isRu ? "📞 <b>ЗАПРОС НА СВЯЗЬ (сайт)</b>" : "📞 <b>QAYTA ALOQA SO'ROVI (sayt)</b>";
       const langLbl = isRu ? "🌐 Язык:" : "🌐 Til:";
-      const contactTxt = contact ? `💬 ${contact}\n` : "";
-      const msgTxt = input.message?.trim() ? `📝 ${input.message.trim()}\n` : "";
-      
-      const text = `${title}\n\n👤 ${input.name.trim()}\n📱 ${input.phone.trim()}\n${contactTxt}${msgTxt}${langLbl} ${input.lang || "-"}`;
+      // esc() — mijoz kiritgan matn HTML'ni buzmasin (aks holda Telegram xabarni rad etadi)
+      const contactTxt = contact ? `💬 ${esc(contact)}\n` : "";
+      const msgTxt = input.message?.trim() ? `📝 ${esc(input.message.trim())}\n` : "";
+
+      const text = `${title}\n\n👤 ${esc(input.name.trim())}\n📱 ${esc(input.phone.trim())}\n${contactTxt}${msgTxt}${langLbl} ${esc(input.lang || "-")}`;
 
       const buttons = leadId
         ? [

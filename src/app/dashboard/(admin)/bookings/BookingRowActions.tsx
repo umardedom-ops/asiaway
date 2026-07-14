@@ -5,6 +5,7 @@ import { updateBookingStatus, updateDepositStatus, checkInBooking } from "@/app/
 import { Button } from "@/components/ui/button";
 import { Check, X, CreditCard, Loader2, Receipt, LogIn, LogOut } from "lucide-react";
 import InvoiceModal from "./InvoiceModal";
+import { useDashLang } from "@/components/DashboardLangProvider";
 
 interface BookingRowActionsProps {
   id: string;
@@ -18,11 +19,13 @@ interface BookingRowActionsProps {
 export default function BookingRowActions({ id, bookingStatus, depositStatus, checkedIn, booking }: BookingRowActionsProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const d = useDashLang();
+  const isRu = d.common.save === "Сохранить";
 
   const handleCheckIn = async () => {
     setLoadingAction("checkin");
     try { await checkInBooking(id); }
-    catch (err: any) { alert(`Xatolik: ${err.message}`); }
+    catch (err: any) { alert((isRu ? "Ошибка: " : "Xatolik: ") + err.message); }
     finally { setLoadingAction(null); }
   };
 
@@ -30,10 +33,9 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
     setLoadingAction("checkout");
     try {
       await updateBookingStatus(id, "completed");
-      // Checkout tugagach — chek (PDF) oynasi avtomat ochiladi
       setInvoiceOpen(true);
     }
-    catch (err: any) { alert(`Xatolik: ${err.message}`); }
+    catch (err: any) { alert((isRu ? "Ошибка: " : "Xatolik: ") + err.message); }
     finally { setLoadingAction(null); }
   };
 
@@ -42,7 +44,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
     try {
       await updateBookingStatus(id, status);
     } catch (err: any) {
-      alert(`Xatolik yuz berdi: ${err.message}`);
+      alert((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + err.message);
     } finally {
       setLoadingAction(null);
     }
@@ -53,7 +55,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
     try {
       await updateDepositStatus(id, status);
     } catch (err: any) {
-      alert(`Xatolik yuz berdi: ${err.message}`);
+      alert((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + err.message);
     } finally {
       setLoadingAction(null);
     }
@@ -61,7 +63,6 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
 
   return (
     <div className="flex items-center justify-end space-x-2">
-      {/* Joylashtirish (check-in) — tasdiqlangan, hali kirmagan mehmon */}
       {bookingStatus === "confirmed" && !checkedIn && (
         <Button
           size="sm"
@@ -71,11 +72,10 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
           className="border-emerald-900/50 hover:bg-emerald-950/30 text-emerald-400 hover:text-emerald-300 h-8 text-xs font-semibold space-x-1"
         >
           {loadingAction === "checkin" ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3.5 w-3.5" />}
-          <span>Joylashtirish</span>
+          <span>{isRu ? "Заселить" : "Joylashtirish"}</span>
         </Button>
       )}
 
-      {/* Checkout — hozir turgan mehmon */}
       {bookingStatus === "confirmed" && checkedIn && (
         <Button
           size="sm"
@@ -85,11 +85,10 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
           className="border-blue-900/50 hover:bg-blue-950/30 text-blue-400 hover:text-blue-300 h-8 text-xs font-semibold space-x-1"
         >
           {loadingAction === "checkout" ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3.5 w-3.5" />}
-          <span>Checkout</span>
+          <span>{isRu ? "Выезд (Checkout)" : "Checkout"}</span>
         </Button>
       )}
 
-      {/* Chek (invoice) — confirmed yoki completed bronlar uchun */}
       {(bookingStatus === "confirmed" || bookingStatus === "completed") && (
         <>
           <Button
@@ -99,13 +98,12 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
             className="border-[rgba(197,164,109,0.4)] hover:bg-[#C5A46D]/10 text-[#C5A46D] hover:text-[#D4B77F] h-8 text-xs font-semibold space-x-1"
           >
             <Receipt className="h-3.5 w-3.5" />
-            <span>Chek</span>
+            <span>{isRu ? "Чек" : "Chek"}</span>
           </Button>
           <InvoiceModal isOpen={invoiceOpen} onClose={() => setInvoiceOpen(false)} booking={booking} />
         </>
       )}
 
-      {/* Deposit to'lovi tugmasi */}
       {depositStatus === "pending" && bookingStatus !== "cancelled" && (
         <Button
           size="sm"
@@ -119,11 +117,10 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
           ) : (
             <CreditCard className="h-3.5 w-3.5" />
           )}
-          <span>Zaklat to&apos;landi</span>
+          <span>{isRu ? "Задаток оплачен" : "Zaklat to'landi"}</span>
         </Button>
       )}
 
-      {/* Bronni tasdiqlash */}
       {bookingStatus === "pending" && (
         <>
           <Button
@@ -138,7 +135,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
             ) : (
               <Check className="h-3.5 w-3.5" />
             )}
-            <span>Tasdiqlash</span>
+            <span>{isRu ? "Подтвердить" : "Tasdiqlash"}</span>
           </Button>
 
           <Button
@@ -153,7 +150,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
             ) : (
               <X className="h-3.5 w-3.5" />
             )}
-            <span>Rad etish</span>
+            <span>{isRu ? "Отклонить" : "Rad etish"}</span>
           </Button>
         </>
       )}
@@ -171,7 +168,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
           ) : (
             <X className="h-3.5 w-3.5" />
           )}
-          <span>Bekor qilish</span>
+          <span>{isRu ? "Отменить" : "Bekor qilish"}</span>
         </Button>
       )}
     </div>

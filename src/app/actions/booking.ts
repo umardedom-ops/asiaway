@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { syncClientFromBooking } from "@/lib/clients-sync";
 import { notifyRole, fmtMoney, fmtDate } from "@/lib/telegram";
-import { paymentConfigured, buildCheckoutUrl } from "@/lib/payments";
+import { paymentConfigured, buildCheckoutUrl, currentFxRate } from "@/lib/payments";
 
 export interface BookingInput {
   apartment_id: string;
@@ -77,12 +77,25 @@ export async function createBooking(input: BookingInput) {
           deposit_status: realPayment ? "pending" : "paid",
           booking_status: realPayment ? "pending" : "confirmed",
           payment_provider: realPayment ? input.payment_method : "simulate",
+          // AUDIT H7: valyuta kursini bronga MUZLATAMIZ — kurs keyin o'zgarsa ham
+          // bu bronning to'lov summasi o'zgarmaydi.
+          fx_rate: currentFxRate(),
         },
       ])
       .select()
       .single();
 
     if (insertError) {
+      // AUDIT H1: DB'даги no_double_booking (EXCLUDE) cheklovi
+      if (
+        (insertError as { code?: string }).code === "23P01" ||
+        /no_double_booking|exclusion/i.test(insertError.message)
+      ) {
+        return {
+          success: false,
+          error: "Kechirasiz, ushbu sanalarda apartament band qilingan. Boshqa sanalarni tanlang.",
+        };
+      }
       throw insertError;
     }
 

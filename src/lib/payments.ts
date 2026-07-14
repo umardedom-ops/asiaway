@@ -8,10 +8,22 @@
 
 export type PaymentMethod = "payme" | "click";
 
-export function usdToTiyin(usd: number): number {
-  const rate = Number(process.env.PAYMENT_USD_RATE || 12500);
-  // so'm = usd * rate; tiyin = so'm * 100
-  return Math.round(usd * rate * 100);
+/** Joriy kurs (env). Bron yaratilganda SHU qiymat bronga muzlatiladi. */
+export function currentFxRate(): number {
+  const rate = Number(process.env.PAYMENT_USD_RATE);
+  return Number.isFinite(rate) && rate > 0 ? rate : 12500;
+}
+
+/**
+ * USD → tiyin.
+ * AUDIT H7: kurs endi BRONGA muzlatiladi (`bookings.fx_rate`). To'lov webhook'i
+ * shu bronning kursini uzatadi — kurs o'zgarsa ham eski bron summasi o'zgarmaydi.
+ * `rate` berilmasa joriy env kursi ishlatiladi (yangi bron yaratishda).
+ */
+export function usdToTiyin(usd: number, rate?: number | null): number {
+  const fx = rate && Number(rate) > 0 ? Number(rate) : currentFxRate();
+  // so'm = usd * fx; tiyin = so'm * 100
+  return Math.round(usd * fx * 100);
 }
 
 export function paymeConfigured(): boolean {

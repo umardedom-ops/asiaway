@@ -4,6 +4,7 @@ import { useState } from "react";
 import { addExpense } from "./actions";
 import { Loader2, Plus } from "lucide-react";
 import { btnPrimary } from "@/lib/ui";
+import { useDashLang } from "@/components/DashboardLangProvider";
 
 export const EXPENSE_CATEGORIES: Record<string, string> = {
   rent: "Arenda (egaga)",
@@ -14,6 +15,17 @@ export const EXPENSE_CATEGORIES: Record<string, string> = {
   marketing: "Marketing",
   repair: "Ta'mirlash",
   other: "Boshqa",
+};
+
+export const EXPENSE_CATEGORIES_RU: Record<string, string> = {
+  rent: "Аренда (владельцу)",
+  utilities: "Коммунальные",
+  salary: "Зарплата",
+  cleaning: "Уборка",
+  supplies: "Инвентарь / продукты",
+  marketing: "Маркетинг",
+  repair: "Ремонт",
+  other: "Другое",
 };
 
 const inputCls =
@@ -29,10 +41,14 @@ export default function ExpenseForm({ apartments }: { apartments: any[] }) {
   const [state, setState] = useState<"idle" | "saving" | "error">("idle");
   const [err, setErr] = useState("");
 
+  const d = useDashLang();
+  const isRu = d.common.save === "Сохранить";
+  const cats = isRu ? EXPENSE_CATEGORIES_RU : EXPENSE_CATEGORIES;
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const val = Number(amount);
-    if (!val || val <= 0) { setErr("Summani kiriting"); setState("error"); return; }
+    if (!val || val <= 0) { setErr(isRu ? "Введите сумму" : "Summani kiriting"); setState("error"); return; }
     setState("saving");
     const res = await addExpense({
       category, amount: val, spent_on: spentOn,
@@ -41,40 +57,40 @@ export default function ExpenseForm({ apartments }: { apartments: any[] }) {
     if (res.success) {
       setAmount(""); setNote(""); setApartmentId(""); setState("idle"); setErr("");
     } else {
-      setErr(res.error || "Xatolik"); setState("error");
+      setErr(res.error || (isRu ? "Ошибка" : "Xatolik")); setState("error");
     }
   };
 
   return (
     <form onSubmit={submit} className="grid grid-cols-2 lg:grid-cols-6 gap-3 items-end">
       <div className="space-y-1.5 col-span-1 lg:col-span-1">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Turi</label>
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Тип" : "Turi"}</label>
         <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
-          {Object.entries(EXPENSE_CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          {Object.entries(cats).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
       </div>
       <div className="space-y-1.5">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Summa ($)</label>
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Сумма ($)" : "Summa ($)"}</label>
         <input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className={inputCls} />
       </div>
       <div className="space-y-1.5">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Sana</label>
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Дата" : "Sana"}</label>
         <input type="date" value={spentOn} onChange={(e) => setSpentOn(e.target.value)} className={inputCls} />
       </div>
       <div className="space-y-1.5">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Apartament</label>
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Апартамент" : "Apartament"}</label>
         <select value={apartmentId} onChange={(e) => setApartmentId(e.target.value)} className={inputCls}>
-          <option value="">— Umumiy —</option>
+          <option value="">— {isRu ? "Общий" : "Umumiy"} —</option>
           {apartments.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
         </select>
       </div>
       <div className="space-y-1.5 col-span-1 lg:col-span-1">
-        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">Izoh</label>
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="ixtiyoriy" className={inputCls} />
+        <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.booking.notes}</label>
+        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={isRu ? "необязательно" : "ixtiyoriy"} className={inputCls} />
       </div>
       <button type="submit" disabled={state === "saving"} className={`${btnPrimary} h-11 px-5 text-[14px] gap-2 col-span-2 lg:col-span-1`}>
         {state === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-        Qo&apos;shish
+        {isRu ? "Добавить" : "Qo'shish"}
       </button>
       {state === "error" && <div className="col-span-full text-[13px] text-red-400">{err}</div>}
     </form>

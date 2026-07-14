@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Printer, Plus, Trash2, Loader2, CheckCircle2 } from "lucide-react";
 import { getBookingPayments, payBookingBalance } from "@/app/dashboard/bookings/actions";
+import { useDashLang } from "@/components/DashboardLangProvider";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Booking = any;
@@ -16,12 +17,20 @@ type InvoiceModalProps = { isOpen: boolean; onClose: () => void; booking: Bookin
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString("uz-UZ", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
 const fmtDT = (d: string) => new Date(d).toLocaleString("uz-UZ", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-const METHOD: Record<string, string> = { naqd: "Naqd", karta: "Karta", payme: "Payme", click: "Click", otkazma: "O'tkazma", boshqa: "Boshqa" };
-const KIND: Record<string, string> = { deposit: "Zaklat", payment: "To'lov", refund: "Qaytarish" };
 
 export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalProps) {
+  const d = useDashLang();
+  const isRu = d.common.save === "Сохранить";
+
+  const METHOD: Record<string, string> = isRu 
+    ? { naqd: "Наличные", karta: "Карта", payme: "Payme", click: "Click", otkazma: "Перевод", boshqa: "Другое" }
+    : { naqd: "Naqd", karta: "Karta", payme: "Payme", click: "Click", otkazma: "O'tkazma", boshqa: "Boshqa" };
+  const KIND: Record<string, string> = isRu
+    ? { deposit: "Задаток", payment: "Оплата", refund: "Возврат" }
+    : { deposit: "Zaklat", payment: "To'lov", refund: "Qaytarish" };
+
   const [extraServices, setExtraServices] = useState<{ name: string; price: number }[]>([
-    { name: "Mini-bar", price: 0 },
+    { name: isRu ? "Мини-бар" : "Mini-bar", price: 0 },
   ]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -58,8 +67,8 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
   const paidTotal = payments.reduce((s, p) => s + Number(p.amount || 0) * (p.kind === "refund" ? -1 : 1), 0);
   const balance = totalCharge - paidTotal;
 
-  const aptTitle = booking?.apartments?.title || booking?.apartment_title || "Apartament";
-  const guestName = booking?.clients?.full_name || booking?.guest_name || "Mehmon";
+  const aptTitle = booking?.apartments?.title || booking?.apartment_title || (isRu ? "Апартамент" : "Apartament");
+  const guestName = booking?.clients?.full_name || booking?.guest_name || (isRu ? "Гость" : "Mehmon");
   const invoiceNo = booking?.id ? booking.id.slice(0, 8).toUpperCase() : "—";
 
   const handlePayBalance = async () => {
@@ -70,7 +79,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
       const p = await getBookingPayments(booking.id);
       setPayments(p as Payment[]);
     } catch (e: any) {
-      alert("Xatolik yuz berdi: " + e.message);
+      alert((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + e.message);
     } finally {
       setPayingBalance(false);
     }
@@ -79,12 +88,29 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
   // Chekni ALOHIDA oynada chop etamiz (modal ichida bo'sh chiqmasligi uchun)
   const printInvoice = () => {
     const rows: string[] = [];
-    rows.push(`<tr><td>Ijara (arenda)</td><td class="c">${money(perNight)} × ${nights}</td><td class="r">${money(basePrice)}</td></tr>`);
+    rows.push(`<tr><td>${isRu ? "Аренда" : "Ijara (arenda)"}</td><td class="c">${money(perNight)} × ${nights}</td><td class="r">${money(basePrice)}</td></tr>`);
     for (const s of extraList) rows.push(`<tr><td>${esc(s.name)}</td><td class="c">1</td><td class="r">${money(s.price)}</td></tr>`);
 
     const payRows = payments.map((p) =>
       `<tr><td>${fmtDT(p.paid_at)}</td><td>${KIND[p.kind] || p.kind} · ${METHOD[p.method] || p.method}</td><td class="r">${p.kind === "refund" ? "−" : ""}${money(p.amount)}</td></tr>`
     ).join("");
+
+    const lblReceipt = isRu ? "НОМЕР ЧЕКА" : "CHEK RAQAMI";
+    const lblDate = isRu ? "Дата:" : "Sana:";
+    const lblGuest = isRu ? "ГОСТЬ" : "MEHMON";
+    const lblApt = isRu ? "АПАРТАМЕНТ" : "APARTAMENT";
+    const lblNights = isRu ? "ночей" : "kecha";
+    const lblService = isRu ? "УСЛУГА" : "XIZMAT";
+    const lblQty = isRu ? "КОЛ-ВО" : "MIQDOR";
+    const lblSum = isRu ? "СУММА" : "SUMMA";
+    const lblHistory = isRu ? "ИСТОРИЯ ПЛАТЕЖЕЙ" : "TO'LOVLAR TARIXI";
+    const lblDateHr = isRu ? "ДАТА / ВРЕМЯ" : "SANA / SOAT";
+    const lblType = isRu ? "ТИП" : "TURI";
+    const lblTotalSvc = isRu ? "Итого услуги" : "Jami xizmat";
+    const lblPaid = isRu ? "Оплачено" : "To'langan";
+    const lblRem = isRu ? "ОСТАТОК (к оплате)" : "QOLDIQ (to'lanadi)";
+    const lblFull = isRu ? "ПОЛНОСТЬЮ ОПЛАЧЕНО" : "TO'LIQ TO'LANDI";
+    const lblThanks = isRu ? "Спасибо за ваш визит! ASIA WAY ждет вас снова." : "Tashrifingiz uchun rahmat! ASIA WAY sizni yana kutib qoladi.";
 
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Chek ${invoiceNo}</title>
 <style>
@@ -113,25 +139,25 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
 </style></head><body>
   <div class="hd">
     <div><h1>ASIA WAY <span>APARTMENTS</span></h1><div class="muted">Nest One, Tashkent City</div><div class="muted">Tel: +998 77 380 33 30 · asiaway.uz</div></div>
-    <div style="text-align:right"><div class="lbl">Chek raqami</div><div class="no">#${invoiceNo}</div><div class="muted" style="margin-top:8px">Sana: ${fmtDate(new Date().toISOString())}</div></div>
+    <div style="text-align:right"><div class="lbl">${lblReceipt}</div><div class="no">#${invoiceNo}</div><div class="muted" style="margin-top:8px">${lblDate} ${fmtDate(new Date().toISOString())}</div></div>
   </div>
   <div class="info">
-    <div><div class="lbl">Mehmon</div><div class="strong">${esc(guestName)}</div>${booking?.guest_phone ? `<div class="muted">${esc(booking.guest_phone)}</div>` : ""}</div>
-    <div style="text-align:right"><div class="lbl">Apartament</div><div class="strong">${esc(aptTitle)}</div><div class="muted">${fmtDate(booking?.check_in)} → ${fmtDate(booking?.check_out)} · ${nights} kecha</div></div>
+    <div><div class="lbl">${lblGuest}</div><div class="strong">${esc(guestName)}</div>${booking?.guest_phone ? `<div class="muted">${esc(booking.guest_phone)}</div>` : ""}</div>
+    <div style="text-align:right"><div class="lbl">${lblApt}</div><div class="strong">${esc(aptTitle)}</div><div class="muted">${fmtDate(booking?.check_in)} → ${fmtDate(booking?.check_out)} · ${nights} ${lblNights}</div></div>
   </div>
-  <table><thead><tr><th>Xizmat</th><th class="c">Miqdor</th><th class="r">Summa</th></tr></thead><tbody>${rows.join("")}</tbody></table>
-  ${payments.length ? `<div class="sec">To'lovlar tarixi</div><table><thead><tr><th>Sana / soat</th><th>Turi</th><th class="r">Summa</th></tr></thead><tbody>${payRows}</tbody></table>` : ""}
+  <table><thead><tr><th>${lblService}</th><th class="c">${lblQty}</th><th class="r">${lblSum}</th></tr></thead><tbody>${rows.join("")}</tbody></table>
+  ${payments.length ? `<div class="sec">${lblHistory}</div><table><thead><tr><th>${lblDateHr}</th><th>${lblType}</th><th class="r">${lblSum}</th></tr></thead><tbody>${payRows}</tbody></table>` : ""}
   <div class="totals">
-    <div><span>Jami xizmat</span><span>${money(totalCharge)}</span></div>
-    <div class="paid"><span>To'langan</span><span>${money(paidTotal)}</span></div>
-    <div class="big bal"><span>${balance > 0 ? "QOLDIQ (to'lanadi)" : "TO'LIQ TO'LANDI"}</span><span>${money(Math.abs(balance))}</span></div>
+    <div><span>${lblTotalSvc}</span><span>${money(totalCharge)}</span></div>
+    <div class="paid"><span>${lblPaid}</span><span>${money(paidTotal)}</span></div>
+    <div class="big bal"><span>${balance > 0 ? lblRem : lblFull}</span><span>${money(Math.abs(balance))}</span></div>
   </div>
-  <div class="foot">Tashrifingiz uchun rahmat! ASIA WAY sizni yana kutib qoladi.</div>
+  <div class="foot">${lblThanks}</div>
   <script>window.onload=function(){window.print();}</script>
 </body></html>`;
 
     const w = window.open("", "_blank", "width=800,height=900");
-    if (!w) { alert("Chek oynasi bloklandi — brauzer pop-up ruxsatini bering."); return; }
+    if (!w) { alert(isRu ? "Окно чека заблокировано — разрешите всплывающие окна в браузере." : "Chek oynasi bloklandi — brauzer pop-up ruxsatini bering."); return; }
     w.document.write(html);
     w.document.close();
   };
@@ -141,7 +167,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
       <DialogContent className="max-w-2xl bg-[#0B0D0F] text-[#F5F2EB] border-[rgba(197,164,109,0.22)] max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-[#C5A46D] font-heading text-xl border-b border-[rgba(197,164,109,0.22)] pb-4">
-            Chek · Hisob-faktura
+            {isRu ? "Чек · Счет-фактура" : "Chek · Hisob-faktura"}
           </DialogTitle>
         </DialogHeader>
 
@@ -152,26 +178,26 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
               <div className="text-lg font-bold" style={{ fontFamily: "Georgia, serif" }}>ASIA WAY <span className="text-[#B8925A]">APARTMENTS</span></div>
               <div className="text-[11px] text-gray-500">Nest One, Tashkent City</div>
             </div>
-            <div className="text-right"><div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Chek</div><div className="font-bold text-[#B8925A]">#{invoiceNo}</div></div>
+            <div className="text-right"><div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">{isRu ? "ЧЕК" : "Chek"}</div><div className="font-bold text-[#B8925A]">#{invoiceNo}</div></div>
           </div>
           <div className="flex justify-between mb-3">
-            <div><div className="text-[10px] uppercase text-gray-400 font-bold">Mehmon</div><div className="font-semibold">{guestName}</div></div>
-            <div className="text-right"><div className="text-[10px] uppercase text-gray-400 font-bold">Apartament</div><div className="font-semibold">{aptTitle}</div><div className="text-gray-500 text-[12px]">{fmtDate(booking?.check_in)} → {fmtDate(booking?.check_out)} · {nights} kecha</div></div>
+            <div><div className="text-[10px] uppercase text-gray-400 font-bold">{isRu ? "ГОСТЬ" : "Mehmon"}</div><div className="font-semibold">{guestName}</div></div>
+            <div className="text-right"><div className="text-[10px] uppercase text-gray-400 font-bold">{isRu ? "АПАРТАМЕНТ" : "Apartament"}</div><div className="font-semibold">{aptTitle}</div><div className="text-gray-500 text-[12px]">{fmtDate(booking?.check_in)} → {fmtDate(booking?.check_out)} · {nights} {isRu ? "ночей" : "kecha"}</div></div>
           </div>
 
           <table className="w-full mb-3">
-            <thead><tr className="border-b-2 border-gray-800 text-[10px] uppercase text-gray-500"><th className="text-left py-1.5">Xizmat</th><th className="text-right py-1.5">Summa</th></tr></thead>
+            <thead><tr className="border-b-2 border-gray-800 text-[10px] uppercase text-gray-500"><th className="text-left py-1.5">{isRu ? "УСЛУГА" : "Xizmat"}</th><th className="text-right py-1.5">{isRu ? "СУММА" : "Summa"}</th></tr></thead>
             <tbody>
-              <tr className="border-b border-gray-200"><td className="py-1.5">Ijara ({money(perNight)} × {nights})</td><td className="py-1.5 text-right font-medium">{money(basePrice)}</td></tr>
+              <tr className="border-b border-gray-200"><td className="py-1.5">{isRu ? "Аренда" : "Ijara"} ({money(perNight)} × {nights})</td><td className="py-1.5 text-right font-medium">{money(basePrice)}</td></tr>
               {extraList.map((s, i) => <tr key={i} className="border-b border-gray-200"><td className="py-1.5">{s.name}</td><td className="py-1.5 text-right font-medium">{money(s.price)}</td></tr>)}
             </tbody>
           </table>
 
           {loading ? (
-            <div className="text-gray-400 text-[12px] flex items-center gap-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> To&apos;lovlar yuklanmoqda...</div>
+            <div className="text-gray-400 text-[12px] flex items-center gap-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {isRu ? "Загрузка платежей..." : "To'lovlar yuklanmoqda..."}</div>
           ) : payments.length > 0 && (
             <>
-              <div className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">To&apos;lovlar tarixi</div>
+              <div className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">{isRu ? "ИСТОРИЯ ПЛАТЕЖЕЙ" : "To'lovlar tarixi"}</div>
               <table className="w-full mb-3">
                 <tbody>
                   {payments.map((p) => (
@@ -187,10 +213,10 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
           )}
 
           <div className="ml-auto w-64 text-[13px]">
-            <div className="flex justify-between text-gray-600"><span>Jami xizmat</span><span>{money(totalCharge)}</span></div>
-            <div className="flex justify-between text-emerald-700"><span>To&apos;langan</span><span>{money(paidTotal)}</span></div>
+            <div className="flex justify-between text-gray-600"><span>{isRu ? "Итого услуги" : "Jami xizmat"}</span><span>{money(totalCharge)}</span></div>
+            <div className="flex justify-between text-emerald-700"><span>{isRu ? "Оплачено" : "To'langan"}</span><span>{money(paidTotal)}</span></div>
             <div className={`flex justify-between border-t-2 border-gray-800 pt-2 mt-1 text-[15px] font-bold ${balance > 0 ? "text-red-600" : "text-emerald-700"}`}>
-              <span>{balance > 0 ? "QOLDIQ" : "TO'LIQ TO'LANDI"}</span><span>{money(Math.abs(balance))}</span>
+              <span>{balance > 0 ? (isRu ? "ОСТАТОК" : "QOLDIQ") : (isRu ? "ПОЛНОСТЬЮ ОПЛАЧЕНО" : "TO'LIQ TO'LANDI")}</span><span>{money(Math.abs(balance))}</span>
             </div>
             {balance > 0 && (
               <div className="flex justify-end mt-3">
@@ -201,7 +227,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
                   className="bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] h-8 px-4"
                 >
                   {payingBalance ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-2" />}
-                  Qoldiq to'landi
+                  {isRu ? "Остаток оплачен" : "Qoldiq to'landi"}
                 </Button>
               </div>
             )}

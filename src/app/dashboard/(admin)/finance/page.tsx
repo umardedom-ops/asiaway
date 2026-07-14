@@ -40,13 +40,36 @@ export default async function FinancePage() {
   );
   const income = monthBookings.reduce((s, b) => s + Number(b.total_price || 0), 0);
 
-  // Doimiy oylik xarajatlar. Arenda = monthly_lease_cost (kelishilgan oylik).
-  const rentCost = apartments.filter((a) => a.status === "active").reduce((s, a) => s + Number(a.monthly_lease_cost || 0), 0);
+  // ARENDA HISOBI (AUDIT M2 — tuzatildi)
+  // Muammo: avval 'rent' kategoriyasidagi BARCHA xarajat chiqarib tashlanardi (chunki
+  // arenda monthly_lease_cost'да hisoblanadi deb taxmin qilingan). Natijada
+  // monthly_lease_cost = 0 bo'lgan apartament uchun QO'LDA yozilgan arenda xarajati
+  // butunlay yo'qolib, sof foyda yuqori ko'rinardi.
+  //
+  // Yechim: arenda BITTA manbadan — har apartament uchun
+  //   max(kelishilgan monthly_lease_cost, shu oy yozilgan haqiqiy rent xarajati)
+  // Ya'ni monthly_lease_cost bor bo'lsa u ishlatiladi (rent xarajati u bilan bir xil,
+  // ikki marta sanalmaydi); bo'lmasa — qo'lda yozilgan xarajat hisobga olinadi.
+  const activeApts = apartments.filter((a) => a.status === "active");
+  const rentExpenseByApt = new Map<string, number>();
+  let rentExpenseUnassigned = 0; // apartamentga bog'lanmagan arenda xarajati
+  for (const e of expenses.filter((x) => x.category === "rent")) {
+    if (e.apartment_id) {
+      rentExpenseByApt.set(e.apartment_id, (rentExpenseByApt.get(e.apartment_id) || 0) + Number(e.amount || 0));
+    } else {
+      rentExpenseUnassigned += Number(e.amount || 0);
+    }
+  }
+  const rentPerApt = (aptId: string, lease: number) =>
+    Math.max(lease, rentExpenseByApt.get(aptId) || 0);
+
+  const rentCost =
+    activeApts.reduce((s, a) => s + rentPerApt(a.id, Number(a.monthly_lease_cost || 0)), 0) +
+    rentExpenseUnassigned;
+
   const salaryCost = staffList.filter((s) => s.active).reduce((s, x) => s + Number(x.monthly_salary || 0), 0);
 
-  // O'zgaruvchan xarajatlar (expenses jadvali, shu oy).
-  // MUHIM: 'rent' kategoriyasini CHIQARIB tashlaymiz — arenda allaqachon rentCost'да
-  // (monthly_lease_cost) hisoblangan. Aks holda egalar-to'lovi ikki marta sanaladi.
+  // O'zgaruvchan xarajatlar — 'rent' bundan tashqarida (u rentCost'да hisoblandi)
   const variableExpenses = expenses.filter((e) => e.category !== "rent");
   const variableTotal = variableExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
   const byCat: Record<string, number> = {};
@@ -59,7 +82,8 @@ export default async function FinancePage() {
   // Apartament bo'yicha (shu oy daromadi vs tan narx). exp — rent'siz.
   const perApt = apartments.map((a) => {
     const inc = monthBookings.filter((b) => b.apartment_id === a.id).reduce((s, b) => s + Number(b.total_price || 0), 0);
-    const lease = Number(a.monthly_lease_cost || 0);
+    // Arenda: kelishilgan oylik yoki qo'lda yozilgan xarajat (qaysi biri katta) — M2
+    const lease = rentPerApt(a.id, Number(a.monthly_lease_cost || 0));
     const exp = variableExpenses.filter((e) => e.apartment_id === a.id).reduce((s, e) => s + Number(e.amount || 0), 0);
     return { id: a.id, title: a.title, inc, lease, exp, net: inc - lease - exp };
   }).sort((x, y) => y.net - x.net);
