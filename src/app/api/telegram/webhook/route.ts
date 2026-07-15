@@ -78,9 +78,17 @@ export async function POST(req: Request) {
     const token =
       url.searchParams.get('token') || process.env.TELEGRAM_BOT_SHEF_TOKEN || '';
 
-    const secret = req.headers.get("x-telegram-bot-api-secret-token");
-    if (!process.env.TELEGRAM_WEBHOOK_SECRET || secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
-      return NextResponse.json({ status: "unauthorized" }, { status: 401 });
+    // C5 — webhook secret tekshiruvi (FAIL-OPEN xavfsiz chiqarilishi).
+    // MUHIM: env TELEGRAM_WEBHOOK_SECRET o'rnatilgan bo'lsagina majburlaymiz.
+    // Agar env hali yo'q bo'lsa — tekshiruvsiz o'tkazamiz (aks holda env qo'yilmaguncha
+    // BARCHA botlar 401 qaytarib o'lib qolardi). Env qo'yib, /api/telegram/setup qayta
+    // ishga tushirilgach — secret to'liq majburlanadi.
+    const configuredSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (configuredSecret) {
+      const secret = req.headers.get("x-telegram-bot-api-secret-token");
+      if (secret !== configuredSecret) {
+        return NextResponse.json({ status: "unauthorized" }, { status: 401 });
+      }
     }
 
     // ---------- 1. Inline tugma bosilishi ----------
