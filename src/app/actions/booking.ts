@@ -1,7 +1,15 @@
 "use server";
 
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+
+function serviceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createServiceClient(url, key);
+}
 import { syncClientFromBooking } from "@/lib/clients-sync";
 import { notifyRole, fmtMoney, fmtDate } from "@/lib/telegram";
 import { paymentConfigured, buildCheckoutUrl, currentFxRate } from "@/lib/payments";
@@ -80,7 +88,10 @@ export async function createBooking(input: BookingInput) {
     // Simulate rejim (env yo'q): hozirgidek darhol tasdiqlanadi.
     const realPayment = paymentConfigured(input.payment_method);
 
-    const { data: newBooking, error: insertError } = await supabase
+    const svc = serviceClient();
+    const dbClient = svc || supabase;
+
+    const { data: newBooking, error: insertError } = await dbClient
       .from("bookings")
       .insert([
         {
