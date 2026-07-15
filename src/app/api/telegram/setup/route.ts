@@ -48,6 +48,7 @@ export async function GET() {
           body: JSON.stringify({
             url: webhookUrl,
             allowed_updates: ["message", "callback_query"],
+            secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
           }),
         }
       );

@@ -78,6 +78,11 @@ export async function POST(req: Request) {
     const token =
       url.searchParams.get('token') || process.env.TELEGRAM_BOT_SHEF_TOKEN || '';
 
+    const secret = req.headers.get("x-telegram-bot-api-secret-token");
+    if (!process.env.TELEGRAM_WEBHOOK_SECRET || secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
+      return NextResponse.json({ status: "unauthorized" }, { status: 401 });
+    }
+
     // ---------- 1. Inline tugma bosilishi ----------
     if (body.callback_query) {
       const cq = body.callback_query;
