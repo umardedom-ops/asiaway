@@ -29,18 +29,23 @@ export default async function ClientDetailPage({
 
   if (!client) notFound();
 
-  // Mehmon bronlari — telefon yoki client_id bo'yicha
-  let bookingsQuery = supabase
-    .from("bookings")
-    .select("*, apartments(title)")
-    .order("check_in", { ascending: false });
+  let bookingsRaw: any[] | null = [];
 
   if (client.phone) {
-    bookingsQuery = bookingsQuery.or(`guest_phone.eq.${client.phone},client_id.eq.${id}`);
+    // Agar mijozda telefon bo'lsa, qadimiy (client_id yo'q, lekin telefoni mos) bronlarni ham topish uchun:
+    const [{ data: bById }, { data: bByPhone }] = await Promise.all([
+      supabase.from("bookings").select("*, apartments(title)").eq("client_id", id).order("check_in", { ascending: false }),
+      supabase.from("bookings").select("*, apartments(title)").eq("guest_phone", client.phone).order("check_in", { ascending: false })
+    ]);
+    const all = [...(bById ?? []), ...(bByPhone ?? [])];
+    const uniqueMap = new Map();
+    for (const b of all) uniqueMap.set(b.id, b);
+    bookingsRaw = Array.from(uniqueMap.values()).sort((a, b) => new Date(b.check_in).getTime() - new Date(a.check_in).getTime());
   } else {
-    bookingsQuery = bookingsQuery.eq("client_id", id);
+    const { data } = await supabase.from("bookings").select("*, apartments(title)").eq("client_id", id).order("check_in", { ascending: false });
+    bookingsRaw = data;
   }
-  const { data: bookingsRaw } = await bookingsQuery;
+  
   const bookings = bookingsRaw ?? [];
 
   const totalPaid = bookings
