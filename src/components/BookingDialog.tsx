@@ -132,9 +132,6 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
         guest_email: guestEmail || undefined,
         check_in: checkInStr,
         check_out: checkOutStr,
-        nights,
-        total_price: totalPrice,
-        deposit_amount: deposit,
         payment_method: paymentMethod,
       });
 

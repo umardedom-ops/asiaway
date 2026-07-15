@@ -13,9 +13,6 @@ export interface BookingInput {
   guest_email?: string;
   check_in: string;
   check_out: string;
-  nights: number;
-  total_price: number;
-  deposit_amount: number;
   payment_method: "payme" | "click";
 }
 
@@ -55,6 +52,28 @@ export async function createBooking(input: BookingInput) {
       };
     }
 
+    // 1.5 Serverda narxni va kunlarni hisoblash (C4 - Security Fix)
+    const { data: aptBase, error: aptError } = await supabase
+      .from("apartments")
+      .select("price_per_day, deposit_amount")
+      .eq("id", input.apartment_id)
+      .single();
+
+    if (aptError || !aptBase) {
+      return { success: false, error: "Apartament topilmadi." };
+    }
+
+    const checkInDate = new Date(input.check_in);
+    const checkOutDate = new Date(input.check_out);
+    const nights = Math.round((checkOutDate.getTime() - checkInDate.getTime()) / 86400000);
+    
+    if (nights <= 0) {
+      return { success: false, error: "Sanalar noto'g'ri." };
+    }
+
+    const total_price = nights * Number(aptBase.price_per_day);
+    const deposit_amount = Number(aptBase.deposit_amount);
+
     // 2. Yangi bron yaratish.
     // Real to'lov rejimi (Payme/Click env sozlangan): bron 'pending' bo'lib turadi,
     // webhook to'lovni tasdiqlagach 'paid'+'confirmed' bo'ladi.
@@ -71,9 +90,9 @@ export async function createBooking(input: BookingInput) {
           guest_email: input.guest_email || null,
           check_in: input.check_in,
           check_out: input.check_out,
-          nights: input.nights,
-          total_price: input.total_price,
-          deposit_amount: input.deposit_amount,
+          nights: nights,
+          total_price: total_price,
+          deposit_amount: deposit_amount,
           deposit_status: realPayment ? "pending" : "paid",
           booking_status: realPayment ? "pending" : "confirmed",
           payment_provider: realPayment ? input.payment_method : "simulate",
@@ -101,7 +120,7 @@ export async function createBooking(input: BookingInput) {
 
     // Real rejimda checkout havolasini qaytaramiz
     const paymentUrl = realPayment
-      ? buildCheckoutUrl(input.payment_method, newBooking.id, input.deposit_amount)
+      ? buildCheckoutUrl(input.payment_method, newBooking.id, deposit_amount)
       : null;
 
     // Menejer botiga yangi bron xabari
@@ -116,10 +135,10 @@ export async function createBooking(input: BookingInput) {
         const isRu = lang === "ru";
         const title = isRu ? "🔔 <b>НОВАЯ БРОНЬ (сайт)</b>" : "🔔 <b>YANGI BRON (sayt)</b>";
         const aptTitle = apt?.title || (isRu ? "Апартамент" : "Apartament");
-        const dates = `${fmtDate(input.check_in)} → ${fmtDate(input.check_out)} (${input.nights} ${isRu ? "ночей" : "kecha"})`;
+        const dates = `${fmtDate(input.check_in)} → ${fmtDate(input.check_out)} (${nights} ${isRu ? "ночей" : "kecha"})`;
         const amounts = isRu 
-          ? `💰 Итого: ${fmtMoney(input.total_price)} · Аванс: ${fmtMoney(input.deposit_amount)}`
-          : `💰 Jami: ${fmtMoney(input.total_price)} · Zaklat: ${fmtMoney(input.deposit_amount)}`;
+          ? `💰 Итого: ${fmtMoney(total_price)} · Аванс: ${fmtMoney(deposit_amount)}`
+          : `💰 Jami: ${fmtMoney(total_price)} · Zaklat: ${fmtMoney(deposit_amount)}`;
         const payMethod = isRu ? `💳 Оплата: ${input.payment_method}` : `💳 To'lov: ${input.payment_method}`;
         const wait = realPayment ? (isRu ? "\n⏳ Ожидается оплата аванса..." : "\n⏳ Zaklat to'lovi kutilmoqda...") : "";
 
@@ -135,17 +154,17 @@ export async function createBooking(input: BookingInput) {
       phone: input.guest_phone,
       email: input.guest_email,
       channel: "direct",
-      amount: input.total_price,
+      amount: total_price,
     });
 
     // Simulyatsiya rejimida zaklat darhol "to'langan" → kirim kassasiga yozamiz.
     // Real rejimda to'lov webhook orqali tasdiqlangач alohida yoziladi.
-    if (!realPayment && (input.deposit_amount || 0) > 0) {
+    if (!realPayment && (deposit_amount || 0) > 0) {
       await supabase.from("payments").insert([{
         booking_id: newBooking.id,
         client_id: client?.id || null,
         guest_name: input.guest_name,
-        amount: input.deposit_amount,
+        amount: deposit_amount,
         method: input.payment_method,
         kind: "deposit",
         note: "Sayt broni — zaklat (onlayn)",
