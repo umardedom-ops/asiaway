@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { D, type Lang } from "@/lib/i18n";
 import LeadRow from "./LeadRow";
+import AddLeadForm from "./AddLeadForm";
 import { Users } from "lucide-react";
 
 export const revalidate = 0;
@@ -44,6 +45,9 @@ export default async function CRMPage() {
           </div>
         </div>
       </div>
+
+      {/* Qo'lda murojaat qo'shish (Instagram, qo'ng'iroq, WhatsApp...) */}
+      <AddLeadForm isRu={lang === "ru"} />
 
       <div className="space-y-4">
         {error ? (
