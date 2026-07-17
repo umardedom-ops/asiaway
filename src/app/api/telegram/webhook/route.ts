@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { completeCleaningTaskAndFreeRoom } from '@/lib/cleaning';
 import {
   NEW_LEAD_BTN, MAIN_KEYBOARD, TEMPLATE_TEXT,
   parseTemplate, saveDraft, getDraft, buildSummary, draftToLead, draftToBooking,
@@ -228,21 +229,11 @@ export async function POST(req: Request) {
           }
         }
       } else if (kind === 'task' && id && value === 'done') {
-        const { data: task, error } = await supabase
-          .from('tasks')
-          .update({ status: 'done', completed_at: new Date().toISOString() })
-          .eq('id', id)
-          .select('apartment_id, type')
-          .single();
-
-        if (!error && task?.type === 'cleaning' && task.apartment_id) {
-          await supabase
-            .from('apartments')
-            .update({ kanban_status: 'available' })
-            .eq('id', task.apartment_id);
-        }
-        answerText = error 
-          ? (lang === 'ru' ? `Ошибка: ${error.message}` : `Xato: ${error.message}`) 
+        // Yagona helper: task done + tozalash bo'lsa xona 'available' (yashil)
+        const res = await completeCleaningTaskAndFreeRoom(supabase, id);
+        const error = res.success ? null : { message: res.error || 'xato' };
+        answerText = error
+          ? (lang === 'ru' ? `Ошибка: ${error.message}` : `Xato: ${error.message}`)
           : (lang === 'ru' ? '✅ Спасибо! Задача отмечена как выполненная' : '✅ Rahmat! Vazifa bajarildi deb belgilandi');
 
         if (!error && chatId && messageId) {

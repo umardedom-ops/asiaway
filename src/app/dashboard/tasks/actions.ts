@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { completeCleaningTaskAndFreeRoom } from "@/lib/cleaning";
 
 // Farrosh vazifani boshlaganda
 export async function startCleaningTask(taskId: string) {
@@ -18,30 +19,8 @@ export async function startCleaningTask(taskId: string) {
 // Farrosh "Tozalandi" bosganda: vazifa done + rasm (dalil) + xona statusi available
 export async function completeCleaningTask(taskId: string, proofUrl?: string) {
   const supabase = await createClient();
-
-  const { data: task, error: taskErr } = await supabase
-    .from("tasks")
-    .select("id, apartment_id")
-    .eq("id", taskId)
-    .maybeSingle();
-  if (taskErr || !task) return { success: false, error: taskErr?.message || "Vazifa topilmadi" };
-
-  const { error } = await supabase
-    .from("tasks")
-    .update({
-      status: "done",
-      completed_at: new Date().toISOString(),
-      ...(proofUrl ? { proof_image_url: proofUrl } : {}),
-    })
-    .eq("id", taskId);
-  if (error) return { success: false, error: error.message };
-
-  if (task.apartment_id) {
-    await supabase
-      .from("apartments")
-      .update({ kanban_status: "available" })
-      .eq("id", task.apartment_id);
-  }
+  const res = await completeCleaningTaskAndFreeRoom(supabase, taskId, { proofUrl });
+  if (!res.success) return res;
 
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard/staff");

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, DoorOpen, DoorClosed, CalendarDays } from "lucide-react";
+import { Users, DoorOpen, DoorClosed, CalendarDays, Sparkles } from "lucide-react";
 import GuestCheckoutButton from "./GuestCheckoutButton";
 import { getDashDict } from "@/lib/dash-lang";
 import StatCard from "@/components/dashboard/StatCard";
@@ -22,7 +22,7 @@ export default async function GuestsPage() {
     s ? new Date(s).toLocaleDateString(dateLocale, { day: "numeric", month: "short" }) : "—";
 
   const [{ data: aptsRaw }, { data: bookingsRaw }] = await Promise.all([
-    supabase.from("apartments").select("id, title, floor, status").eq("status", "active").order("floor", { ascending: false }),
+    supabase.from("apartments").select("id, title, floor, status, kanban_status").eq("status", "active").order("floor", { ascending: false }),
     supabase
       .from("bookings")
       .select("id, apartment_id, guest_name, guest_phone, check_in, check_out, nights, total_price, checked_in_at, booking_status")
@@ -48,8 +48,13 @@ export default async function GuestsPage() {
     (b) => !b.checked_in_at && b.check_in === today
   );
 
+  // Iflos (tozalash kutilayotgan) xona BO'SH hisoblanmaydi — farrosh tasdiqlagachgina yashil bo'ladi
+  const isDirty = (a: { kanban_status?: string | null }) =>
+    a.kanban_status === "dirty" || a.kanban_status === "cleaning";
+
   const occupiedCount = apartments.filter((a) => occupantOf(a.id)).length;
-  const freeCount = apartments.length - occupiedCount;
+  const dirtyCount = apartments.filter((a) => !occupantOf(a.id) && isDirty(a)).length;
+  const freeCount = apartments.length - occupiedCount - dirtyCount;
 
   return (
     <div className="space-y-8">
@@ -58,10 +63,11 @@ export default async function GuestsPage() {
         <p className="text-[14px] text-[#A8A49B] mt-2 font-light">{d.guestsPage.subtitle}</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title={d.guestsPage.stayingNow} value={`${staying.length}`} icon={<Users className="h-4 w-4 text-purple-300" />} sub={d.guestsPage.placedGuests} />
         <StatCard title={d.guestsPage.busyRooms} value={`${occupiedCount}`} icon={<DoorClosed className="h-4 w-4 text-red-400" />} sub={d.guestsPage.busyToday} />
-        <StatCard title={d.guestsPage.freeRooms} value={`${freeCount}`} icon={<DoorOpen className="h-4 w-4 text-blue-400" />} sub={d.guestsPage.ready} accent />
+        <StatCard title={d.guestsPage.dirty} value={`${dirtyCount}`} icon={<Sparkles className="h-4 w-4 text-amber-400" />} sub={d.taskTypes.cleaning} valueClass={dirtyCount > 0 ? "text-amber-400" : undefined} />
+        <StatCard title={d.guestsPage.freeRooms} value={`${freeCount}`} icon={<DoorOpen className="h-4 w-4 text-emerald-400" />} sub={d.guestsPage.ready} accent />
       </div>
 
       {arrivingToday.length > 0 && (
@@ -83,19 +89,25 @@ export default async function GuestsPage() {
             {apartments.map((a) => {
               const occ = occupantOf(a.id);
               const busy = !!occ;
+              const dirty = !busy && isDirty(a);
+              // Qizil = band · Sariq = tozalash kutilmoqda · Yashil = bo'sh (tayyor)
+              const cardCls = busy
+                ? "border-red-500/20 bg-red-500/5 opacity-60"
+                : dirty
+                ? "border-amber-500/30 bg-amber-500/5"
+                : "border-emerald-500/25 bg-emerald-500/5";
+              const stateCls = busy ? "text-red-400" : dirty ? "text-amber-400" : "text-emerald-400";
+              const dotCls = busy ? "bg-red-400" : dirty ? "bg-amber-400" : "bg-emerald-400";
+              const stateLabel = busy ? d.guestsPage.busy : dirty ? d.guestsPage.dirty : d.guestsPage.free;
               return (
                 <div
                   key={a.id}
-                  className={`rounded-[12px] border p-4 transition-colors ${
-                    busy
-                      ? "border-red-500/20 bg-red-500/5 opacity-60"
-                      : "border-blue-500/25 bg-blue-500/5"
-                  }`}
+                  className={`rounded-[12px] border p-4 transition-colors ${cardCls}`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${busy ? "text-red-400" : "text-blue-400"}`}>
-                      <span className={`h-2 w-2 rounded-full ${busy ? "bg-red-400" : "bg-blue-400"}`} />
-                      {busy ? d.guestsPage.busy : d.guestsPage.free}
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${stateCls}`}>
+                      <span className={`h-2 w-2 rounded-full ${dotCls}`} />
+                      {stateLabel}
                     </span>
                     {a.floor != null && <span className="text-[11px] text-[#A8A49B]">{a.floor}{d.guestsPage.floorSuffix}</span>}
                   </div>
