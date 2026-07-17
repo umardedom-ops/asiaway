@@ -17,6 +17,16 @@ export default async function CRMPage() {
   const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
   const d = D[lang];
 
+  // Rol — marketing analitika (diagrammalar) va Excel yuklab olish faqat
+  // shef/targetolog uchun. Menejer faqat murojaatlar ro'yxatini ko'radi.
+  const { data: { user } } = await supabase.auth.getUser();
+  let role: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    role = profile?.role ?? null;
+  }
+  const canSeeMarketing = role === "shef" || role === "targetolog";
+
   const [{ data: leads, error }, { data: mktBookings }] = await Promise.all([
     supabase.from("leads").select("*").order("created_at", { ascending: false }),
     // select("*") — source ustuni DB'da hali bo'lmasa ham so'rov yiqilmaydi
@@ -66,16 +76,17 @@ export default async function CRMPage() {
           <h1 className="text-[28px] md:text-[32px] font-heading font-medium text-[#F5F2EB] flex items-center gap-3">
             <Users className="h-8 w-8 text-[#C5A46D]" />
             {d.crm.title}
-            {/* Yashirin Excel yuklab olish (targetolog/shef): mijozlar bazasi + UTM tahlili */}
-            {/* Telefonda hover yo'q — mobil ekranда yarim-ko'rinadigan, desktopda hover'da */}
-            <a
-              href="/api/export/clients"
-              title="Excel"
-              className="opacity-60 lg:opacity-0 hover:opacity-90 lg:hover:opacity-80 focus:opacity-90 transition-opacity duration-300 text-[#C5A46D] p-2 -m-1"
-              download
-            >
-              <Download className="h-4 w-4" />
-            </a>
+            {/* Yashirin Excel yuklab olish — faqat shef/targetolog (menejer ko'rmaydi) */}
+            {canSeeMarketing && (
+              <a
+                href="/api/export/clients"
+                title="Excel"
+                className="opacity-60 lg:opacity-0 hover:opacity-90 lg:hover:opacity-80 focus:opacity-90 transition-opacity duration-300 text-[#C5A46D] p-2 -m-1"
+                download
+              >
+                <Download className="h-4 w-4" />
+              </a>
+            )}
           </h1>
           <p className="text-[#A8A49B] text-[15px] mt-1">
             {d.crm.subtitle}
@@ -96,7 +107,8 @@ export default async function CRMPage() {
         </div>
       </div>
 
-      {/* Marketing analitika — targetolog uchun diagrammalar */}
+      {/* Marketing analitika — faqat shef/targetolog (menejer ko'rmaydi) */}
+      {canSeeMarketing && (
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
           <CardHeader>
@@ -130,6 +142,7 @@ export default async function CRMPage() {
           </CardContent>
         </Card>
       </div>
+      )}
 
       {/* Qo'lda murojaat qo'shish (Instagram, qo'ng'iroq, WhatsApp...) */}
       <AddLeadForm isRu={lang === "ru"} />

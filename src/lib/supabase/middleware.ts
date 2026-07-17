@@ -97,6 +97,7 @@ export async function updateSession(request: NextRequest) {
         const blocked = [
           '/dashboard/finance', '/dashboard/owner-payments',
           '/dashboard/cashflow', '/dashboard/income', '/dashboard/staff',
+          '/dashboard/apartments', // obyektlar CRUD — menejerga kerak emas
         ];
         if (blocked.some((p) => path.startsWith(p))) return redirectTo('/dashboard');
       }

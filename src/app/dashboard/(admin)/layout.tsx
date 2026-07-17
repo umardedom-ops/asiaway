@@ -55,10 +55,11 @@ export default async function AdminLayout({ children }: LayoutProps) {
     : d.sidebar.menejer;
 
   // Rolga qarab guruhlangan menyu (middleware ham server tomonda himoya qiladi)
-  const canOps = role === "shef" || role === "menejer";         // qabul/obyektlar
+  const canOps = role === "shef" || role === "menejer";         // qabul
   const canCrm = role === "shef" || role === "menejer" || role === "targetolog";
   const canMoney = role === "shef" || role === "finansist";      // moliya bloki
   const canKassa = canMoney || role === "menejer";               // kassa menejer uchun ham
+  const canApartments = role === "shef";                         // obyektlar (CRUD) — faqat shef
 
   const sections: { title: string | null; items: { name: string; href: string; icon: typeof Home }[] }[] = [
     { title: null, items: [
@@ -70,7 +71,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
     ...(canCrm ? [{ title: lang === "ru" ? "Клиенты" : "Mijozlar", items: [
       { name: d.sidebar.crm, href: "/dashboard/crm", icon: Users },
     ] }] : []),
-    ...(canOps ? [{ title: lang === "ru" ? "Объекты" : "Obyektlar", items: [
+    ...(canApartments ? [{ title: lang === "ru" ? "Объекты" : "Obyektlar", items: [
       { name: d.sidebar.apartments, href: "/dashboard/apartments", icon: Home },
     ] }] : []),
     ...(canKassa || canMoney ? [{ title: lang === "ru" ? "Финансы" : "Moliya", items: [

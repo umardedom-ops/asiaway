@@ -29,6 +29,16 @@ export default async function DashboardPage() {
   const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
   const d = D[lang];
 
+  // Rolni aniqlaymiz — moliyaviy bloklar (daromad/xarajat/foyda/egalarga to'lov)
+  // faqat shef va finansist uchun. Menejer ularni ko'rmaydi.
+  const { data: { user } } = await supabase.auth.getUser();
+  let role: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    role = profile?.role ?? null;
+  }
+  const canSeeFinance = role === "shef" || role === "finansist";
+
   // 1. Barcha kvartiralarni olish
   const { data: apartments } = await supabase
     .from("apartments")
@@ -162,69 +172,75 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Egalarga oylik (jami) */}
-        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.home.ownerRent}</CardTitle>
-            <Building2 className="h-4 w-4 text-[#C5A46D]" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-[28px] font-medium text-[#C5A46D]">{formatUzbekPrice(rentCost)}</div>
-            <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              {d.home.paid}: {formatUzbekPrice(ownerPaid)} · {d.home.remaining}: {formatUzbekPrice(ownerPending)}
-            </p>
-          </CardContent>
-        </Card>
+        {/* Moliyaviy bloklar — faqat shef/finansist (menejer ko'rmaydi) */}
+        {canSeeFinance && (
+          <>
+            {/* Egalarga oylik (jami) */}
+            <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.home.ownerRent}</CardTitle>
+                <Building2 className="h-4 w-4 text-[#C5A46D]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-[28px] font-medium text-[#C5A46D]">{formatUzbekPrice(rentCost)}</div>
+                <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
+                  {d.home.paid}: {formatUzbekPrice(ownerPaid)} · {d.home.remaining}: {formatUzbekPrice(ownerPending)}
+                </p>
+              </CardContent>
+            </Card>
 
-        {/* Oylik Daromad (savdo) */}
-        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.home.revenue}</CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-[28px] font-medium text-emerald-400">{formatUzbekPrice(monthlyRevenue)}</div>
-            <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              {d.home.fromBookings}
-            </p>
-          </CardContent>
-        </Card>
+            {/* Oylik Daromad (savdo) */}
+            <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.home.revenue}</CardTitle>
+                <TrendingUp className="h-4 w-4 text-emerald-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-[28px] font-medium text-emerald-400">{formatUzbekPrice(monthlyRevenue)}</div>
+                <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
+                  {d.home.fromBookings}
+                </p>
+              </CardContent>
+            </Card>
 
-        {/* Oylik Xarajat */}
-        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.home.expense}</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-[28px] font-medium text-red-400">{formatUzbekPrice(monthlyCost)}</div>
-            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-[12px] text-[#A8A49B]">
-              <span>{d.home.rentCost}: <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(rentCost)}</span></span>
-              <span>{d.home.salary}: <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(salaryCost)}</span></span>
-              <span>{d.home.otherExpense}: <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(variableCost)}</span></span>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Oylik Xarajat */}
+            <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none lg:col-span-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.home.expense}</CardTitle>
+                <TrendingDown className="h-4 w-4 text-red-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-[28px] font-medium text-red-400">{formatUzbekPrice(monthlyCost)}</div>
+                <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-[12px] text-[#A8A49B]">
+                  <span>{d.home.rentCost}: <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(rentCost)}</span></span>
+                  <span>{d.home.salary}: <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(salaryCost)}</span></span>
+                  <span>{d.home.otherExpense}: <span className="text-[#F5F2EB] font-medium">{formatUzbekPrice(variableCost)}</span></span>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Oylik Sof Foyda */}
-        <Card className="border-[rgba(197,164,109,0.22)] bg-[#111417] rounded-[12px] shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.home.profit}</CardTitle>
-            <Wallet className="h-4 w-4 text-[#C5A46D]" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-[28px] font-medium ${monthlyProfit >= 0 ? "text-[#C5A46D]" : "text-red-400"}`}>{formatUzbekPrice(monthlyProfit)}</div>
-            <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
-              {d.home.salesMinusExpense}
-            </p>
-          </CardContent>
-        </Card>
+            {/* Oylik Sof Foyda */}
+            <Card className="border-[rgba(197,164,109,0.22)] bg-[#111417] rounded-[12px] shadow-none">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{d.home.profit}</CardTitle>
+                <Wallet className="h-4 w-4 text-[#C5A46D]" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-[28px] font-medium ${monthlyProfit >= 0 ? "text-[#C5A46D]" : "text-red-400"}`}>{formatUzbekPrice(monthlyProfit)}</div>
+                <p className="text-[12px] text-[#A8A49B] mt-2 font-light">
+                  {d.home.salesMinusExpense}
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Mijozlar voronkasi */}
       <GuestFunnelBoard bookings={bookings || []} apartments={apartments || []} />
 
-      {/* Egalarga to'lov */}
+      {/* Egalarga to'lov — faqat shef/finansist */}
+      {canSeeFinance && (
       <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -272,6 +288,7 @@ export default async function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }
