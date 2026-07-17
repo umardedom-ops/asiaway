@@ -272,15 +272,28 @@ export async function POST(req: Request) {
       } else if (kind === 'task' && id && value === 'done') {
         // [Bajarildi] bosildi — DARHOL yakunlamaymiz, avval RASM (dalil) so'raymiz.
         // pending_task_id saqlaymiz; keyingi rasm shu vazifani yakunlaydi.
-        await supabase.from('bot_subscribers').update({ pending_task_id: id }).eq('chat_id', chatId);
-        answerText = lang === 'ru' ? '📷 Отправьте фото' : '📷 Rasm yuboring';
-        if (chatId) {
-          await tg(token, 'sendMessage', {
-            chat_id: chatId,
-            text: lang === 'ru'
-              ? '📷 Отправьте фото убранной комнаты как доказательство.\n\nЕсли фото нет — отправьте команду /tayyor (завершить без фото).'
-              : "📷 Tozalangan xona rasmini dalil sifatida yuboring.\n\nRasm bo'lmasa — /tayyor deb yuboring (rasmsiz yakunlash).",
-          });
+        const { error: pendErr } = await supabase.from('bot_subscribers').update({ pending_task_id: id }).eq('chat_id', chatId);
+
+        if (pendErr && /column|pending_task_id/i.test(pendErr.message)) {
+          // Migratsiya (20260721) hali RUN qilinmagan — eski usul: darhol yakunlaymiz
+          const res = await completeCleaningTaskAndFreeRoom(supabase, id);
+          answerText = res.success
+            ? (lang === 'ru' ? '✅ Задача выполнена' : '✅ Vazifa bajarildi')
+            : (lang === 'ru' ? `Ошибка: ${res.error}` : `Xato: ${res.error}`);
+          if (res.success && chatId && messageId) {
+            const orig = cq.message?.text || '';
+            await tg(token, 'editMessageText', { chat_id: chatId, message_id: messageId, text: `${orig}${lang === 'ru' ? '\n\n— ✅ УБРАНО' : "\n\n— ✅ TOZALANDI"}` });
+          }
+        } else {
+          answerText = lang === 'ru' ? '📷 Отправьте фото' : '📷 Rasm yuboring';
+          if (chatId) {
+            await tg(token, 'sendMessage', {
+              chat_id: chatId,
+              text: lang === 'ru'
+                ? '📷 Отправьте фото убранной комнаты как доказательство.\n\nЕсли фото нет — отправьте команду /tayyor (завершить без фото).'
+                : "📷 Tozalangan xona rasmini dalil sifatida yuboring.\n\nRasm bo'lmasa — /tayyor deb yuboring (rasmsiz yakunlash).",
+            });
+          }
         }
       }
 
