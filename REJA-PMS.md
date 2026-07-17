@@ -155,3 +155,22 @@ Egadan feedback: menyu ko'p, mantiqsiz. Tuzatildi:
 - Yangi env kalitlar qo'shilsa Vercel'ga ham qo'shish kerak.
 - Gotcha'lar HANDOFF.md da (lucide v1.23, hydration, bitta next dev, scripts/ exclude).
 - Telegram bot tokenlari env'da bo'lishi kerak; botlar webhook'i: `/api/telegram/webhook?token=<BOT_TOKEN>`.
+
+## QO'SHIMCHA (2026-07-17 — 8 bosqichli upgrade, Claude)
+Bajarildi: attribution sync (source/utm_data/notes lead->bron), professional RU,
+toast+ikonkalar, sparklines, Meta CAPI server-side (Purchase barcha confirm yollar +
+Lead), tozalash yagona helper + guests sariq holat, Z-hisobot 23:59, 4 rol dostup
+(shef/menejer/finansist/targetolog) + kirish anketasi + jurnal, Excel exportlar
+(yashirin ikonka: Moliya va CRM sahifalari), PWA (manifest/sw/ikonkalar).
+
+### QO'LDA QILISH KERAK (Umar):
+- [ ] Supabase SQL Editor'da RUN (tartib bilan, eskilari ham qolgan bolsa):
+      20260717000000_kanban_and_cleaning.sql
+      20260718000000_attribution_sync.sql
+      20260719000000_roles_expand.sql
+- [ ] Migratsiyalardan KEYIN qayta ishga tushirish (finansist/targetolog rollari uchun):
+      cd makon && node --env-file=.env.local scripts/create-role-users.mjs
+- [ ] Meta CAPI: META-CAPI-SOZLASH.md yoriqnoma boyicha Pixel ID + token olib
+      Vercel env: META_PIXEL_ID, META_CAPI_ACCESS_TOKEN (+test uchun META_TEST_EVENT_CODE)
+- [ ] ACCESS-CARD.jpg (E:\IT loihalar\ASIA WAY\) xodimlarga tarqatish — repoda YOQ, lokal.
+- [ ] Deploy'dan keyin tekshirish: asiaway.uz/api/meta/test?secret=CRON_SECRET&send=1

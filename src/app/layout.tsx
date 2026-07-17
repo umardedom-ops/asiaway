@@ -5,6 +5,7 @@ import "./globals.css";
 import LenisProvider from "@/components/LenisProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import UtmCapture from "@/components/UtmCapture";
+import PwaRegister from "@/components/PwaRegister";
 import { Lang } from "@/lib/i18n";
 
 const manrope = Manrope({
@@ -57,6 +58,20 @@ export const metadata: Metadata = {
       "Tashkent City, Nest One'da kunlik va oylik premium apartamentlar. Online bron qiling.",
   },
   robots: { index: true, follow: true },
+  // PWA — telefonga/kompyuterga ilova sifatida o'rnatiladi
+  manifest: "/manifest.webmanifest",
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ASIA WAY",
+  },
+};
+
+export const viewport = {
+  themeColor: "#0B0D0F",
 };
 
 // schema.org LodgingBusiness — qidiruv tizimlari uchun tashkilot ma'lumoti
@@ -101,6 +116,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
         <UtmCapture />
+        <PwaRegister />
         <LanguageProvider initialLang={initialLang}>
           <LenisProvider>{children}</LenisProvider>
         </LanguageProvider>
