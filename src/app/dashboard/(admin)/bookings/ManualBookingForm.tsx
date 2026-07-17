@@ -10,19 +10,31 @@ import { CHANNEL_LABELS } from "./channels";
 import DateField from "./DateField";
 import { useDashLang } from "@/components/DashboardLangProvider";
 
+interface Prefill {
+  leadId?: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  channel?: string;
+  source?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  utm_data?: any;
+  notes?: string;
+  place?: boolean;
+}
+
 const inputCls =
   "w-full h-11 rounded-[8px] border border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] px-3 text-[14px] text-[#F5F2EB] outline-none focus:border-[#C5A46D] transition-colors";
 const labelCls = "text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]";
-
-interface Prefill { leadId?: string; name?: string; phone?: string; place?: boolean }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ManualBookingForm({ apartments, prefill }: { apartments: any[]; prefill?: Prefill }) {
   const router = useRouter();
   const [f, setF] = useState({
-    apartment_id: "", guest_name: prefill?.name || "", guest_phone: prefill?.phone || "", guest_email: "",
-    channel: "airbnb", check_in: "", check_out: "",
+    apartment_id: "", guest_name: prefill?.name || "", guest_phone: prefill?.phone || "", guest_email: prefill?.email || "",
+    channel: prefill?.channel || "airbnb", check_in: "", check_out: "",
     total_price: "", deposit_amount: "", deposit_status: "paid", booking_status: "confirmed",
+    notes: prefill?.notes || "",
   });
   const [state, setState] = useState<"idle" | "saving" | "error">("idle");
   const [err, setErr] = useState("");
@@ -69,7 +81,7 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
   };
 
   const d = useDashLang();
-  const isRu = d.common.save === "Сохранить";
+  const isRu = d.lang === "ru";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +99,10 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
       deposit_status: f.deposit_status as "pending" | "paid" | "refunded",
       booking_status: f.booking_status as "pending" | "confirmed" | "completed",
       lead_id: prefill?.leadId || undefined,
+      // Lead'dan kelgan attribution — bronга to'liq ko'chadi (yo'qolmasin)
+      source: prefill?.source || undefined,
+      utm_data: prefill?.utm_data ?? undefined,
+      notes: f.notes?.trim() || undefined,
     };
     // "Hozir joylashtirish" belgilangan bo'lsa — bron + check-in bir amalda
     const res = placeNow ? await placeGuestNow(payload) : await createManualBooking(payload);
@@ -114,7 +130,9 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
         <div className="space-y-2">
           <label className={labelCls}>{isRu ? "Канал (откуда)" : "Kanal (qayerdan)"}</label>
           <select value={f.channel} onChange={(e) => set("channel", e.target.value)} className={inputCls}>
-            {Object.entries(CHANNEL_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            {Object.keys(CHANNEL_LABELS).map((k) => (
+              <option key={k} value={k}>{d.channels[k as keyof typeof d.channels] || CHANNEL_LABELS[k]}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -174,6 +192,17 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
             <option value="completed">{d.reception.completed}</option>
           </select>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className={labelCls}>{d.booking.notes}</label>
+        <textarea
+          value={f.notes}
+          onChange={(e) => set("notes", e.target.value)}
+          rows={2}
+          placeholder={isRu ? "Пожелания гостя, комментарий CRM..." : "Mehmon istaklari, CRM izohi..."}
+          className="w-full rounded-[8px] border border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] px-3 py-2.5 text-[14px] text-[#F5F2EB] outline-none focus:border-[#C5A46D] transition-colors placeholder:text-[#A8A49B]/40 resize-y"
+        />
       </div>
 
       <label className="flex items-center gap-3 pt-4 cursor-pointer select-none">

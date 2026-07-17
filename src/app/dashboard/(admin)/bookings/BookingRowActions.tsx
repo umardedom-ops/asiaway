@@ -20,7 +20,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const d = useDashLang();
-  const isRu = d.common.save === "Сохранить";
+  const isRu = d.lang === "ru";
 
   const handleCheckIn = async () => {
     setLoadingAction("checkin");
@@ -69,7 +69,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
           variant="outline"
           disabled={loadingAction !== null}
           onClick={handleCheckIn}
-          className="border-emerald-900/50 hover:bg-emerald-950/30 text-emerald-400 hover:text-emerald-300 h-8 text-xs font-semibold space-x-1"
+          className="border-emerald-900/50 hover:bg-emerald-950/30 text-emerald-400 hover:text-emerald-300 h-8 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
           {loadingAction === "checkin" ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3.5 w-3.5" />}
           <span>{isRu ? "Заселить" : "Joylashtirish"}</span>
@@ -82,7 +82,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
           variant="outline"
           disabled={loadingAction !== null}
           onClick={handleCheckout}
-          className="border-blue-900/50 hover:bg-blue-950/30 text-blue-400 hover:text-blue-300 h-8 text-xs font-semibold space-x-1"
+          className="border-blue-900/50 hover:bg-blue-950/30 text-blue-400 hover:text-blue-300 h-8 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
           {loadingAction === "checkout" ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3.5 w-3.5" />}
           <span>{isRu ? "Выезд (Checkout)" : "Checkout"}</span>
@@ -95,7 +95,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
             size="sm"
             variant="outline"
             onClick={() => setInvoiceOpen(true)}
-            className="border-[rgba(197,164,109,0.4)] hover:bg-[#C5A46D]/10 text-[#C5A46D] hover:text-[#D4B77F] h-8 text-xs font-semibold space-x-1"
+            className="border-[rgba(197,164,109,0.4)] hover:bg-[#C5A46D]/10 text-[#C5A46D] hover:text-[#D4B77F] h-8 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             <Receipt className="h-3.5 w-3.5" />
             <span>{isRu ? "Чек" : "Chek"}</span>
@@ -110,7 +110,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
           variant="outline"
           disabled={loadingAction !== null}
           onClick={() => handleUpdateDeposit("paid")}
-          className="border-emerald-900/50 hover:bg-emerald-950/30 text-emerald-400 hover:text-emerald-300 h-8 text-xs font-semibold space-x-1"
+          className="border-emerald-900/50 hover:bg-emerald-950/30 text-emerald-400 hover:text-emerald-300 h-8 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
           {loadingAction === "deposit_paid" ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -128,7 +128,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
             variant="outline"
             disabled={loadingAction !== null}
             onClick={() => handleUpdateBooking("confirmed")}
-            className="border-amber-900/50 hover:bg-amber-950/30 text-amber-500 hover:text-amber-400 h-8 text-xs font-semibold space-x-1"
+            className="border-amber-900/50 hover:bg-amber-950/30 text-amber-500 hover:text-amber-400 h-8 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             {loadingAction === "confirmed" ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -143,7 +143,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
             variant="outline"
             disabled={loadingAction !== null}
             onClick={() => handleUpdateBooking("cancelled")}
-            className="border-red-950 hover:bg-red-950/30 text-red-500 hover:text-red-400 h-8 text-xs font-semibold space-x-1"
+            className="border-red-950 hover:bg-red-950/30 text-red-500 hover:text-red-400 h-8 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             {loadingAction === "cancelled" ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -161,7 +161,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
           variant="outline"
           disabled={loadingAction !== null}
           onClick={() => handleUpdateBooking("cancelled")}
-          className="border-red-950 hover:bg-red-950/30 text-red-500 hover:text-red-400 h-8 text-xs font-semibold space-x-1"
+          className="border-red-950 hover:bg-red-950/30 text-red-500 hover:text-red-400 h-8 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
           {loadingAction === "cancelled" ? (
             <Loader2 className="h-3 w-3 animate-spin" />

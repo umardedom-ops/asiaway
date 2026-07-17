@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, CalendarCheck, BedDouble, DoorClosed, DoorOpen, CalendarDays, UsersRound, ChevronRight } from "lucide-react";
+import { Plus, CalendarCheck, BedDouble, DoorClosed, DoorOpen, CalendarDays, UsersRound, ChevronRight, Info } from "lucide-react";
 import { btnPrimary } from "@/lib/ui";
 import BookingRowActions from "../bookings/BookingRowActions";
 import GuestCheckoutButton from "../guests/GuestCheckoutButton";
@@ -42,13 +42,15 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
         <div className="inline-flex rounded-[10px] border border-[rgba(197,164,109,0.2)] bg-[#111417] p-1">
           {tabs.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`inline-flex items-center gap-2 px-4 h-10 rounded-[8px] text-[13.5px] font-medium transition-colors ${tab === t.key ? "bg-[#C5A46D]/15 text-[#C5A46D]" : "text-[#A8A49B] hover:text-[#F5F2EB]"}`}>
-              {t.icon} {t.label}
+              className={`inline-flex items-center justify-center gap-2 px-4 h-10 rounded-[8px] text-[13.5px] font-medium transition-all duration-200 ${tab === t.key ? "bg-[#C5A46D]/15 text-[#C5A46D] scale-[1.02]" : "text-[#A8A49B] hover:text-[#F5F2EB] hover:bg-white/5 active:scale-[0.98]"}`}>
+              {t.icon} <span>{t.label}</span>
             </button>
           ))}
         </div>
         <Link href="/dashboard/bookings/new">
-          <button className={`${btnPrimary} h-10 px-5 text-[13.5px] gap-2`}><Plus className="h-4 w-4" /> {d.reception.newBooking}</button>
+          <button className={`${btnPrimary} h-10 px-5 text-[13.5px] gap-2 flex items-center justify-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}>
+            <Plus className="h-4 w-4" /> <span>{d.reception.newBooking}</span>
+          </button>
         </Link>
       </div>
 
@@ -76,7 +78,22 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
                   return (
                     <tr key={b.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
                       <td className="px-6 py-4"><div className="font-medium text-[#F5F2EB]">{b.guest_name}</div><div className="text-[11px] text-[#A8A49B]">{b.guest_phone}</div></td>
-                      <td className="px-4 py-4"><span className={`inline-block text-[11px] font-medium px-2.5 py-1 rounded-full border ${CHANNEL_STYLE[ch] || CHANNEL_STYLE.other}`}>{chLabel}</span></td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-block text-[11px] font-medium px-2.5 py-1 rounded-full border ${CHANNEL_STYLE[ch] || CHANNEL_STYLE.other}`}>{chLabel}</span>
+                          {(b.utm_data || b.source || b.notes) && (
+                            <div className="relative flex items-center justify-center">
+                              <Info className="h-4 w-4 text-[#A8A49B] hover:text-[#C5A46D] cursor-help peer" />
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#0B0D0F] border border-[rgba(197,164,109,0.2)] rounded-[6px] text-[10px] text-[#A8A49B] opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all z-50 shadow-xl shadow-[#0B0D0F]">
+                                {b.source && <div><strong>Source:</strong> {b.source}</div>}
+                                {b.utm_data?.utm_medium && <div><strong>Medium:</strong> {b.utm_data.utm_medium}</div>}
+                                {b.utm_data?.utm_campaign && <div><strong>Campaign:</strong> {b.utm_data.utm_campaign}</div>}
+                                {b.notes && <div className="mt-1 border-t border-[rgba(197,164,109,0.1)] pt-1 text-[#F5F2EB]"><strong>{d.booking.notes}:</strong> {b.notes}</div>}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-4 text-[#A8A49B] max-w-[160px] truncate">{b.apartments?.title || "—"}</td>
                       <td className="px-4 py-4 text-[#A8A49B] whitespace-nowrap">{fmtShort(b.check_in)} — {fmtShort(b.check_out)}<div className="text-[11px] text-[#A8A49B]/70">{b.nights} {d.reception.nights}</div></td>
                       <td className="px-4 py-4"><div className="text-[#F5F2EB] font-medium">{money(b.total_price)}</div><div className="text-[11px] text-[#A8A49B]">{d.reception.deposit}: {money(b.deposit_amount)}</div></td>

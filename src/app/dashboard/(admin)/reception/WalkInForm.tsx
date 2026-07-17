@@ -18,7 +18,7 @@ const todayStr = () => new Date().toISOString().split("T")[0];
 export default function WalkInForm({ apartments }: { apartments: any[] }) {
   const router = useRouter();
   const d = useDashLang();
-  const isRu = d.common.save === "Сохранить";
+  const isRu = d.lang === "ru";
 
   const [f, setF] = useState({
     apartment_id: "", guest_name: "", guest_phone: "",

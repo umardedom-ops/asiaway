@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     const [
       { data: newBookings },
       { data: activeBookings },
-      { count: apartmentsCount },
+      { data: apartmentsData },
       { count: newLeadsCount },
     ] = await Promise.all([
       // Bugun yaratilgan bronlar
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
         .gt("check_out", today),
       supabase
         .from("apartments")
-        .select("id", { count: "exact", head: true })
+        .select("id, kanban_status")
         .eq("status", "active"),
       supabase
         .from("leads")
@@ -57,7 +57,11 @@ export async function GET(req: Request) {
     const occupiedCount = new Set(
       (activeBookings || []).map((b) => b.apartment_id)
     ).size;
-    const totalApts = apartmentsCount || 0;
+    const activeApts = apartmentsData || [];
+    const totalApts = activeApts.length;
+    const dirtyCount = activeApts.filter(a => a.kanban_status === "dirty" || a.kanban_status === "cleaning").length;
+    const cleanCount = totalApts - dirtyCount;
+
     const occupancy =
       totalApts > 0 ? Math.round((occupiedCount / totalApts) * 100) : 0;
 
@@ -67,6 +71,7 @@ export async function GET(req: Request) {
       `💰 Bugungi bronlar summasi: ${fmtMoney(revenueToday)}\n` +
       `🏦 Zaklatlar: ${fmtMoney(depositsToday)}\n` +
       `🏠 Bandlik: ${occupiedCount}/${totalApts} xona (${occupancy}%)\n` +
+      `🧹 Xonalar: ${cleanCount} ta toza, ${dirtyCount} ta iflos\n` +
       `📞 Yangi murojaatlar (lead): ${newLeadsCount || 0} ta`;
 
     await notifyRole("shef", message);

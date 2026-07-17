@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import LenisProvider from "@/components/LenisProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import UtmCapture from "@/components/UtmCapture";
 import { Lang } from "@/lib/i18n";
 
 const manrope = Manrope({
@@ -99,6 +100,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
+        <UtmCapture />
         <LanguageProvider initialLang={initialLang}>
           <LenisProvider>{children}</LenisProvider>
         </LanguageProvider>

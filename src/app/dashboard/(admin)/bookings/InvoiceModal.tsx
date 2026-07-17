@@ -20,7 +20,7 @@ const fmtDT = (d: string) => new Date(d).toLocaleString("uz-UZ", { day: "2-digit
 
 export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalProps) {
   const d = useDashLang();
-  const isRu = d.common.save === "Сохранить";
+  const isRu = d.lang === "ru";
 
   const METHOD: Record<string, string> = isRu 
     ? { naqd: "Наличные", karta: "Карта", payme: "Payme", click: "Click", otkazma: "Перевод", boshqa: "Другое" }

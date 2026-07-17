@@ -25,7 +25,7 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
   const d = useDashLang();
-  const isRu = d.common.save === "Сохранить";
+  const isRu = d.lang === "ru";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

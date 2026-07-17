@@ -4,6 +4,7 @@ import { D, type Lang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, Building2, Users, Receipt } from "lucide-react";
 import { EXPENSE_CATEGORIES } from "./ExpenseForm";
+import Sparkline from "./Sparkline";
 
 export const revalidate = 0;
 
@@ -79,6 +80,33 @@ export default async function FinancePage() {
   const profit = income - totalCost;
   const margin = income > 0 ? Math.round((profit / income) * 100) : 0;
 
+  // Sparkline grafiklar uchun kunlik ma'lumotlar (trend)
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dailyIncome = new Array(daysInMonth).fill(0);
+  const dailyExpense = new Array(daysInMonth).fill(0);
+  
+  monthBookings.forEach(b => {
+    const day = new Date(b.check_in).getDate() - 1;
+    if (day >= 0 && day < daysInMonth) {
+      dailyIncome[day] += Number(b.total_price || 0);
+    }
+  });
+
+  variableExpenses.forEach(e => {
+    const day = new Date(e.spent_on).getDate() - 1;
+    if (day >= 0 && day < daysInMonth) {
+      dailyExpense[day] += Number(e.amount || 0);
+    }
+  });
+
+  // Arenda va maoshni kunlarga bo'lib yuboramiz
+  const dailyFixedCost = (rentCost + salaryCost) / daysInMonth;
+  for (let i = 0; i < daysInMonth; i++) {
+    dailyExpense[i] += dailyFixedCost;
+  }
+
+  const dailyProfit = dailyIncome.map((inc, i) => inc - dailyExpense[i]);
+
   // Apartament bo'yicha (shu oy daromadi vs tan narx). exp — rent'siz.
   const perApt = apartments.map((a) => {
     const inc = monthBookings.filter((b) => b.apartment_id === a.id).reduce((s, b) => s + Number(b.total_price || 0), 0);
@@ -148,10 +176,10 @@ export default async function FinancePage() {
 
       {/* P&L kartalar */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title={t.expectedIncome} value={money(income)} icon={<TrendingUp className="h-4 w-4 text-emerald-400" />} sub={t.expectedIncomeSub} />
-        <StatCard title={t.totalExpenseTitle} value={money(totalCost)} icon={<TrendingDown className="h-4 w-4 text-red-400" />} sub={t.totalExpenseSub} />
-        <StatCard title={t.netProfit} value={money(profit)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={t.netProfitSub} accent={profit >= 0} />
-        <StatCard title={t.cost} value={money(rentCost)} icon={<Building2 className="h-4 w-4 text-[#C5A46D]" />} sub={t.costSub} />
+        <StatCard title={t.expectedIncome} value={money(income)} icon={<TrendingUp className="h-4 w-4 text-emerald-400" />} sub={t.expectedIncomeSub} sparklineData={dailyIncome} sparklineColor="#34d399" />
+        <StatCard title={t.totalExpenseTitle} value={money(totalCost)} icon={<TrendingDown className="h-4 w-4 text-red-400" />} sub={t.totalExpenseSub} sparklineData={dailyExpense} sparklineColor="#f87171" />
+        <StatCard title={t.netProfit} value={money(profit)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={t.netProfitSub} accent={profit >= 0} sparklineData={dailyProfit} sparklineColor={profit >= 0 ? "#C5A46D" : "#f87171"} />
+        <StatCard title={t.cost} value={money(rentCost)} icon={<Building2 className="h-4 w-4 text-[#C5A46D]" />} sub={t.costSub} sparklineData={new Array(daysInMonth).fill(rentCost / daysInMonth)} sparklineColor="#9ca3af" />
       </div>
 
       {/* Xarajat taqsimoti */}
@@ -209,7 +237,7 @@ export default async function FinancePage() {
   );
 }
 
-function StatCard({ title, value, icon, sub, accent }: { title: string; value: string; icon: React.ReactNode; sub: string; accent?: boolean }) {
+function StatCard({ title, value, icon, sub, accent, sparklineData, sparklineColor }: { title: string; value: string; icon: React.ReactNode; sub: string; accent?: boolean; sparklineData?: number[]; sparklineColor?: string }) {
   return (
     <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none hover:border-[rgba(197,164,109,0.3)] transition-colors">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -217,7 +245,12 @@ function StatCard({ title, value, icon, sub, accent }: { title: string; value: s
         {icon}
       </CardHeader>
       <CardContent>
-        <div className={`text-[28px] font-medium ${accent ? "text-[#C5A46D]" : "text-[#F5F2EB]"}`}>{value}</div>
+        <div className="flex items-end justify-between">
+          <div className={`text-[28px] font-medium ${accent ? "text-[#C5A46D]" : "text-[#F5F2EB]"}`}>{value}</div>
+          {sparklineData && sparklineColor && (
+            <Sparkline data={sparklineData} color={sparklineColor} />
+          )}
+        </div>
         <p className="text-[12px] text-[#A8A49B] mt-2 font-light">{sub}</p>
       </CardContent>
     </Card>

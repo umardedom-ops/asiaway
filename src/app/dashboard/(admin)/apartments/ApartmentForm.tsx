@@ -37,7 +37,7 @@ interface ApartmentFormProps {
 export default function ApartmentForm({ initialData }: ApartmentFormProps) {
   const router = useRouter();
   const d = useDashLang();
-  const isRu = d.common.save === "Сохранить";
+  const isRu = d.lang === "ru";
   const [state, formAction, isPending] = useActionState(saveApartment, null);
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.cover_image || null);
   const [existingImages, setExistingImages] = useState<any[]>(initialData?.apartment_images || []);
@@ -219,7 +219,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                   <div className="space-y-3">
                     <Label htmlFor="status" className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">{d.apartments.status}</Label>
                     <Select name="status" defaultValue={initialData?.status || "active"}>
-                      <SelectTrigger className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] focus:border-[#C5A46D] focus:ring-[#C5A46D]/30">
+                      <SelectTrigger className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] focus:border-[#C5A46D] focus:ring-[#C5A46D]/30 transition-all duration-200 hover:border-[#C5A46D]/50">
                         <SelectValue placeholder={isRu ? "Выберите статус" : "Statusni tanlang"} />
                       </SelectTrigger>
                       <SelectContent className="border-[rgba(197,164,109,0.14)] bg-[#111417] text-[#F5F2EB]">
@@ -454,7 +454,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                               name="amenities"
                               value={key}
                               defaultChecked={isChecked}
-                              className="h-5 w-5 rounded-[4px] border-[rgba(197,164,109,0.4)] bg-[#111417] text-[#C5A46D] focus:ring-[#C5A46D] focus:ring-offset-[#0B0D0F] cursor-pointer"
+                              className="h-5 w-5 rounded-[4px] border-[rgba(197,164,109,0.4)] bg-[#111417] text-[#C5A46D] focus:ring-[#C5A46D] focus:ring-offset-[#0B0D0F] cursor-pointer transition-all duration-200 hover:scale-[1.1] active:scale-[0.95]"
                             />
                           </div>
                           <span className="font-light">{label}</span>
@@ -471,7 +471,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
               <Button
                 type="submit"
                 disabled={isPending}
-                className="bg-[#C5A46D] text-[#0B0D0F] font-semibold tracking-wide hover:bg-[#D4B77F] disabled:bg-[rgba(197,164,109,0.2)] disabled:text-[#A8A49B] h-12 px-10 rounded-[8px] text-[15px] transition-colors"
+                className="bg-[#C5A46D] text-[#0B0D0F] font-semibold tracking-wide hover:bg-[#D4B77F] disabled:bg-[rgba(197,164,109,0.2)] disabled:text-[#A8A49B] h-12 px-10 rounded-[8px] text-[15px] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
               >
                 {isPending ? (
                   <>

@@ -42,7 +42,7 @@ export default function ExpenseForm({ apartments }: { apartments: any[] }) {
   const [err, setErr] = useState("");
 
   const d = useDashLang();
-  const isRu = d.common.save === "Сохранить";
+  const isRu = d.lang === "ru";
   const cats = isRu ? EXPENSE_CATEGORIES_RU : EXPENSE_CATEGORIES;
 
   const submit = async (e: React.FormEvent) => {

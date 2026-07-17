@@ -30,7 +30,7 @@ export default function KassaTabs({
   const aptTitle = (id: string | null) => apartments.find((a) => a.id === id)?.title || "—";
   const d = useDashLang();
 
-  const isUz = d.common.save === "Saqlash";
+  const isUz = d.lang === "uz";
 
   const expenseCats = isUz ? EXPENSE_CATEGORIES : EXPENSE_CATEGORIES_RU;
 

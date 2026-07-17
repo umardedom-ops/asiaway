@@ -19,7 +19,7 @@ export default function TaskRow({ task, staffName, aptTitle, typeLabel }: { task
   const run = (fn: () => Promise<unknown>) => start(() => { fn(); });
   const d = useDashLang();
 
-  const isUz = d.common.save === "Saqlash";
+  const isUz = d.lang === "uz";
 
   const TASK_STATUS_LABELS: Record<string, string> = isUz 
     ? { todo: "Kutilmoqda", in_progress: "Jarayonda", done: "Bajarildi", cancelled: "Bekor qilingan" }

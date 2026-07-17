@@ -3,6 +3,7 @@
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { notifyRole, esc } from "@/lib/telegram";
+import { getAttribution, isMissingAttributionColumn } from "@/lib/attribution";
 
 // Service-role klient (RLS'ni chetlab o'tadi). `leads` jadvalida anonim
 // foydalanuvchi faqat INSERT qila oladi, SELECT yo'q — shuning uchun ID qaytarish
@@ -34,7 +35,10 @@ export async function createLead(input: LeadInput) {
     return { success: false, error: "missing_fields" };
   }
 
-  const row = {
+  // Marketing attribution — UTM cookie'lardan (reklamadan kelgan bo'lsa)
+  const attribution = await getAttribution();
+
+  const row: Record<string, unknown> = {
     name: input.name.trim(),
     phone: input.phone.trim(),
     whatsapp: input.whatsapp?.trim() || null,
@@ -42,8 +46,9 @@ export async function createLead(input: LeadInput) {
     email: input.email?.trim() || null,
     message: input.message?.trim() || null,
     lang: input.lang || null,
-    source: input.source || "sayt",
+    source: input.source || attribution.source,
     notes: input.notes || null,
+    utm_data: attribution.utm_data,
     status: "new",
   };
 
@@ -53,7 +58,13 @@ export async function createLead(input: LeadInput) {
   let leadId: string | null = null;
 
   if (svc) {
-    const { data: lead, error } = await svc.from("leads").insert([row]).select("id").single();
+    let { data: lead, error } = await svc.from("leads").insert([row]).select("id").single();
+    // DB'da utm_data ustuni hali yo'q bo'lsa (migratsiya RUN qilinmagan) — usiz qayta uring
+    if (error && isMissingAttributionColumn(error.message)) {
+      const { utm_data: _omit, ...fallbackRow } = row;
+      void _omit;
+      ({ data: lead, error } = await svc.from("leads").insert([fallbackRow]).select("id").single());
+    }
     if (error) {
       console.error("Lead insert (service) error:", error.message);
       return { success: false, error: error.message };
@@ -61,7 +72,12 @@ export async function createLead(input: LeadInput) {
     leadId = lead?.id ?? null;
   } else {
     const supabase = await createClient();
-    const { error } = await supabase.from("leads").insert([row]);
+    let { error } = await supabase.from("leads").insert([row]);
+    if (error && isMissingAttributionColumn(error.message)) {
+      const { utm_data: _omit, ...fallbackRow } = row;
+      void _omit;
+      ({ error } = await supabase.from("leads").insert([fallbackRow]));
+    }
     if (error) {
       console.error("Lead insert error:", error.message);
       return { success: false, error: error.message };

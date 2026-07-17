@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Lokal ishchi fayllar (maxfiy kalitlar bo'lishi mumkin — hech qachon push qilinmasin)
 scratch/
+
+.vercel
+.env*

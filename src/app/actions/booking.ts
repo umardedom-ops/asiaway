@@ -13,6 +13,7 @@ function serviceClient() {
 import { syncClientFromBooking } from "@/lib/clients-sync";
 import { notifyRole, fmtMoney, fmtDate } from "@/lib/telegram";
 import { paymentConfigured, buildCheckoutUrl, currentFxRate } from "@/lib/payments";
+import { getAttribution, isMissingAttributionColumn } from "@/lib/attribution";
 
 export interface BookingInput {
   apartment_id: string;
@@ -91,29 +92,45 @@ export async function createBooking(input: BookingInput) {
     const svc = serviceClient();
     const dbClient = svc || supabase;
 
-    const { data: newBooking, error: insertError } = await dbClient
+    // Marketing attribution (UTM cookie'lardan) — targetolog va Meta CAPI uchun
+    const attribution = await getAttribution();
+
+    const bookingRow: Record<string, unknown> = {
+      apartment_id: input.apartment_id,
+      guest_name: input.guest_name,
+      guest_phone: input.guest_phone,
+      guest_email: input.guest_email || null,
+      check_in: input.check_in,
+      check_out: input.check_out,
+      nights: nights,
+      total_price: total_price,
+      deposit_amount: deposit_amount,
+      deposit_status: realPayment ? "pending" : "paid",
+      booking_status: realPayment ? "pending" : "confirmed",
+      payment_provider: realPayment ? input.payment_method : "simulate",
+      source: attribution.source,
+      utm_data: attribution.utm_data,
+      // AUDIT H7: valyuta kursini bronga MUZLATAMIZ — kurs keyin o'zgarsa ham
+      // bu bronning to'lov summasi o'zgarmaydi.
+      fx_rate: currentFxRate(),
+    };
+
+    let { data: newBooking, error: insertError } = await dbClient
       .from("bookings")
-      .insert([
-        {
-          apartment_id: input.apartment_id,
-          guest_name: input.guest_name,
-          guest_phone: input.guest_phone,
-          guest_email: input.guest_email || null,
-          check_in: input.check_in,
-          check_out: input.check_out,
-          nights: nights,
-          total_price: total_price,
-          deposit_amount: deposit_amount,
-          deposit_status: realPayment ? "pending" : "paid",
-          booking_status: realPayment ? "pending" : "confirmed",
-          payment_provider: realPayment ? input.payment_method : "simulate",
-          // AUDIT H7: valyuta kursini bronga MUZLATAMIZ — kurs keyin o'zgarsa ham
-          // bu bronning to'lov summasi o'zgarmaydi.
-          fx_rate: currentFxRate(),
-        },
-      ])
+      .insert([bookingRow])
       .select()
       .single();
+
+    // DB'da source/utm_data ustunlari hali yo'q bo'lsa — usiz qayta uring
+    if (insertError && isMissingAttributionColumn(insertError.message)) {
+      const { source: _s, utm_data: _u, ...fallbackRow } = bookingRow;
+      void _s; void _u;
+      ({ data: newBooking, error: insertError } = await dbClient
+        .from("bookings")
+        .insert([fallbackRow])
+        .select()
+        .single());
+    }
 
     if (insertError) {
       // AUDIT H1: DB'даги no_double_booking (EXCLUDE) cheklovi

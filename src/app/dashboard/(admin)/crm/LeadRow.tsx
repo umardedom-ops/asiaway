@@ -24,13 +24,7 @@ export default function LeadRow({ lead }: { lead: any }) {
   const [isPending, startTransition] = useTransition();
   const d = useDashLang();
 
-  const STATUS_LABELS: Record<string, string> = {
-    new: d.crm.status === "Status" ? "Yangi" : "Новый", 
-    contacted: d.crm.status === "Status" ? "Suhbatlashildi" : "Связались", 
-    waiting: d.crm.status === "Status" ? "Kutmoqda" : "Ожидает", 
-    won: d.crm.status === "Status" ? "Muvaffaqiyatli" : "Успешно", 
-    lost: d.crm.status === "Status" ? "Rad etdi" : "Отказ",
-  };
+  const STATUS_LABELS: Record<string, string> = d.leadStatus;
 
   const handleUpdate = () => startTransition(async () => { await updateLeadStatus(lead.id, status, notes); });
 

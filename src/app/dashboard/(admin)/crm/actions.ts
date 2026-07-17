@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getDashDict } from "@/lib/dash-lang";
 
 // Qo'lda murojaat kiritish (menejer telefonda/Instagramda gaplashib, o'zi yozadi)
 export async function createManualLead(input: {
@@ -13,8 +14,9 @@ export async function createManualLead(input: {
   message?: string;
   notes?: string;
 }) {
-  if (!input.name?.trim()) return { success: false, error: "Ism kiriting" };
-  if (!input.phone?.trim()) return { success: false, error: "Telefon kiriting" };
+  const d = await getDashDict();
+  if (!input.name?.trim()) return { success: false, error: d.errors.enterName };
+  if (!input.phone?.trim()) return { success: false, error: d.errors.enterPhone };
 
   const supabase = await createClient(); // authenticated — RLS "Admin All Leads" ruxsat beradi
   const { error } = await supabase.from("leads").insert([

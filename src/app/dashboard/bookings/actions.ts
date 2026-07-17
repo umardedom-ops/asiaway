@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { syncClientFromBooking, onBookingCompleted, onBookingCancelled } from "@/lib/clients-sync";
+import { isMissingAttributionColumn } from "@/lib/attribution";
+import { getDashDict } from "@/lib/dash-lang";
 
 // Qo'lда bron kiritish (Airbnb / Booking / Instagram / WhatsApp / Telegram / to'g'ridan-to'g'ri)
 export interface ManualBookingInput {
@@ -18,6 +20,10 @@ export interface ManualBookingInput {
   deposit_status: "pending" | "paid" | "refunded";
   booking_status: "pending" | "confirmed" | "completed";
   lead_id?: string;
+  source?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  utm_data?: any;
+  notes?: string;
 }
 
 /** Server action natijasi — muvaffaqiyatda `id`, xatoda `error`. */
@@ -25,15 +31,37 @@ export type BookingResult =
   | { success: true; id?: string; error?: undefined }
   | { success: false; error: string; id?: undefined };
 
+async function triggerMetaCapi(supabase: any, id: string) {
+  try {
+    const { data: booking } = await supabase.from("bookings").select("*").eq("id", id).single();
+    if (booking && booking.booking_status === "confirmed") {
+      // Fire and forget
+      supabase.functions.invoke('meta-capi', {
+        body: {
+          bookingId: booking.id,
+          totalPrice: booking.total_price,
+          guestPhone: booking.guest_phone,
+          guestEmail: booking.guest_email,
+          apartmentId: booking.apartment_id,
+          utmData: booking.utm_data,
+        }
+      }).catch((e: any) => console.error("Meta CAPI Invoke error:", e.message));
+    }
+  } catch (e) {
+    console.error("Meta CAPI check failed:", e);
+  }
+}
+
 export async function createManualBooking(input: ManualBookingInput): Promise<BookingResult> {
-  if (!input.apartment_id) return { success: false, error: "Apartamentni tanlang" };
-  if (!input.guest_name?.trim()) return { success: false, error: "Mehmon ismini kiriting" };
-  if (!input.check_in || !input.check_out) return { success: false, error: "Sanalarni kiriting" };
+  const d = await getDashDict();
+  if (!input.apartment_id) return { success: false, error: d.errors.selectApt };
+  if (!input.guest_name?.trim()) return { success: false, error: d.errors.enterName };
+  if (!input.check_in || !input.check_out) return { success: false, error: d.errors.enterDates };
 
   const start = new Date(input.check_in);
   const end = new Date(input.check_out);
   const nights = Math.round((end.getTime() - start.getTime()) / 86400000);
-  if (nights <= 0) return { success: false, error: "Ketish sanasi kelishдан keyin bo'lsin" };
+  if (nights <= 0) return { success: false, error: d.errors.checkoutAfter };
 
   const supabase = await createClient();
 
@@ -46,10 +74,10 @@ export async function createManualBooking(input: ManualBookingInput): Promise<Bo
     .lt("check_in", input.check_out)
     .gt("check_out", input.check_in);
   if (overlap && overlap.length > 0) {
-    return { success: false, error: "Bu sanalarда apartament allaqachon band" };
+    return { success: false, error: d.errors.datesBusy };
   }
 
-  const { data: newBooking, error } = await supabase.from("bookings").insert([{
+  const bookingRow: Record<string, unknown> = {
     apartment_id: input.apartment_id,
     guest_name: input.guest_name.trim(),
     guest_phone: input.guest_phone?.trim() || "",
@@ -63,12 +91,24 @@ export async function createManualBooking(input: ManualBookingInput): Promise<Bo
     deposit_status: input.deposit_status || "pending",
     booking_status: input.booking_status || "confirmed",
     lead_id: input.lead_id || null,
-  }]).select("id").single();
+    source: input.source || input.channel || "direct",
+    utm_data: input.utm_data || null,
+    notes: input.notes?.trim() || null,
+  };
+
+  let { data: newBooking, error } = await supabase.from("bookings").insert([bookingRow]).select("id").single();
+
+  // DB'da source/utm_data/notes ustunlari hali yo'q bo'lsa (migratsiya RUN qilinmagan) — usiz qayta uring
+  if (error && isMissingAttributionColumn(error.message)) {
+    const { source: _s, utm_data: _u, notes: _n, ...fallbackRow } = bookingRow;
+    void _s; void _u; void _n;
+    ({ data: newBooking, error } = await supabase.from("bookings").insert([fallbackRow]).select("id").single());
+  }
 
   if (error) {
     // DB'даги no_double_booking (EXCLUDE) cheklovi — race condition'ni bazaning o'zi to'sadi
     if (error.code === "23P01" || /no_double_booking|exclusion/i.test(error.message)) {
-      return { success: false, error: "Bu sanalarda apartament allaqachon band" };
+      return { success: false, error: d.errors.datesBusy };
     }
     return { success: false, error: error.message };
   }
@@ -101,6 +141,11 @@ export async function createManualBooking(input: ManualBookingInput): Promise<Bo
     revalidatePath("/dashboard/crm");
   }
 
+  // Meta CAPI ga yuborish (agar darhol tasdiqlangan bo'lsa)
+  if (newBooking?.id && (input.booking_status === "confirmed" || !input.booking_status)) {
+    triggerMetaCapi(supabase, newBooking.id);
+  }
+
   revalidatePath("/dashboard/bookings");
   revalidatePath("/dashboard/clients");
   revalidatePath("/dashboard/cashflow");
@@ -123,7 +168,10 @@ export async function checkInBooking(id: string) {
     .from("bookings")
     .update({ checked_in_at: new Date().toISOString(), booking_status: "confirmed" })
     .eq("id", id);
-  if (error) throw new Error(`Joylashtirishda xatolik: ${error.message}`);
+  if (error) {
+    const d = await getDashDict();
+    throw new Error(`${d.errors.statusUpdate}: ${error.message}`);
+  }
 
   // Mijoz bosqichi → "staying" (yashamoqda)
   if (bk?.guest_phone) {
@@ -219,7 +267,8 @@ export async function updateBookingStatus(id: string, status: "pending" | "confi
     .eq("id", id);
 
   if (error) {
-    throw new Error(`Bron holatini yangilashda xatolik: ${error.message}`);
+    const d = await getDashDict();
+    throw new Error(`${d.errors.statusUpdate}: ${error.message}`);
   }
 
   // Checkout (completed) → mijoz bosqichi + avto-tozalash vazifasi
@@ -232,6 +281,11 @@ export async function updateBookingStatus(id: string, status: "pending" | "confi
     });
     revalidatePath("/dashboard/staff");
     revalidatePath("/dashboard/guests");
+  }
+
+  // Status confirmed bo'lganda Meta CAPI ga yuborish
+  if (status === "confirmed" && prev && prev.booking_status !== "confirmed") {
+    triggerMetaCapi(supabase, id);
   }
 
   // AUDIT M5 — bron BEKOR qilinsa mijoz statistikasi (LTV) qaytariladi.
@@ -257,7 +311,8 @@ export async function updateDepositStatus(id: string, status: "pending" | "paid"
     .eq("id", id);
 
   if (error) {
-    throw new Error(`Zaklat holatini yangilashda xatolik: ${error.message}`);
+    const d = await getDashDict();
+    throw new Error(`${d.errors.depositUpdate}: ${error.message}`);
   }
 
   revalidatePath("/dashboard/bookings");
