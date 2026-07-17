@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { D, type Lang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, ListChecks, CheckCircle2, Clock } from "lucide-react";
+import { Users, ListChecks, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
 import AddStaffForm from "./AddStaffForm";
 import AddTaskForm from "./AddTaskForm";
 import TaskRow from "./TaskRow";
@@ -19,10 +19,12 @@ export default async function StaffPage() {
   const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
   const d = D[lang];
 
-  const [{ data: staffRaw }, { data: tasksRaw }, { data: aptsRaw }] = await Promise.all([
+  const [{ data: staffRaw }, { data: tasksRaw }, { data: aptsRaw }, { data: journalRaw }] = await Promise.all([
     supabase.from("staff").select("*").order("created_at", { ascending: false }),
     supabase.from("tasks").select("*").order("created_at", { ascending: false }),
     supabase.from("apartments").select("id, title"),
+    // Kirish jurnali (anketa) — oxirgi 30 ta; jadval hali yo'q bo'lsa bo'sh keladi
+    supabase.from("login_journal").select("id, role, name, purpose, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
 
   const staff = staffRaw ?? [];
@@ -171,6 +173,41 @@ export default async function StaffPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Kirish jurnali — kim, qachon, qaysi rol bilan tizimga kirgan (anketa) */}
+      {(journalRaw?.length ?? 0) > 0 && (
+        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+          <CardHeader>
+            <CardTitle className="text-[16px] font-medium text-[#F5F2EB] inline-flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-[#C5A46D]" /> {d.journal.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="text-[#A8A49B] text-[11px] uppercase tracking-[0.08em] border-b border-[rgba(197,164,109,0.14)]">
+                    <th className="text-left font-semibold px-6 py-3">{d.journal.who}</th>
+                    <th className="text-left font-semibold px-4 py-3">{d.crm.status}</th>
+                    <th className="text-left font-semibold px-4 py-3">{d.journal.purpose}</th>
+                    <th className="text-right font-semibold px-6 py-3">{d.journal.when}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(journalRaw ?? []).map((j) => (
+                    <tr key={j.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
+                      <td className="px-6 py-3 text-[#F5F2EB] font-medium">{j.name}</td>
+                      <td className="px-4 py-3"><span className="text-[11px] uppercase tracking-wide px-2 py-0.5 rounded border border-[#C5A46D]/25 bg-[#C5A46D]/10 text-[#C5A46D]">{j.role}</span></td>
+                      <td className="px-4 py-3 text-[#A8A49B] max-w-[280px] truncate">{j.purpose || "—"}</td>
+                      <td className="px-6 py-3 text-right text-[#A8A49B] whitespace-nowrap">{new Date(j.created_at).toLocaleString(lang === "ru" ? "ru-RU" : "uz-UZ", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

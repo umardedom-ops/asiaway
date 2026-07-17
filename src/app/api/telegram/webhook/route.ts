@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { completeCleaningTaskAndFreeRoom } from '@/lib/cleaning';
+import { notifyRole, esc } from '@/lib/telegram';
 import {
   NEW_LEAD_BTN, MAIN_KEYBOARD, TEMPLATE_TEXT,
   parseTemplate, saveDraft, getDraft, buildSummary, draftToLead, draftToBooking,
@@ -270,13 +271,37 @@ export async function POST(req: Request) {
     else if (text === PASSWORDS.cleaning) role = 'cleaning';
 
     if (role) {
-      const { error } = await supabase
+      // Anketa (avtomatik): Telegram profilidan ism/username olamiz
+      const from = body.message.from || {};
+      const subscriberName =
+        [from.first_name, from.last_name].filter(Boolean).join(' ') ||
+        (from.username ? `@${from.username}` : null);
+
+      let { error } = await supabase
         .from('bot_subscribers')
         .upsert(
-          { chat_id: chatId, role, joined_at: new Date().toISOString() },
+          { chat_id: chatId, role, name: subscriberName, joined_at: new Date().toISOString() },
           { onConflict: 'chat_id,role' }
         );
+      // name ustuni hali yo'q bo'lsa (migratsiya RUN qilinmagan) — usiz qayta uring
+      if (error && /column/i.test(error.message) && /name/i.test(error.message)) {
+        ({ error } = await supabase
+          .from('bot_subscribers')
+          .upsert(
+            { chat_id: chatId, role, joined_at: new Date().toISOString() },
+            { onConflict: 'chat_id,role' }
+          ));
+      }
       if (error) throw error;
+
+      // Shefga xabar: kim qaysi botga ulandi (jurnal)
+      try {
+        const uname = from.username ? ` (@${from.username})` : '';
+        await notifyRole(
+          'shef',
+          `🔔 <b>BOTGA ULANISH</b>\n\n👤 ${esc(subscriberName || String(chatId))}${esc(uname)}\n🎖 Rol: ${role}`
+        );
+      } catch { /* xabar ketmasa ham obuna ishlayveradi */ }
 
       const isStaff = role === 'shef' || role === 'menejer';
       await tg(token, 'sendMessage', {

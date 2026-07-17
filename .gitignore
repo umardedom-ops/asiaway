@@ -48,3 +48,8 @@ scratch/
 
 .vercel
 .env*
+
+# Dostup kartasi ma'lumotlari (maxfiy - hech qachon commit qilinmasin)
+scripts/access-card-data.json
+ACCESS-CARD*.jpg
+ACCESS-CARD*.html

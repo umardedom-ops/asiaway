@@ -7,6 +7,7 @@ import { D, type Lang } from "@/lib/i18n";
 import DashboardLangSwitcher from "@/components/DashboardLangSwitcher";
 import { DashboardLangProvider } from "@/components/DashboardLangProvider";
 import { Toaster } from "@/components/ui/toast";
+import EntryJournalPrompt from "@/components/EntryJournalPrompt";
 import {
   LayoutDashboard,
   Home,
@@ -46,26 +47,36 @@ export default async function AdminLayout({ children }: LayoutProps) {
   const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
   const d = D[lang];
 
-  // Rolga qarab guruhlangan menyu
+  // Rol yorlig'i (sidebar badge)
+  const roleLabel =
+    role === "shef" ? d.sidebar.shef
+    : role === "finansist" ? d.sidebar.finansist
+    : role === "targetolog" ? d.sidebar.targetolog
+    : d.sidebar.menejer;
+
+  // Rolga qarab guruhlangan menyu (middleware ham server tomonda himoya qiladi)
+  const canOps = role === "shef" || role === "menejer";         // qabul/obyektlar
+  const canCrm = role === "shef" || role === "menejer" || role === "targetolog";
+  const canMoney = role === "shef" || role === "finansist";      // moliya bloki
+  const canKassa = canMoney || role === "menejer";               // kassa menejer uchun ham
+
   const sections: { title: string | null; items: { name: string; href: string; icon: typeof Home }[] }[] = [
     { title: null, items: [
       { name: d.sidebar.panel, href: "/dashboard", icon: LayoutDashboard },
     ] },
-    { title: lang === "ru" ? "Ресепшн" : "Qabul", items: [
+    ...(canOps ? [{ title: lang === "ru" ? "Ресепшн" : "Qabul", items: [
       { name: d.sidebar.reception, href: "/dashboard/reception", icon: CalendarCheck },
-    ] },
-    { title: lang === "ru" ? "Клиенты" : "Mijozlar", items: [
+    ] }] : []),
+    ...(canCrm ? [{ title: lang === "ru" ? "Клиенты" : "Mijozlar", items: [
       { name: d.sidebar.crm, href: "/dashboard/crm", icon: Users },
-    ] },
-    { title: lang === "ru" ? "Объекты" : "Obyektlar", items: [
+    ] }] : []),
+    ...(canOps ? [{ title: lang === "ru" ? "Объекты" : "Obyektlar", items: [
       { name: d.sidebar.apartments, href: "/dashboard/apartments", icon: Home },
-    ] },
-    { title: lang === "ru" ? "Финансы" : "Moliya", items: [
-      { name: d.sidebar.kassa, href: "/dashboard/kassa", icon: Wallet },
-      ...(isShef ? [
-        { name: d.sidebar.finance, href: "/dashboard/finance", icon: Wallet },
-      ] : []),
-    ] },
+    ] }] : []),
+    ...(canKassa || canMoney ? [{ title: lang === "ru" ? "Финансы" : "Moliya", items: [
+      ...(canKassa ? [{ name: d.sidebar.kassa, href: "/dashboard/kassa", icon: Wallet }] : []),
+      ...(canMoney ? [{ name: d.sidebar.finance, href: "/dashboard/finance", icon: Wallet }] : []),
+    ] }] : []),
     ...(isShef ? [{ title: lang === "ru" ? "Команда" : "Jamoa", items: [
       { name: d.sidebar.staff, href: "/dashboard/staff", icon: UserCog },
     ] }] : []),
@@ -84,7 +95,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
               <Building2 className="h-6 w-6 text-[#C5A46D]" />
               <span className="text-[20px] font-heading font-semibold tracking-wide text-[#F5F2EB]">AsiaWay</span>
               <span className="text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 bg-[#C5A46D]/10 text-[#C5A46D] rounded border border-[#C5A46D]/20">
-                {isShef ? d.sidebar.shef : d.sidebar.menejer}
+                {roleLabel}
               </span>
             </div>
             <div>
@@ -179,6 +190,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
             </div>
           </main>
           <Toaster />
+          <EntryJournalPrompt role={role} />
         </div>
       </div>
     </DashboardLangProvider>

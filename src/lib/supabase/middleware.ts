@@ -62,39 +62,45 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
       }
 
-      // Route Protection based on roles
-      if (url.pathname.startsWith('/dashboard/finance') && role !== 'shef') {
-        url.pathname = "/dashboard";
+      // ---- ROL BO'YICHA HIMOYA ----
+      // shef       — hamma narsa
+      // finansist  — moliya bloki: finance, kassa, income, cashflow, owner-payments
+      // targetolog — marketing bloki: crm, bronlar, mijozlar
+      // menejer    — operatsion blok (moliya/staff'dan tashqari hammasi)
+      // cleaning   — faqat /dashboard/tasks
+      const path = url.pathname;
+      const redirectTo = (p: string) => {
+        url.pathname = p;
         return NextResponse.redirect(url);
-      }
-
-      if (url.pathname.startsWith('/dashboard/owner-payments') && role !== 'shef') {
-        url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
-      }
-
-      if (url.pathname.startsWith('/dashboard/cashflow') && role !== 'shef') {
-        url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
-      }
-
-      if (url.pathname.startsWith('/dashboard/income') && role !== 'shef') {
-        url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
-      }
-      
-      if (url.pathname.startsWith('/dashboard/staff') && role !== 'shef') {
-        url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
-      }
+      };
 
       if (role === 'cleaning') {
-        // Cleaning staff can only see the tasks/cleaning page
-        if (!url.pathname.startsWith('/dashboard/tasks')) {
-          url.pathname = "/dashboard/tasks";
-          return NextResponse.redirect(url);
+        if (!path.startsWith('/dashboard/tasks')) return redirectTo('/dashboard/tasks');
+      } else if (role === 'finansist') {
+        const allowed = [
+          '/dashboard/finance', '/dashboard/kassa', '/dashboard/income',
+          '/dashboard/cashflow', '/dashboard/owner-payments',
+        ];
+        const isHome = path === '/dashboard' || path === '/dashboard/';
+        if (!isHome && !allowed.some((p) => path.startsWith(p))) {
+          return redirectTo('/dashboard/finance');
         }
+      } else if (role === 'targetolog') {
+        const allowed = [
+          '/dashboard/crm', '/dashboard/bookings', '/dashboard/clients',
+        ];
+        const isHome = path === '/dashboard' || path === '/dashboard/';
+        if (!isHome && !allowed.some((p) => path.startsWith(p))) {
+          return redirectTo('/dashboard/crm');
+        }
+      } else if (role === 'menejer') {
+        const blocked = [
+          '/dashboard/finance', '/dashboard/owner-payments',
+          '/dashboard/cashflow', '/dashboard/income', '/dashboard/staff',
+        ];
+        if (blocked.some((p) => path.startsWith(p))) return redirectTo('/dashboard');
       }
+      // shef — cheklovsiz
 
     } else {
       // If logging in and already auth'd
