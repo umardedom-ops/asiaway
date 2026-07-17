@@ -81,32 +81,45 @@ export default async function FinancePage() {
   const profit = income - totalCost;
   const margin = income > 0 ? Math.round((profit / income) * 100) : 0;
 
-  // Sparkline grafiklar uchun kunlik ma'lumotlar (trend)
+  // Sparkline trendlari — oy boshidan BUGUNGACHA yig'ilgan (kumulyativ) qiymatlar.
+  // Kunlik "tikanli" chiziq o'rniga karta sarlavha raqamiga qarab o'suvchi silliq trend.
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const dailyIncome = new Array(daysInMonth).fill(0);
-  const dailyExpense = new Array(daysInMonth).fill(0);
-  
+  const todayDay = Math.min(now.getDate(), daysInMonth);
+  const dailyIncome = new Array(todayDay).fill(0);
+  const dailyExpense = new Array(todayDay).fill(0);
+
   monthBookings.forEach(b => {
     const day = new Date(b.check_in).getDate() - 1;
-    if (day >= 0 && day < daysInMonth) {
+    if (day >= 0 && day < todayDay) {
       dailyIncome[day] += Number(b.total_price || 0);
     }
   });
 
   variableExpenses.forEach(e => {
     const day = new Date(e.spent_on).getDate() - 1;
-    if (day >= 0 && day < daysInMonth) {
+    if (day >= 0 && day < todayDay) {
       dailyExpense[day] += Number(e.amount || 0);
     }
   });
 
-  // Arenda va maoshni kunlarga bo'lib yuboramiz
+  // Arenda va maoshni kunlarga tekis taqsimlaymiz
   const dailyFixedCost = (rentCost + salaryCost) / daysInMonth;
-  for (let i = 0; i < daysInMonth; i++) {
+  for (let i = 0; i < todayDay; i++) {
     dailyExpense[i] += dailyFixedCost;
   }
 
-  const dailyProfit = dailyIncome.map((inc, i) => inc - dailyExpense[i]);
+  // Kumulyativ (o'suvchi) qatorlar
+  const cumIncome: number[] = [];
+  const cumExpense: number[] = [];
+  const cumProfit: number[] = [];
+  let accI = 0, accE = 0;
+  for (let i = 0; i < todayDay; i++) {
+    accI += dailyIncome[i];
+    accE += dailyExpense[i];
+    cumIncome.push(accI);
+    cumExpense.push(accE);
+    cumProfit.push(accI - accE);
+  }
 
   // Apartament bo'yicha (shu oy daromadi vs tan narx). exp — rent'siz.
   const perApt = apartments.map((a) => {
@@ -177,9 +190,9 @@ export default async function FinancePage() {
 
       {/* P&L kartalar */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title={t.expectedIncome} value={money(income)} icon={<TrendingUp className="h-4 w-4 text-emerald-400" />} sub={t.expectedIncomeSub} sparkline={<Sparkline data={dailyIncome} color="#34d399" />} />
-        <StatCard title={t.totalExpenseTitle} value={money(totalCost)} icon={<TrendingDown className="h-4 w-4 text-red-400" />} sub={t.totalExpenseSub} sparkline={<Sparkline data={dailyExpense} color="#f87171" />} />
-        <StatCard title={t.netProfit} value={money(profit)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={t.netProfitSub} accent={profit >= 0} valueClass={profit < 0 ? "text-red-400" : undefined} sparkline={<Sparkline data={dailyProfit} color={profit >= 0 ? "#C5A46D" : "#f87171"} />} />
+        <StatCard title={t.expectedIncome} value={money(income)} icon={<TrendingUp className="h-4 w-4 text-emerald-400" />} sub={t.expectedIncomeSub} sparkline={<Sparkline data={cumIncome} color="#34d399" label={t.expectedIncome} />} />
+        <StatCard title={t.totalExpenseTitle} value={money(totalCost)} icon={<TrendingDown className="h-4 w-4 text-red-400" />} sub={t.totalExpenseSub} sparkline={<Sparkline data={cumExpense} color="#f87171" label={t.totalExpenseTitle} />} />
+        <StatCard title={t.netProfit} value={money(profit)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={t.netProfitSub} accent={profit >= 0} valueClass={profit < 0 ? "text-red-400" : undefined} sparkline={<Sparkline data={cumProfit} color={profit >= 0 ? "#C5A46D" : "#f87171"} label={t.netProfit} />} />
         <StatCard title={t.cost} value={money(rentCost)} icon={<Building2 className="h-4 w-4 text-[#C5A46D]" />} sub={t.costSub} />
       </div>
 

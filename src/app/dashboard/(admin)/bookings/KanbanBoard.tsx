@@ -89,7 +89,9 @@ function SortableItem({ id, booking, isRu, d }: { id: string; booking: any; isRu
         {/* Marketing tracking tooltip (targetolog uchun): source + utm_data (jsonb) + izoh */}
         {(booking.source || booking.utm_data || booking.notes) && (
           <div className="relative flex items-center justify-center">
-            <Info className="h-4 w-4 text-[#A8A49B] hover:text-[#C5A46D] cursor-help peer transition-colors" />
+            <span className="peer p-1 -m-1 cursor-help text-[#A8A49B] hover:text-[#C5A46D] transition-colors">
+              <Info className="h-4 w-4" />
+            </span>
             <div className="absolute bottom-full right-0 mb-2 w-52 p-2.5 bg-[#0B0D0F] border border-[rgba(197,164,109,0.25)] rounded-[8px] text-[10.5px] text-[#A8A49B] opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 z-50 shadow-xl shadow-black/50 space-y-0.5 text-left">
               {booking.source && <div><strong className="text-[#C5A46D]">Source:</strong> {booking.source}</div>}
               {booking.utm_data?.utm_medium && <div><strong className="text-[#C5A46D]">Medium:</strong> {booking.utm_data.utm_medium}</div>}

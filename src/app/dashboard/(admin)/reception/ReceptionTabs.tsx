@@ -83,7 +83,9 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
                           <span className={`inline-block text-[11px] font-medium px-2.5 py-1 rounded-full border ${CHANNEL_STYLE[ch] || CHANNEL_STYLE.other}`}>{chLabel}</span>
                           {(b.utm_data || b.source || b.notes) && (
                             <div className="relative flex items-center justify-center">
-                              <Info className="h-4 w-4 text-[#A8A49B] hover:text-[#C5A46D] cursor-help peer" />
+                              <span className="peer p-1 -m-1 cursor-help text-[#A8A49B] hover:text-[#C5A46D] transition-colors">
+                                <Info className="h-4 w-4" />
+                              </span>
                               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-[#0B0D0F] border border-[rgba(197,164,109,0.2)] rounded-[6px] text-[10px] text-[#A8A49B] opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all z-50 shadow-xl shadow-[#0B0D0F]">
                                 {b.source && <div><strong>Source:</strong> {b.source}</div>}
                                 {b.utm_data?.utm_medium && <div><strong>Medium:</strong> {b.utm_data.utm_medium}</div>}
