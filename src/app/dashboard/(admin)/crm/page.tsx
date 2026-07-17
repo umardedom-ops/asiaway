@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { D, type Lang } from "@/lib/i18n";
 import LeadRow from "./LeadRow";
 import AddLeadForm from "./AddLeadForm";
-import { Users } from "lucide-react";
+import { Users, Download } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -26,6 +26,15 @@ export default async function CRMPage() {
           <h1 className="text-[28px] md:text-[32px] font-heading font-medium text-[#F5F2EB] flex items-center gap-3">
             <Users className="h-8 w-8 text-[#C5A46D]" />
             {d.crm.title}
+            {/* Yashirin Excel yuklab olish (targetolog/shef): mijozlar bazasi + UTM tahlili */}
+            <a
+              href="/api/export/clients"
+              title="Excel"
+              className="opacity-0 hover:opacity-80 focus:opacity-80 transition-opacity duration-300 text-[#C5A46D] p-2 -m-1"
+              download
+            >
+              <Download className="h-4 w-4" />
+            </a>
           </h1>
           <p className="text-[#A8A49B] text-[15px] mt-1">
             {d.crm.subtitle}

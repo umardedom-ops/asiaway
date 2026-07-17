@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { D, type Lang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Wallet, Building2, Users, Receipt } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Building2, Users, Receipt, Download } from "lucide-react";
 import { EXPENSE_CATEGORIES } from "./ExpenseForm";
 import Sparkline from "./Sparkline";
 import StatCard from "@/components/dashboard/StatCard";
@@ -182,7 +182,18 @@ export default async function FinancePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">{d.finance.title}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-[32px] font-heading font-medium tracking-tight text-[#F5F2EB]">{d.finance.title}</h1>
+          {/* Yashirin Excel yuklab olish (finansist/shef) — hover qilinganda ko'rinadi */}
+          <a
+            href="/api/export/finance"
+            title="Excel"
+            className="opacity-0 hover:opacity-80 focus:opacity-80 transition-opacity duration-300 text-[#C5A46D] p-2 -m-1"
+            download
+          >
+            <Download className="h-4 w-4" />
+          </a>
+        </div>
         <p className="text-[14px] text-[#A8A49B] mt-2 font-light">
           {monthLabel} — {t.desc}
         </p>
