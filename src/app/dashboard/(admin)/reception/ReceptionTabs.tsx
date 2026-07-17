@@ -11,10 +11,9 @@ import GuestCheckoutButton from "../guests/GuestCheckoutButton";
 import WalkInForm from "./WalkInForm";
 import { CHANNEL_STYLE } from "../bookings/channels";
 import { useDashLang } from "@/components/DashboardLangProvider";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString("uz-UZ", { day: "numeric", month: "short", year: "numeric" }) : "—";
-const fmtShort = (d?: string) => d ? new Date(d).toLocaleDateString("uz-UZ", { day: "numeric", month: "short" }) : "—";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = any;
@@ -24,6 +23,9 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
   const today = new Date().toISOString().split("T")[0];
   const aptTitle = (id: string) => apartments.find((a) => a.id === id)?.title || "—";
   const d = useDashLang();
+  // BUG FIX: Intl "uz-UZ" bilan month:"short" ishlatilganda "M07" kabi buzuq chiqadi
+  const fmtDate = (dt?: string) => fmtDateLib(dt, d.lang, { day: "numeric", month: "short", year: "numeric" });
+  const fmtShort = (dt?: string) => fmtDateLib(dt, d.lang, { day: "numeric", month: "short" });
 
   const staying = bookings.filter((b) => b.checked_in_at && b.booking_status !== "completed" && b.booking_status !== "cancelled");
   const arriving = bookings.filter((b) => !b.checked_in_at && b.booking_status === "confirmed" && b.check_in === today);

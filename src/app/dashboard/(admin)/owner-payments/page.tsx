@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, CheckCircle2, AlertTriangle, CalendarClock, Wallet } from "lucide-react";
 import PayButton from "./PayButton";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
 export const revalidate = 0;
 
@@ -43,7 +44,8 @@ export default async function OwnerPaymentsPage() {
       .lt("spent_on", nextMonthStr),
   ]);
 
-  const monthLabel = new Date(y, m, 1).toLocaleDateString("uz-UZ", { month: "long", year: "numeric" });
+  // BUG FIX: Intl "uz-UZ" bilan month:"long" ishlatilganda "M07" kabi buzuq chiqadi
+  const monthLabel = fmtDateLib(new Date(y, m, 1), "uz", { month: "long", year: "numeric" });
 
   const rows = (aptsRaw ?? []).map((a) => {
     const cost = Number(a.monthly_lease_cost || 0);

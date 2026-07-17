@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, Building2, Users, Receipt, Download, ChartColumn } from "lucide-react";
 import { IncomeExpenseChart, ExpenseBreakdownChart } from "@/components/dashboard/Charts";
 import { EXPENSE_CATEGORIES } from "./ExpenseForm";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 import Sparkline from "./Sparkline";
 import StatCard from "@/components/dashboard/StatCard";
 
@@ -156,7 +157,8 @@ export default async function FinancePage() {
     return { id: a.id, title: a.title, inc, lease, exp, net: inc - lease - exp };
   }).sort((x, y) => y.net - x.net);
 
-  const monthLabel = now.toLocaleDateString(lang === "uz" ? "uz-UZ" : "ru-RU", { month: "long", year: "numeric" });
+  // BUG FIX: Intl "uz-UZ" bilan month:"long" ishlatilganda "M07" kabi buzuq chiqadi
+  const monthLabel = fmtDateLib(now, lang, { month: "long", year: "numeric" });
 
   const textDict = {
     uz: {

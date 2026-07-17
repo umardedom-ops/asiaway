@@ -26,6 +26,9 @@ export default function WalkInForm({ apartments }: { apartments: any[] }) {
   });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  // BUG FIX: Kirish/Ketish kalendarlari mustaqil ochilsa, ikkisi bir vaqtda
+  // ochiq qolib bir joyda ustma-ust chiqardi — endi faqat bittasi ochiladi
+  const [openDate, setOpenDate] = useState<"checkin" | "checkout" | null>(null);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
   const apt = apartments.find((a) => a.id === f.apartment_id);
@@ -81,11 +84,22 @@ export default function WalkInForm({ apartments }: { apartments: any[] }) {
       <div className="grid md:grid-cols-4 gap-4">
         <div className="space-y-2">
           <label className={labelCls}>{isRu ? "Заезд" : "Keldi"}</label>
-          <DateField value={f.check_in} onChange={(v) => set("check_in", v)} />
+          <DateField
+            value={f.check_in}
+            onChange={(v) => set("check_in", v)}
+            open={openDate === "checkin"}
+            onOpenChange={(o) => setOpenDate(o ? "checkin" : null)}
+          />
         </div>
         <div className="space-y-2">
           <label className={labelCls}>{isRu ? "Выезд" : "Ketadi"} *</label>
-          <DateField value={f.check_out} onChange={(v) => set("check_out", v)} min={f.check_in || undefined} />
+          <DateField
+            value={f.check_out}
+            onChange={(v) => set("check_out", v)}
+            min={f.check_in || undefined}
+            open={openDate === "checkout"}
+            onOpenChange={(o) => setOpenDate(o ? "checkout" : null)}
+          />
         </div>
         <div className="space-y-2">
           <label className={labelCls}>{d.booking.totalPrice} ($)</label>

@@ -7,6 +7,7 @@ import AddStaffForm from "./AddStaffForm";
 import AddTaskForm from "./AddTaskForm";
 import TaskRow from "./TaskRow";
 import { ROLE_LABELS, TASK_TYPE_LABELS } from "./labels";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
 export const revalidate = 0;
 
@@ -188,7 +189,7 @@ export default async function StaffPage() {
                 <thead>
                   <tr className="text-[#A8A49B] text-[11px] uppercase tracking-[0.08em] border-b border-[rgba(197,164,109,0.14)]">
                     <th className="text-left font-semibold px-6 py-3">{d.journal.who}</th>
-                    <th className="text-left font-semibold px-4 py-3">{d.crm.status}</th>
+                    <th className="text-left font-semibold px-4 py-3">{d.journal.role}</th>
                     <th className="text-left font-semibold px-4 py-3">{d.journal.purpose}</th>
                     <th className="text-right font-semibold px-6 py-3">{d.journal.when}</th>
                   </tr>
@@ -199,7 +200,8 @@ export default async function StaffPage() {
                       <td className="px-6 py-3 text-[#F5F2EB] font-medium">{j.name}</td>
                       <td className="px-4 py-3"><span className="text-[11px] uppercase tracking-wide px-2 py-0.5 rounded border border-[#C5A46D]/25 bg-[#C5A46D]/10 text-[#C5A46D]">{j.role}</span></td>
                       <td className="px-4 py-3 text-[#A8A49B] max-w-[280px] truncate">{j.purpose || "—"}</td>
-                      <td className="px-6 py-3 text-right text-[#A8A49B] whitespace-nowrap">{new Date(j.created_at).toLocaleString(lang === "ru" ? "ru-RU" : "uz-UZ", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                      {/* BUG FIX: Intl "uz-UZ" bilan month:"short" ishlatilganda "M07" kabi buzuq chiqadi */}
+                      <td className="px-6 py-3 text-right text-[#A8A49B] whitespace-nowrap">{fmtDateLib(j.created_at, lang, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
                     </tr>
                   ))}
                 </tbody>

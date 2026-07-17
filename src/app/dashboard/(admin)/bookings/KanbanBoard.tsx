@@ -26,10 +26,12 @@ import { Badge } from "@/components/ui/badge";
 import { CHANNEL_LABELS, CHANNEL_STYLE } from "./channels";
 import { Info } from "lucide-react";
 import { toast } from "@/components/ui/toast";
+import { fmtDate } from "@/lib/date-fmt";
 
 const formatPrice = (amount: number) => `$${Number(amount || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+// BUG FIX: Intl "uz-UZ" bilan month:"short" ishlatilganda "M07" kabi buzuq chiqadi — date-fmt.ts qo'lda formatlaydi
 const formatDate = (dateStr: string, isRu?: boolean) =>
-  new Date(dateStr).toLocaleDateString(isRu ? "ru-RU" : "uz-UZ", { day: "numeric", month: "short", year: "numeric" });
+  fmtDate(dateStr, isRu ? "ru" : "uz", { day: "numeric", month: "short", year: "numeric" });
 
 type ColumnId = "pending" | "confirmed" | "checked_in" | "completed";
 

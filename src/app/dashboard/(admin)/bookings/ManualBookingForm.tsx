@@ -32,13 +32,18 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
   const router = useRouter();
   const [f, setF] = useState({
     apartment_id: "", guest_name: prefill?.name || "", guest_phone: prefill?.phone || "", guest_email: prefill?.email || "",
-    channel: prefill?.channel || "airbnb", check_in: "", check_out: "",
+    // BUG FIX: avval doim "airbnb" oldindan tanlangan edi — menejer o'zgartirmasa
+    // telefon/o'zi kelgan mijoz ham "Airbnb"dan deb yozilib, kanal statistikasini buzardi
+    channel: prefill?.channel || "direct", check_in: "", check_out: "",
     total_price: "", deposit_amount: "", deposit_status: "paid", booking_status: "confirmed",
     notes: prefill?.notes || "",
   });
   const [state, setState] = useState<"idle" | "saving" | "error">("idle");
   const [err, setErr] = useState("");
   const [bookedRanges, setBookedRanges] = useState<{ start: Date; end: Date }[]>([]);
+  // BUG FIX: Kirish/Ketish kalendarlari mustaqil ochilsa, ikkisi bir vaqtda
+  // ochiq qolib bir joyda ustma-ust chiqardi — endi faqat bittasi ochiladi
+  const [openDate, setOpenDate] = useState<"checkin" | "checkout" | null>(null);
   const [placeNow, setPlaceNow] = useState(!!prefill?.place); // "Hozir joylashtirish" (check-in)
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
@@ -155,11 +160,24 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2">
           <label className={labelCls}>{d.booking.checkIn} *</label>
-          <DateField value={f.check_in} onChange={(v) => { set("check_in", v); if (f.check_out && v && f.check_out <= v) set("check_out", ""); }} isBooked={f.apartment_id ? isBooked : undefined} />
+          <DateField
+            value={f.check_in}
+            onChange={(v) => { set("check_in", v); if (f.check_out && v && f.check_out <= v) set("check_out", ""); }}
+            isBooked={f.apartment_id ? isBooked : undefined}
+            open={openDate === "checkin"}
+            onOpenChange={(o) => setOpenDate(o ? "checkin" : null)}
+          />
         </div>
         <div className="space-y-2">
           <label className={labelCls}>{d.booking.checkOut} *</label>
-          <DateField value={f.check_out} onChange={(v) => set("check_out", v)} min={f.check_in || undefined} isBooked={f.apartment_id ? isBooked : undefined} />
+          <DateField
+            value={f.check_out}
+            onChange={(v) => set("check_out", v)}
+            min={f.check_in || undefined}
+            isBooked={f.apartment_id ? isBooked : undefined}
+            open={openDate === "checkout"}
+            onOpenChange={(o) => setOpenDate(o ? "checkout" : null)}
+          />
         </div>
         <div className="space-y-2">
           <label className={labelCls}>{isRu ? "Ночей" : "Kechalar"}</label>

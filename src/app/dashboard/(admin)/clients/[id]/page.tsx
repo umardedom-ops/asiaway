@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Phone, Mail, CalendarDays, Wallet, Repeat } from "lucide-react";
 import { CHANNEL_LABELS } from "../../bookings/channels";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
 export const revalidate = 0;
 
 const money = (n: number) =>
   `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-const fmtDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString("uz-UZ", { day: "numeric", month: "short", year: "numeric" }) : "—";
+// BUG FIX: Intl "uz-UZ" bilan month:"short" ishlatilganda "M07" kabi buzuq chiqadi
+const fmtDate = (d?: string) => fmtDateLib(d, "uz", { day: "numeric", month: "short", year: "numeric" });
 
 export default async function ClientDetailPage({
   params,

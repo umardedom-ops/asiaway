@@ -4,6 +4,7 @@ import { D, type Lang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpCircle, ArrowDownCircle, Scale, Wallet } from "lucide-react";
 import KassaTabs from "./KassaTabs";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
 export const revalidate = 0;
 
@@ -38,7 +39,8 @@ export default async function KassaPage() {
   const monthIn = pays.filter((p) => p.paid_at >= monthStart).reduce((s, p) => s + sign(p), 0);
   const monthOut = exps.filter((e) => e.spent_on >= monthStartDate).reduce((s, e) => s + Number(e.amount || 0), 0);
 
-  const monthLabel = now.toLocaleDateString(lang === "uz" ? "uz-UZ" : "ru-RU", { month: "long", year: "numeric" });
+  // BUG FIX: Intl "uz-UZ" bilan month:"long" ishlatilganda "M07" kabi buzuq chiqadi
+  const monthLabel = fmtDateLib(now, lang, { month: "long", year: "numeric" });
 
   const textDict = {
     uz: {

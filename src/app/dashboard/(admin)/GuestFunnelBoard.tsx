@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, BedDouble, LogOut } from "lucide-react";
 import InvoiceModal from "./bookings/InvoiceModal";
 import { useDashLang } from "@/components/DashboardLangProvider";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
-const fmtDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString("uz-UZ", { day: "numeric", month: "short" }) : "—";
+// BUG FIX: Intl "uz-UZ" bilan month:"short" ishlatilganda "M07" kabi buzuq chiqadi
+const fmtDate = (d?: string) => fmtDateLib(d, "uz", { day: "numeric", month: "short" });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = any;

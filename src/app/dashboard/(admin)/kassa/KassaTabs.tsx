@@ -8,6 +8,7 @@ import DeletePaymentButton from "../income/DeletePaymentButton";
 import ExpenseForm, { EXPENSE_CATEGORIES, EXPENSE_CATEGORIES_RU } from "../finance/ExpenseForm";
 import DeleteExpenseButton from "../finance/DeleteExpenseButton";
 import { useDashLang } from "@/components/DashboardLangProvider";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 const fmtDateTime = (d: string) =>
@@ -56,7 +57,8 @@ export default function KassaTabs({
     const out = de.reduce((s, e) => s + Number(e.amount || 0), 0);
     return { k, dp, de, inc, out, net: inc - out };
   });
-  const fmtDay = (k: string) => new Date(k).toLocaleDateString(isUz ? "uz-UZ" : "ru-RU", { day: "numeric", month: "long", weekday: "short" });
+  // BUG FIX: Intl "uz-UZ" bilan month:"long" ishlatilganda "M07" kabi buzuq chiqadi
+  const fmtDay = (k: string) => fmtDateLib(k, isUz ? "uz" : "ru", { day: "numeric", month: "long", weekday: "short" });
 
   const tabBtn = (key: typeof tab, label: string, icon: React.ReactNode, active: string) => (
     <button onClick={() => setTab(key)}
