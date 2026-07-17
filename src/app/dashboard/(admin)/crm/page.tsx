@@ -67,10 +67,11 @@ export default async function CRMPage() {
             <Users className="h-8 w-8 text-[#C5A46D]" />
             {d.crm.title}
             {/* Yashirin Excel yuklab olish (targetolog/shef): mijozlar bazasi + UTM tahlili */}
+            {/* Telefonda hover yo'q — mobil ekranда yarim-ko'rinadigan, desktopda hover'da */}
             <a
               href="/api/export/clients"
               title="Excel"
-              className="opacity-0 hover:opacity-80 focus:opacity-80 transition-opacity duration-300 text-[#C5A46D] p-2 -m-1"
+              className="opacity-60 lg:opacity-0 hover:opacity-90 lg:hover:opacity-80 focus:opacity-90 transition-opacity duration-300 text-[#C5A46D] p-2 -m-1"
               download
             >
               <Download className="h-4 w-4" />

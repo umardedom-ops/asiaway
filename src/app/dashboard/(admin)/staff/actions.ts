@@ -39,10 +39,13 @@ export async function addStaff(input: { full_name: string; role: string; phone?:
 export async function addTask(input: {
   title: string; type: string; assigned_to?: string | null;
   apartment_id?: string | null; due_date?: string | null; priority?: string;
+  /** Topshiriq fotosi (Storage'ga client yuklaydi, bu yerga tayyor URL keladi) */
+  brief_image_url?: string | null;
 }) {
   if (!input.title?.trim()) return { success: false, error: "Vazifa nomini kiriting" };
   const supabase = await createClient();
-  const { error, data: task } = await supabase.from("tasks").insert([{
+
+  const taskRow: Record<string, unknown> = {
     title: input.title.trim(),
     type: input.type || "cleaning",
     assigned_to: input.assigned_to || null,
@@ -50,7 +53,17 @@ export async function addTask(input: {
     due_date: input.due_date || null,
     priority: input.priority || "normal",
     status: "todo",
-  }]).select("id").single();
+    brief_image_url: input.brief_image_url || null,
+  };
+
+  let { error, data: task } = await supabase.from("tasks").insert([taskRow]).select("id").single();
+
+  // brief_image_url ustuni hali yo'q bo'lsa (migratsiya RUN qilinmagan) — usiz qayta uring
+  if (error && /column/i.test(error.message) && /brief_image_url/i.test(error.message)) {
+    const { brief_image_url: _omit, ...fallbackRow } = taskRow;
+    void _omit;
+    ({ error, data: task } = await supabase.from("tasks").insert([fallbackRow]).select("id").single());
+  }
 
   if (error) return { success: false, error: error.message };
 
@@ -100,8 +113,12 @@ export async function addTask(input: {
       const staffLine = staffName ? `\n${lblStaff} ${staffName}` : "";
       const dateLine = input.due_date ? `\n${lblDue} ${input.due_date}` : "";
       const prioLine = input.priority === "high" ? `\n${lblPrio}` : "";
+      // Topshiriq fotosi — havola sifatida (Telegram preview ko'rsatadi)
+      const photoLine = input.brief_image_url
+        ? `\n📷 <a href="${input.brief_image_url}">${isRu ? "Фото задачи" : "Topshiriq fotosi"}</a>`
+        : "";
 
-      const text = `${title} — ${typeLabel}\n\n${lblTask} ${input.title.trim()}${aptLine}${staffLine}${dateLine}${prioLine}`;
+      const text = `${title} — ${typeLabel}\n\n${lblTask} ${input.title.trim()}${aptLine}${staffLine}${dateLine}${prioLine}${photoLine}`;
       
       const buttons = task?.id 
         ? [[{ text: isRu ? "✅ Выполнено" : "✅ Bajarildi", callback_data: `task:${task.id}:done` }]] 

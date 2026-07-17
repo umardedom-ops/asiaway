@@ -14,6 +14,8 @@ interface CleaningTask {
   due_date: string | null;
   aptTitle: string;
   aptAddress: string;
+  /** Shef topshiriq berganda biriktirgan foto ("mana bu joyni tozala") */
+  briefImageUrl?: string | null;
 }
 
 export default function TaskCard({ task }: { task: CleaningTask }) {
@@ -94,6 +96,19 @@ export default function TaskCard({ task }: { task: CleaningTask }) {
           </span>
         )}
       </div>
+
+      {/* Topshiriq fotosi — shef nima qilish kerakligini rasm bilan ko'rsatgan */}
+      {task.briefImageUrl && (
+        <a href={task.briefImageUrl} target="_blank" rel="noopener noreferrer" className="block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={task.briefImageUrl}
+            alt="Topshiriq fotosi"
+            className="w-full h-40 object-cover rounded-[10px] border border-[#C5A46D]/30"
+          />
+          <span className="block mt-1 text-[11px] text-[#C5A46D]">📷 Topshiriq fotosi — kattalashtirish uchun bosing</span>
+        </a>
+      )}
 
       {/* Rasm (dalil) — farrosh tozalangan xona suratini biriktiradi */}
       {preview ? (

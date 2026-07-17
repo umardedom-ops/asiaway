@@ -12,7 +12,7 @@ export default async function CleaningTasksPage() {
   const [{ data: tasks }, { data: apartments }] = await Promise.all([
     supabase
       .from("tasks")
-      .select("id, title, status, priority, due_date, apartment_id")
+      .select("*")
       .eq("type", "cleaning")
       .in("status", ["todo", "in_progress"])
       .order("priority", { ascending: false })
@@ -32,6 +32,8 @@ export default async function CleaningTasksPage() {
     due_date: (t.due_date as string) || null,
     aptTitle: aptMap.get(t.apartment_id)?.title || "Apartament",
     aptAddress: aptMap.get(t.apartment_id)?.address || "",
+    // Topshiriq fotosi (shef biriktirgan) — ustun hali bo'lmasa null
+    briefImageUrl: (t.brief_image_url as string) || null,
   }));
 
   return (
