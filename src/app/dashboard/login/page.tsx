@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShieldAlert } from "lucide-react";
+import InstallPwaButton from "@/components/InstallPwaButton";
 
 interface PageProps {
   searchParams: Promise<{
@@ -70,6 +71,11 @@ export default async function LoginPage({ searchParams }: PageProps) {
               Kirish
             </Button>
           </form>
+
+          {/* PWA: kompyuter/telefonga ilova sifatida o'rnatish (brauzer qo'llasa ko'rinadi) */}
+          <div className="mt-5">
+            <InstallPwaButton />
+          </div>
         </CardContent>
       </Card>
     </div>
