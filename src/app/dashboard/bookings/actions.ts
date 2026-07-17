@@ -335,7 +335,13 @@ export async function payBookingBalance(bookingId: string, amount: number, guest
     throw new Error(`To'lov qo'shishda xatolik: ${error.message}`);
   }
 
+  // To'lov Kassa/Kirim/Moliyaga darrov ko'rinishi uchun barcha bog'liq sahifalarni yangilaymiz
   revalidatePath("/dashboard/bookings");
   revalidatePath("/dashboard/reception");
+  revalidatePath("/dashboard/kassa");
+  revalidatePath("/dashboard/income");
+  revalidatePath("/dashboard/cashflow");
+  revalidatePath("/dashboard/finance");
+  revalidatePath("/dashboard");
   return { success: true };
 }

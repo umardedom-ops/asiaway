@@ -18,14 +18,25 @@ export default async function BookingStatCards() {
 
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("id, check_in, check_out, booking_status")
+    .select("id, check_in, check_out, booking_status, checked_in_at")
     .neq("booking_status", "cancelled");
 
   const rows = bookings ?? [];
 
-  const bookedCount = rows.filter((b) => b.booking_status === "confirmed" && b.check_in > today).length;
-  const arrivingToday = rows.filter((b) => b.booking_status === "confirmed" && b.check_in === today).length;
-  const stayingCount = rows.filter((b) => b.booking_status === "confirmed" && b.check_in <= today && b.check_out > today).length;
+  // BUG FIX: avval faqat "confirmed" bron sanalardi — "pending" bron (qo'lda
+  // kiritilgan yoki saytdan kelgan, hali tasdiqlanmagan) HECH QAYERDA ko'rinmasdi.
+  // Endi joylashish holatiga (checked_in_at) asoslanamiz — har bron aniq bitta
+  // kartada sanaladi.
+  const notDone = rows.filter((b) => b.booking_status !== "completed");
+
+  // Забронировали = bron qilingan, hali joylashmagan, kelish kuni bugun EMAS
+  // (kelajak yoki kechikkan) — pending ham, confirmed ham
+  const bookedCount = notDone.filter((b) => !b.checked_in_at && b.check_in !== today).length;
+  // Bugun keladi = hali joylashmagan, kelish kuni bugun
+  const arrivingToday = notDone.filter((b) => !b.checked_in_at && b.check_in === today).length;
+  // Hozir turibdi = joylashtirilgan (checked_in_at bor)
+  const stayingCount = notDone.filter((b) => b.checked_in_at).length;
+  // Chiqib ketgan = yakunlangan
   const leftCount = rows.filter((b) => b.booking_status === "completed").length;
 
   return (

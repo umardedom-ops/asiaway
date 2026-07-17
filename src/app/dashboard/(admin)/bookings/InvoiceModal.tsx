@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Printer, Plus, Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { Printer, Plus, Trash2, Loader2, CheckCircle2, Pencil } from "lucide-react";
 import { getBookingPayments, payBookingBalance } from "@/app/dashboard/bookings/actions";
 import { useDashLang } from "@/components/DashboardLangProvider";
 import { toast } from "@/components/ui/toast";
+import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Booking = any;
@@ -16,12 +17,13 @@ interface Payment { id: string; amount: number; method: string; kind: string; no
 type InvoiceModalProps = { isOpen: boolean; onClose: () => void; booking: Booking };
 
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString("uz-UZ", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
-const fmtDT = (d: string) => new Date(d).toLocaleString("uz-UZ", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalProps) {
   const d = useDashLang();
   const isRu = d.lang === "ru";
+  // BUG FIX: Intl "uz-UZ" oy nomini "M07" qilib buzardi — date-fmt.ts ishlatamiz
+  const fmtDate = (dt?: string) => fmtDateLib(dt, d.lang, { day: "2-digit", month: "2-digit", year: "numeric" });
+  const fmtDT = (dt: string) => fmtDateLib(dt, d.lang, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   const METHOD: Record<string, string> = isRu 
     ? { naqd: "Наличные", karta: "Карта", payme: "Payme", click: "Click", otkazma: "Перевод", boshqa: "Другое" }
@@ -36,11 +38,17 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
   const [payingBalance, setPayingBalance] = useState(false);
+  // Ijara (asosiy) summasini QO'LDA tahrirlash — avtomat hisoblanadi, lekin
+  // menejer o'zgartira oladi (chegirma, kelishilgan narx). null = avtomat.
+  const [editedBase, setEditedBase] = useState<number | null>(null);
+  const [editingBase, setEditingBase] = useState(false);
 
   // Modal ochilганда — bron to'lovlarini yuklaymiz (haqiqiy olingan pul)
   useEffect(() => {
     if (isOpen && booking?.id) {
       setLoading(true);
+      setEditedBase(null); // yangi bron ochilганda avtomatga qaytamiz
+      setEditingBase(false);
       getBookingPayments(booking.id)
         .then((p) => setPayments(p as Payment[]))
         .catch(() => setPayments([]))
@@ -58,7 +66,9 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
   };
 
   const nights = booking?.nights || 0;
-  const basePrice = Number(booking?.total_price || 0);
+  const autoBase = Number(booking?.total_price || 0);
+  // Tahrirlangan bo'lsa — o'sha, aks holda avtomat
+  const basePrice = editedBase !== null ? editedBase : autoBase;
   const perNight = nights > 0 ? Math.round(basePrice / nights) : basePrice;
   const extraList = extraServices.filter((s) => s.name && s.price > 0);
   const extraTotal = extraList.reduce((s, x) => s + x.price, 0);
@@ -165,7 +175,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-[#0B0D0F] text-[#F5F2EB] border-[rgba(197,164,109,0.22)] max-h-[92vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl bg-[#0B0D0F] text-[#F5F2EB] border-[rgba(197,164,109,0.22)] max-h-[92vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="text-[#C5A46D] font-heading text-xl border-b border-[rgba(197,164,109,0.22)] pb-4">
             {isRu ? "Чек · Счет-фактура" : "Chek · Hisob-faktura"}
@@ -173,7 +183,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
         </DialogHeader>
 
         {/* Ekrandagi ko'rinish (preview) */}
-        <div className="bg-white text-black rounded-md p-6 my-2 text-[13px]">
+        <div className="bg-white text-black rounded-md p-4 sm:p-6 my-2 text-[13px] overflow-x-hidden">
           <div className="flex justify-between border-b-2 border-[#C5A46D] pb-3 mb-3">
             <div>
               <div className="text-lg font-bold" style={{ fontFamily: "Georgia, serif" }}>ASIA WAY <span className="text-[#B8925A]">APARTMENTS</span></div>
@@ -189,7 +199,31 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
           <table className="w-full mb-3">
             <thead><tr className="border-b-2 border-gray-800 text-[10px] uppercase text-gray-500"><th className="text-left py-1.5">{isRu ? "УСЛУГА" : "Xizmat"}</th><th className="text-right py-1.5">{isRu ? "СУММА" : "Summa"}</th></tr></thead>
             <tbody>
-              <tr className="border-b border-gray-200"><td className="py-1.5">{isRu ? "Аренда" : "Ijara"} ({money(perNight)} × {nights})</td><td className="py-1.5 text-right font-medium">{money(basePrice)}</td></tr>
+              <tr className="border-b border-gray-200">
+                <td className="py-1.5">
+                  {isRu ? "Аренда" : "Ijara"} ({money(perNight)} × {nights})
+                  {editedBase !== null && <span className="ml-1.5 text-[10px] text-amber-600">{isRu ? "(изменено)" : "(o'zgartirildi)"}</span>}
+                </td>
+                <td className="py-1.5 text-right font-medium">
+                  {editingBase ? (
+                    <span className="inline-flex items-center gap-1 justify-end">
+                      <span>$</span>
+                      <input
+                        type="number"
+                        autoFocus
+                        defaultValue={basePrice}
+                        onBlur={(e) => { setEditedBase(Number(e.target.value) || 0); setEditingBase(false); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { setEditedBase(Number((e.target as HTMLInputElement).value) || 0); setEditingBase(false); } }}
+                        className="w-20 border border-[#C5A46D] rounded px-1.5 py-0.5 text-right text-black outline-none"
+                      />
+                    </span>
+                  ) : (
+                    <button onClick={() => setEditingBase(true)} className="inline-flex items-center gap-1 hover:text-[#B8925A]" title={isRu ? "Изменить сумму" : "Summani o'zgartirish"}>
+                      {money(basePrice)} <Pencil className="h-3 w-3 text-gray-400" />
+                    </button>
+                  )}
+                </td>
+              </tr>
               {extraList.map((s, i) => <tr key={i} className="border-b border-gray-200"><td className="py-1.5">{s.name}</td><td className="py-1.5 text-right font-medium">{money(s.price)}</td></tr>)}
             </tbody>
           </table>
@@ -213,7 +247,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
             </>
           )}
 
-          <div className="ml-auto w-64 text-[13px]">
+          <div className="w-full sm:w-64 sm:ml-auto text-[13px]">
             <div className="flex justify-between text-gray-600"><span>{isRu ? "Итого услуги" : "Jami xizmat"}</span><span>{money(totalCharge)}</span></div>
             <div className="flex justify-between text-emerald-700"><span>{isRu ? "Оплачено" : "To'langan"}</span><span>{money(paidTotal)}</span></div>
             <div className={`flex justify-between border-t-2 border-gray-800 pt-2 mt-1 text-[15px] font-bold ${balance > 0 ? "text-red-600" : "text-emerald-700"}`}>
@@ -237,20 +271,20 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
 
         {/* Qo'shimcha xizmat */}
         <div className="space-y-3 pt-2 border-t border-[rgba(197,164,109,0.22)]">
-          <h3 className="text-[#C5A46D] font-medium text-[14px]">Qo&apos;shimcha xizmat / jarima</h3>
+          <h3 className="text-[#C5A46D] font-medium text-[14px]">{isRu ? "Доп. услуга / штраф" : "Qo'shimcha xizmat / jarima"}</h3>
           {extraServices.map((service, index) => (
-            <div key={index} className="flex gap-3 items-center">
-              <Input value={service.name} onChange={(e) => changeService(index, "name", e.target.value)} placeholder="Masalan: Mini-bar" className="bg-[#111417] border-[rgba(197,164,109,0.22)] h-10" />
-              <Input type="number" value={service.price || ""} onChange={(e) => changeService(index, "price", e.target.value)} placeholder="$" className="w-28 bg-[#111417] border-[rgba(197,164,109,0.22)] h-10" />
-              <button onClick={() => removeService(index)} aria-label="O'chirish" className="text-[#A8A49B] hover:text-red-400 p-2"><Trash2 className="h-4 w-4" /></button>
+            <div key={index} className="flex gap-2 sm:gap-3 items-center">
+              <Input value={service.name} onChange={(e) => changeService(index, "name", e.target.value)} placeholder={isRu ? "Например: Мини-бар" : "Masalan: Mini-bar"} className="flex-1 min-w-0 bg-[#111417] border-[rgba(197,164,109,0.22)] h-10" />
+              <Input type="number" value={service.price || ""} onChange={(e) => changeService(index, "price", e.target.value)} placeholder="$" className="w-20 sm:w-28 shrink-0 bg-[#111417] border-[rgba(197,164,109,0.22)] h-10" />
+              <button onClick={() => removeService(index)} aria-label="O'chirish" className="shrink-0 text-[#A8A49B] hover:text-red-400 p-2"><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
-          <Button variant="outline" size="sm" onClick={addService} className="text-[#A8A49B] border-[rgba(197,164,109,0.3)] hover:text-[#C5A46D]"><Plus className="h-4 w-4 mr-1.5" /> Xizmat qo&apos;shish</Button>
+          <Button variant="outline" size="sm" onClick={addService} className="text-[#A8A49B] border-[rgba(197,164,109,0.3)] hover:text-[#C5A46D]"><Plus className="h-4 w-4 mr-1.5" /> {isRu ? "Добавить услугу" : "Xizmat qo'shish"}</Button>
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} className="border-[rgba(197,164,109,0.22)]">Yopish</Button>
-          <Button onClick={printInvoice} className="bg-[#C5A46D] text-black hover:bg-[#D4B77F]"><Printer className="w-4 h-4 mr-2" /> Chek chiqarish (PDF)</Button>
+          <Button variant="outline" onClick={onClose} className="border-[rgba(197,164,109,0.22)]">{d.common.close}</Button>
+          <Button onClick={printInvoice} className="bg-[#C5A46D] text-black hover:bg-[#D4B77F]"><Printer className="w-4 h-4 mr-2" /> {isRu ? "Распечатать чек (PDF)" : "Chek chiqarish (PDF)"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
