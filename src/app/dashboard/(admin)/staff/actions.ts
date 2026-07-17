@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { notifyRole, type BotRole } from "@/lib/telegram";
 import { completeCleaningTaskAndFreeRoom } from "@/lib/cleaning";
+import { denyUnlessRole } from "@/lib/export-auth";
 
 const TYPE_LABELS: Record<string, string> = {
   cleaning: "Tozalash", checkin: "Kutib olish", checkout: "Kuzatish",
@@ -18,6 +19,10 @@ function botForStaffRole(role?: string | null): BotRole {
 }
 
 export async function addStaff(input: { full_name: string; role: string; phone?: string; monthly_salary?: number }) {
+  // Xodim ma'lumotlarini kiritish/tahrirlash — FAQAT SHEF
+  const deny = await denyUnlessRole(["shef"]);
+  if (deny) return deny;
+
   if (!input.full_name?.trim()) return { success: false, error: "Ism kiriting" };
   const supabase = await createClient();
   const { error } = await supabase.from("staff").insert([{
@@ -137,6 +142,10 @@ export async function setTaskStatus(id: string, status: string) {
 }
 
 export async function deleteTask(id: string) {
+  // Vazifani o'chirish — FAQAT SHEF
+  const deny = await denyUnlessRole(["shef"]);
+  if (deny) return deny;
+
   const supabase = await createClient();
   const { error } = await supabase.from("tasks").delete().eq("id", id);
   if (error) return { success: false, error: error.message };
@@ -145,6 +154,10 @@ export async function deleteTask(id: string) {
 }
 
 export async function toggleStaffActive(id: string, active: boolean) {
+  // Xodim holatini o'zgartirish — FAQAT SHEF
+  const deny = await denyUnlessRole(["shef"]);
+  if (deny) return deny;
+
   const supabase = await createClient();
   const { error } = await supabase.from("staff").update({ active }).eq("id", id);
   if (error) return { success: false, error: error.message };

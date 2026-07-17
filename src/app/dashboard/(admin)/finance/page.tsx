@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { D, type Lang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Wallet, Building2, Users, Receipt, Download } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Building2, Users, Receipt, Download, ChartColumn } from "lucide-react";
+import { IncomeExpenseChart, ExpenseBreakdownChart } from "@/components/dashboard/Charts";
 import { EXPENSE_CATEGORIES } from "./ExpenseForm";
 import Sparkline from "./Sparkline";
 import StatCard from "@/components/dashboard/StatCard";
@@ -22,12 +23,16 @@ export default async function FinancePage() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().split("T")[0];
 
+  // 6 oylik diagramma uchun boshlanish
+  const chartSince = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().split("T")[0];
+
   // Ma'lumotlar (jadval hali yaratilmagan bo'lsa — bo'sh)
-  const [{ data: apts }, { data: bookings }, { data: expensesRaw }, { data: staff }] = await Promise.all([
+  const [{ data: apts }, { data: bookings }, { data: expensesRaw }, { data: staff }, { data: expenses6m }] = await Promise.all([
     supabase.from("apartments").select("id, title, status, monthly_lease_cost"),
     supabase.from("bookings").select("total_price, check_in, booking_status, apartment_id, channel"),
     supabase.from("expenses").select("*").gte("spent_on", monthStart).lt("spent_on", nextMonthStart).order("spent_on", { ascending: false }),
     supabase.from("staff").select("monthly_salary, active"),
+    supabase.from("expenses").select("spent_on, amount, category").gte("spent_on", chartSince),
   ]);
 
   const apartments = apts ?? [];
@@ -80,6 +85,27 @@ export default async function FinancePage() {
   const totalCost = rentCost + salaryCost + variableTotal;
   const profit = income - totalCost;
   const margin = income > 0 ? Math.round((profit / income) * 100) : 0;
+
+  // ---- 6 oylik daromad vs xarajat (diagramma) ----
+  const chartLocale = lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "uz-UZ";
+  const sixMonths: { key: string; label: string }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const dt = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    sixMonths.push({
+      key: `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`,
+      label: dt.toLocaleDateString(chartLocale, { month: "short" }),
+    });
+  }
+  const monthlyChart = sixMonths.map(({ key, label }) => {
+    const inc = allBookings
+      .filter((b) => String(b.check_in).startsWith(key) && (b.booking_status === "confirmed" || b.booking_status === "completed"))
+      .reduce((s, b) => s + Number(b.total_price || 0), 0);
+    const vexp = (expenses6m ?? [])
+      .filter((e) => String(e.spent_on).startsWith(key) && e.category !== "rent")
+      .reduce((s, e) => s + Number(e.amount || 0), 0);
+    // Doimiy yuk (arenda+maosh) har oyga qo'shiladi — haqiqiy to'liq xarajat ko'rinishi uchun
+    return { month: label, income: inc, expense: vexp + rentCost + salaryCost };
+  });
 
   // Sparkline trendlari — oy boshidan BUGUNGACHA yig'ilgan (kumulyativ) qiymatlar.
   // Kunlik "tikanli" chiziq o'rniga karta sarlavha raqamiga qarab o'suvchi silliq trend.
@@ -179,6 +205,13 @@ export default async function FinancePage() {
 
   const t = textDict[lang];
 
+  // Xarajat taqsimoti diagrammasi ("qancha qayerga") — joriy oy
+  const breakdownChart = [
+    { name: t.rentCost, value: rentCost },
+    { name: t.salaryCost, value: salaryCost },
+    ...Object.entries(byCat).map(([cat, val]) => ({ name: EXPENSE_CATEGORIES[cat] || cat, value: val })),
+  ].filter((x) => x.value > 0).sort((a, b) => b.value - a.value);
+
   return (
     <div className="space-y-8">
       <div>
@@ -207,11 +240,30 @@ export default async function FinancePage() {
         <StatCard title={t.cost} value={money(rentCost)} icon={<Building2 className="h-4 w-4 text-[#C5A46D]" />} sub={t.costSub} />
       </div>
 
+      {/* Diagramma: 6 oylik daromad vs xarajat dinamikasi */}
+      <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+        <CardHeader>
+          <CardTitle className="text-[16px] font-medium text-[#F5F2EB] inline-flex items-center gap-2">
+            <ChartColumn className="h-4 w-4 text-[#C5A46D]" />
+            {lang === "ru" ? "Динамика: доход и расход (6 месяцев)" : lang === "en" ? "Income vs expenses (6 months)" : "Daromad va xarajat dinamikasi (6 oy)"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <IncomeExpenseChart
+            data={monthlyChart}
+            incomeLabel={lang === "ru" ? "Доход" : lang === "en" ? "Income" : "Daromad"}
+            expenseLabel={lang === "ru" ? "Расход" : lang === "en" ? "Expense" : "Xarajat"}
+          />
+        </CardContent>
+      </Card>
+
       {/* Xarajat taqsimoti */}
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none lg:col-span-1">
           <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.breakdown}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
+            {/* Diagramma: qancha pul qayerga ketyapti */}
+            {breakdownChart.length > 0 && <ExpenseBreakdownChart data={breakdownChart} />}
             <CostLine label={t.rentCost} value={money(rentCost)} icon={<Building2 className="h-4 w-4" />} />
             <CostLine label={t.salaryCost} value={money(salaryCost)} icon={<Users className="h-4 w-4" />} />
             {Object.entries(byCat).map(([cat, val]) => (

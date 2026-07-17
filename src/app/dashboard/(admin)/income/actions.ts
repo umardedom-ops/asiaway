@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { denyUnlessRole } from "@/lib/export-auth";
 
 export interface PaymentInput {
   booking_id?: string;
@@ -13,8 +14,11 @@ export interface PaymentInput {
   paid_at?: string; // ISO; berilmasa hozir
 }
 
-// Qo'lda to'lov qo'shish (kirim kassasiga)
+// Qo'lda to'lov qo'shish (kirim kassasiga) — moliya vakolati
 export async function addPayment(input: PaymentInput) {
+  const deny = await denyUnlessRole(["shef", "finansist"]);
+  if (deny) return deny;
+
   if (!input.guest_name?.trim()) return { success: false, error: "Mehmon ismini kiriting" };
   if (!input.amount || input.amount <= 0) return { success: false, error: "Summani kiriting" };
 
@@ -59,6 +63,10 @@ export async function addPayment(input: PaymentInput) {
 }
 
 export async function deletePayment(id: string) {
+  // Kirim yozuvini O'CHIRISH — FAQAT SHEF
+  const deny = await denyUnlessRole(["shef"]);
+  if (deny) return deny;
+
   const supabase = await createClient();
   const { error } = await supabase.from("payments").delete().eq("id", id);
   if (error) return { success: false, error: error.message };

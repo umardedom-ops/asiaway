@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { denyUnlessRole } from "@/lib/export-auth";
 
 export interface ExpenseInput {
   category: string;
@@ -13,6 +14,10 @@ export interface ExpenseInput {
 }
 
 export async function addExpense(input: ExpenseInput) {
+  // Xarajat kiritish — faqat moliya vakolati (shef/finansist)
+  const deny = await denyUnlessRole(["shef", "finansist"]);
+  if (deny) return deny;
+
   if (!input.amount || input.amount <= 0) {
     return { success: false, error: "Summani kiriting" };
   }
@@ -46,6 +51,10 @@ export async function addExpense(input: ExpenseInput) {
 }
 
 export async function deleteExpense(id: string) {
+  // Hisob-kitob yozuvini O'CHIRISH — FAQAT SHEF
+  const deny = await denyUnlessRole(["shef"]);
+  if (deny) return deny;
+
   const supabase = await createClient();
   const { error } = await supabase.from("expenses").delete().eq("id", id);
   if (error) return { success: false, error: error.message };

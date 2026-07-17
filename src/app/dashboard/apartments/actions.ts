@@ -170,6 +170,11 @@ export async function saveApartment(prevState: any, formData: FormData) {
 }
 
 export async function deleteApartment(id: string) {
+  // Apartamentni O'CHIRISH — FAQAT SHEF
+  const { denyUnlessRole } = await import("@/lib/export-auth");
+  const deny = await denyUnlessRole(["shef"]);
+  if (deny) throw new Error(deny.error);
+
   const supabase = await createClient();
 
   const { error } = await supabase
