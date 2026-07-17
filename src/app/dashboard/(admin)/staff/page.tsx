@@ -8,6 +8,7 @@ import AddTaskForm from "./AddTaskForm";
 import TaskRow from "./TaskRow";
 import { ROLE_LABELS, TASK_TYPE_LABELS } from "./labels";
 import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
+import StaffCardActions from "./StaffCardActions";
 
 export const revalidate = 0;
 
@@ -19,6 +20,14 @@ export default async function StaffPage() {
   const cookieStore = await cookies();
   const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
   const d = D[lang];
+
+  // Rolni aniqlaymiz — faqat shef xodimlarni boshqara/o'chira oladi
+  const { data: { user } } = await supabase.auth.getUser();
+  let isShef = false;
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    isShef = profile?.role === "shef";
+  }
 
   const [{ data: staffRaw }, { data: tasksRaw }, { data: aptsRaw }, { data: journalRaw }] = await Promise.all([
     supabase.from("staff").select("*").order("created_at", { ascending: false }),
@@ -133,6 +142,8 @@ export default async function StaffPage() {
                 <span className="flex-1 text-center py-1.5 rounded bg-[#0B0D0F] border border-[rgba(197,164,109,0.1)] text-[#A8A49B]">{t.activeLabel}: <span className="text-[#F5F2EB]">{s.active}</span></span>
                 <span className="flex-1 text-center py-1.5 rounded bg-[#0B0D0F] border border-[rgba(197,164,109,0.1)] text-[#A8A49B]">{t.doneLabel}: <span className="text-emerald-400">{s.done}</span></span>
               </div>
+              {/* Boshqaruv: faollashtirish/nofaol + o'chirish (faqat shef) */}
+              <StaffCardActions id={s.id} name={s.full_name} active={!!s.active} isShef={isShef} />
             </CardContent>
           </Card>
         ))}

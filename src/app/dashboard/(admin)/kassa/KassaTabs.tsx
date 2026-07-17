@@ -62,7 +62,7 @@ export default function KassaTabs({
 
   const tabBtn = (key: typeof tab, label: string, icon: React.ReactNode, active: string) => (
     <button onClick={() => setTab(key)}
-      className={`inline-flex items-center gap-2 px-5 h-10 rounded-[8px] text-[14px] font-medium transition-colors ${tab === key ? active : "text-[#A8A49B] hover:text-[#F5F2EB]"}`}>
+      className={`inline-flex shrink-0 items-center gap-2 px-5 h-10 rounded-[8px] text-[14px] font-medium whitespace-nowrap transition-colors ${tab === key ? active : "text-[#A8A49B] hover:text-[#F5F2EB]"}`}>
       {icon} {label}
     </button>
   );
@@ -88,7 +88,7 @@ export default function KassaTabs({
   return (
     <div className="space-y-6">
       {/* Tab bar */}
-      <div className="inline-flex flex-wrap rounded-[10px] border border-[rgba(197,164,109,0.2)] bg-[#111417] p-1 gap-1">
+      <div className="flex rounded-[10px] border border-[rgba(197,164,109,0.2)] bg-[#111417] p-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabBtn("kirim", t.tabIn, <ArrowUpCircle className="h-4 w-4" />, "bg-emerald-500/15 text-emerald-400")}
         {tabBtn("chiqim", t.tabOut, <ArrowDownCircle className="h-4 w-4" />, "bg-red-500/15 text-red-400")}
         {tabBtn("kunlik", t.tabDay, <CalendarRange className="h-4 w-4" />, "bg-[#C5A46D]/15 text-[#C5A46D]")}

@@ -181,3 +181,19 @@ export async function toggleStaffActive(id: string, active: boolean) {
   revalidatePath("/dashboard/staff");
   return { success: true };
 }
+
+export async function deleteStaff(id: string) {
+  // Xodimni butunlay O'CHIRISH — FAQAT SHEF
+  const deny = await denyUnlessRole(["shef"]);
+  if (deny) return deny;
+
+  const supabase = await createClient();
+  // Bu xodimga biriktirilgan vazifalarni "biriktirilmagan" holatiga o'tkazamiz
+  // (vazifalar o'chib ketmasin — tarix saqlanadi)
+  await supabase.from("tasks").update({ assigned_to: null }).eq("assigned_to", id);
+
+  const { error } = await supabase.from("staff").delete().eq("id", id);
+  if (error) return { success: false, error: error.message };
+  revalidatePath("/dashboard/staff");
+  return { success: true };
+}

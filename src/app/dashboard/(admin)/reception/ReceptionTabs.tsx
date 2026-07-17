@@ -40,17 +40,18 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="inline-flex rounded-[10px] border border-[rgba(197,164,109,0.2)] bg-[#111417] p-1">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {/* Tablar — mobilda yonga scroll (siqilib qolmasin), tugmalar to'liq ko'rinadi */}
+        <div className="flex gap-1 rounded-[10px] border border-[rgba(197,164,109,0.2)] bg-[#111417] p-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`inline-flex items-center justify-center gap-2 px-4 h-10 rounded-[8px] text-[13.5px] font-medium transition-all duration-200 ${tab === t.key ? "bg-[#C5A46D]/15 text-[#C5A46D] scale-[1.02]" : "text-[#A8A49B] hover:text-[#F5F2EB] hover:bg-white/5 active:scale-[0.98]"}`}>
+              className={`inline-flex shrink-0 items-center justify-center gap-2 px-4 h-10 rounded-[8px] text-[13.5px] font-medium whitespace-nowrap transition-all duration-200 ${tab === t.key ? "bg-[#C5A46D]/15 text-[#C5A46D]" : "text-[#A8A49B] hover:text-[#F5F2EB] hover:bg-white/5 active:scale-[0.98]"}`}>
               {t.icon} <span>{t.label}</span>
             </button>
           ))}
         </div>
-        <Link href="/dashboard/bookings/new">
-          <button className={`${btnPrimary} h-10 px-5 text-[13.5px] gap-2 flex items-center justify-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}>
+        <Link href="/dashboard/bookings/new" className="shrink-0">
+          <button className={`${btnPrimary} h-10 px-5 text-[13.5px] gap-2 flex items-center justify-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] w-full lg:w-auto`}>
             <Plus className="h-4 w-4" /> <span>{d.reception.newBooking}</span>
           </button>
         </Link>
