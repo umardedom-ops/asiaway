@@ -7,7 +7,7 @@ const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C5A46D]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0D0F]";
 
 export const btnBase =
-  `inline-flex items-center justify-center font-semibold tracking-wide rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:pointer-events-none ${focusRing}`;
+  `inline-flex items-center justify-center font-semibold tracking-wide rounded-lg transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${focusRing}`;
 
 export const btnPrimary =
   `${btnBase} bg-[#C5A46D] text-[#0B0D0F] hover:bg-[#D4B77F]`;

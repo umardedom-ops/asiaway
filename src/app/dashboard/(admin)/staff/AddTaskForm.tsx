@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { addTask } from "./actions";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, CheckCircle2, AlertTriangle } from "lucide-react";
 import { btnPrimary } from "@/lib/ui";
 import { TASK_TYPE_LABELS, TASK_TYPE_LABELS_RU, inputCls } from "./labels";
 import { Calendar } from "@/components/ui/calendar";
@@ -23,14 +23,14 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
   const [priority, setPriority] = useState("normal");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
-  const [info, setInfo] = useState("");
+  const [info, setInfo] = useState<{ type: "success" | "warn"; text: string } | null>(null);
   const d = useDashLang();
   const isRu = d.lang === "ru";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) { setErr(isRu ? "Введите название задачи" : "Vazifa nomini kiriting"); return; }
-    setSaving(true); setErr(""); setInfo("");
+    setSaving(true); setErr(""); setInfo(null);
     const res = await addTask({
       title, type, assigned_to: assignedTo || null,
       apartment_id: apartmentId || null, due_date: dueDate || null, priority,
@@ -40,8 +40,8 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
       setTitle(""); setDueDate("");
       const n = res.notified;
       const dbg = res.debug ? ` [роль: ${res.debug.staffRole ?? "не найдена"} → бот: ${res.debug.botRole}]` : "";
-      if (n && n.sent > 0) setInfo(`✅ ${isRu ? "Задача добавлена · Отправлено в Telegram (" + n.role + ")" : "Vazifa qo'shildi · Telegram (" + n.role + ") botiga yuborildi"}${dbg}`);
-      else setInfo(`⚠️ ${isRu ? "Задача добавлена, но в Telegram НЕ ОТПРАВЛЕНО — " : "Vazifa qo'shildi, lekin Telegram xabari YUBORILMADI — "}${n?.reason || (isRu ? "неизвестная причина" : "noma'lum sabab")}${dbg}`);
+      if (n && n.sent > 0) setInfo({ type: "success", text: `${isRu ? "Задача добавлена · Отправлено в Telegram (" + n.role + ")" : "Vazifa qo'shildi · Telegram (" + n.role + ") botiga yuborildi"}${dbg}` });
+      else setInfo({ type: "warn", text: `${isRu ? "Задача добавлена, но в Telegram НЕ ОТПРАВЛЕНО — " : "Vazifa qo'shildi, lekin Telegram xabari YUBORILMADI — "}${n?.reason || (isRu ? "неизвестная причина" : "noma'lum sabab")}${dbg}` });
     }
     else setErr(res.error || (isRu ? "Ошибка" : "Xatolik"));
   };
@@ -107,10 +107,15 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
         {isRu ? "Добавить" : "Qo'shish"}
       </button>
-      {err && <div className="col-span-full text-[13px] text-red-400">{err}</div>}
+      {err && (
+        <div className="col-span-full inline-flex items-center gap-1.5 text-[13px] text-red-400">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {err}
+        </div>
+      )}
       {info && (
-        <div className={`col-span-full text-[13px] ${info.includes("✅") ? "text-emerald-400" : "text-amber-400"}`}>
-          {info}
+        <div className={`col-span-full inline-flex items-center gap-1.5 text-[13px] ${info.type === "success" ? "text-emerald-400" : "text-amber-400"}`}>
+          {info.type === "success" ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> : <AlertTriangle className="h-3.5 w-3.5 shrink-0" />}
+          {info.text}
         </div>
       )}
     </form>

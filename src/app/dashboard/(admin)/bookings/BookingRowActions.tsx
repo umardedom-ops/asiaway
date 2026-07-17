@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Check, X, CreditCard, Loader2, Receipt, LogIn, LogOut } from "lucide-react";
 import InvoiceModal from "./InvoiceModal";
 import { useDashLang } from "@/components/DashboardLangProvider";
+import { toast } from "@/components/ui/toast";
 
 interface BookingRowActionsProps {
   id: string;
@@ -25,7 +26,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
   const handleCheckIn = async () => {
     setLoadingAction("checkin");
     try { await checkInBooking(id); }
-    catch (err: any) { alert((isRu ? "Ошибка: " : "Xatolik: ") + err.message); }
+    catch (err: any) { toast((isRu ? "Ошибка: " : "Xatolik: ") + err.message); }
     finally { setLoadingAction(null); }
   };
 
@@ -35,7 +36,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
       await updateBookingStatus(id, "completed");
       setInvoiceOpen(true);
     }
-    catch (err: any) { alert((isRu ? "Ошибка: " : "Xatolik: ") + err.message); }
+    catch (err: any) { toast((isRu ? "Ошибка: " : "Xatolik: ") + err.message); }
     finally { setLoadingAction(null); }
   };
 
@@ -44,7 +45,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
     try {
       await updateBookingStatus(id, status);
     } catch (err: any) {
-      alert((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + err.message);
+      toast((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + err.message);
     } finally {
       setLoadingAction(null);
     }
@@ -55,7 +56,7 @@ export default function BookingRowActions({ id, bookingStatus, depositStatus, ch
     try {
       await updateDepositStatus(id, status);
     } catch (err: any) {
-      alert((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + err.message);
+      toast((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + err.message);
     } finally {
       setLoadingAction(null);
     }

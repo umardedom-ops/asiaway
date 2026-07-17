@@ -4,6 +4,7 @@ import { useState } from "react";
 import { deleteApartment } from "@/app/dashboard/apartments/actions";
 import { Button } from "@/components/ui/button";
 import { Trash2, Loader2 } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 
 interface DeleteButtonProps {
   id: string;
@@ -24,7 +25,7 @@ export default function DeleteButton({ id, title }: DeleteButtonProps) {
     try {
       await deleteApartment(id);
     } catch (err: any) {
-      alert(`Xatolik yuz berdi: ${err.message}`);
+      toast(`Xatolik yuz berdi: ${err.message}`);
     } finally {
       setIsDeleting(false);
     }

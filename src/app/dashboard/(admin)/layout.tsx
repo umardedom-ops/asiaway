@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { D, type Lang } from "@/lib/i18n";
 import DashboardLangSwitcher from "@/components/DashboardLangSwitcher";
 import { DashboardLangProvider } from "@/components/DashboardLangProvider";
+import { Toaster } from "@/components/ui/toast";
 import {
   LayoutDashboard,
   Home,
@@ -177,6 +178,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
               {children}
             </div>
           </main>
+          <Toaster />
         </div>
       </div>
     </DashboardLangProvider>

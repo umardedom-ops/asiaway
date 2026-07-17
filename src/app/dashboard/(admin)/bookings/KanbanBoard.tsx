@@ -25,6 +25,7 @@ import { updateBookingStatus, checkInBooking } from "@/app/dashboard/bookings/ac
 import { Badge } from "@/components/ui/badge";
 import { CHANNEL_LABELS, CHANNEL_STYLE } from "./channels";
 import { Info } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 
 const formatPrice = (amount: number) => `$${Number(amount || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 const formatDate = (dateStr: string, isRu?: boolean) =>
@@ -256,7 +257,7 @@ export default function KanbanBoard({ initialBookings }: { initialBookings: any[
             await updateBookingStatus(id, "pending");
          }
        } catch (err: any) {
-         alert((isRu ? "Ошибка: " : "Xatolik: ") + err.message);
+         toast((isRu ? "Ошибка: " : "Xatolik: ") + err.message);
          // Ideally revert state here, but for simplicity we rely on next refresh or user refresh
        }
     }

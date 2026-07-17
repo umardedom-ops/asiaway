@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Printer, Plus, Trash2, Loader2, CheckCircle2 } from "lucide-react";
 import { getBookingPayments, payBookingBalance } from "@/app/dashboard/bookings/actions";
 import { useDashLang } from "@/components/DashboardLangProvider";
+import { toast } from "@/components/ui/toast";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Booking = any;
@@ -79,7 +80,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
       const p = await getBookingPayments(booking.id);
       setPayments(p as Payment[]);
     } catch (e: any) {
-      alert((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + e.message);
+      toast((isRu ? "Произошла ошибка: " : "Xatolik yuz berdi: ") + e.message);
     } finally {
       setPayingBalance(false);
     }
@@ -157,7 +158,7 @@ export default function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalP
 </body></html>`;
 
     const w = window.open("", "_blank", "width=800,height=900");
-    if (!w) { alert(isRu ? "Окно чека заблокировано — разрешите всплывающие окна в браузере." : "Chek oynasi bloklandi — brauzer pop-up ruxsatini bering."); return; }
+    if (!w) { toast(isRu ? "Окно чека заблокировано — разрешите всплывающие окна в браузере." : "Chek oynasi bloklandi — brauzer pop-up ruxsatini bering."); return; }
     w.document.write(html);
     w.document.close();
   };

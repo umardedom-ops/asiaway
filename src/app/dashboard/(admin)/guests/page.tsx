@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, DoorOpen, DoorClosed, CalendarDays } from "lucide-react";
 import GuestCheckoutButton from "./GuestCheckoutButton";
 import { getDashDict } from "@/lib/dash-lang";
+import StatCard from "@/components/dashboard/StatCard";
 
 export const revalidate = 0;
 
@@ -158,20 +159,5 @@ export default async function GuestsPage() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function StatCard({ title, value, icon, sub, accent }: { title: string; value: string; icon: React.ReactNode; sub: string; accent?: boolean }) {
-  return (
-    <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{title}</CardTitle>
-        {icon}
-      </CardHeader>
-      <CardContent>
-        <div className={`text-[28px] font-medium ${accent ? "text-[#C5A46D]" : "text-[#F5F2EB]"}`}>{value}</div>
-        <p className="text-[12px] text-[#A8A49B] mt-2 font-light">{sub}</p>
-      </CardContent>
-    </Card>
   );
 }

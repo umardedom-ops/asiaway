@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, Building2, Users, Receipt } from "lucide-react";
 import { EXPENSE_CATEGORIES } from "./ExpenseForm";
 import Sparkline from "./Sparkline";
+import StatCard from "@/components/dashboard/StatCard";
 
 export const revalidate = 0;
 
@@ -176,10 +177,10 @@ export default async function FinancePage() {
 
       {/* P&L kartalar */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title={t.expectedIncome} value={money(income)} icon={<TrendingUp className="h-4 w-4 text-emerald-400" />} sub={t.expectedIncomeSub} sparklineData={dailyIncome} sparklineColor="#34d399" />
-        <StatCard title={t.totalExpenseTitle} value={money(totalCost)} icon={<TrendingDown className="h-4 w-4 text-red-400" />} sub={t.totalExpenseSub} sparklineData={dailyExpense} sparklineColor="#f87171" />
-        <StatCard title={t.netProfit} value={money(profit)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={t.netProfitSub} accent={profit >= 0} sparklineData={dailyProfit} sparklineColor={profit >= 0 ? "#C5A46D" : "#f87171"} />
-        <StatCard title={t.cost} value={money(rentCost)} icon={<Building2 className="h-4 w-4 text-[#C5A46D]" />} sub={t.costSub} sparklineData={new Array(daysInMonth).fill(rentCost / daysInMonth)} sparklineColor="#9ca3af" />
+        <StatCard title={t.expectedIncome} value={money(income)} icon={<TrendingUp className="h-4 w-4 text-emerald-400" />} sub={t.expectedIncomeSub} sparkline={<Sparkline data={dailyIncome} color="#34d399" />} />
+        <StatCard title={t.totalExpenseTitle} value={money(totalCost)} icon={<TrendingDown className="h-4 w-4 text-red-400" />} sub={t.totalExpenseSub} sparkline={<Sparkline data={dailyExpense} color="#f87171" />} />
+        <StatCard title={t.netProfit} value={money(profit)} icon={<Wallet className="h-4 w-4 text-[#C5A46D]" />} sub={t.netProfitSub} accent={profit >= 0} valueClass={profit < 0 ? "text-red-400" : undefined} sparkline={<Sparkline data={dailyProfit} color={profit >= 0 ? "#C5A46D" : "#f87171"} />} />
+        <StatCard title={t.cost} value={money(rentCost)} icon={<Building2 className="h-4 w-4 text-[#C5A46D]" />} sub={t.costSub} />
       </div>
 
       {/* Xarajat taqsimoti */}
@@ -234,26 +235,6 @@ export default async function FinancePage() {
       </div>
 
     </div>
-  );
-}
-
-function StatCard({ title, value, icon, sub, accent, sparklineData, sparklineColor }: { title: string; value: string; icon: React.ReactNode; sub: string; accent?: boolean; sparklineData?: number[]; sparklineColor?: string }) {
-  return (
-    <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none hover:border-[rgba(197,164,109,0.3)] transition-colors">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-[13px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{title}</CardTitle>
-        {icon}
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-end justify-between">
-          <div className={`text-[28px] font-medium ${accent ? "text-[#C5A46D]" : "text-[#F5F2EB]"}`}>{value}</div>
-          {sparklineData && sparklineColor && (
-            <Sparkline data={sparklineData} color={sparklineColor} />
-          )}
-        </div>
-        <p className="text-[12px] text-[#A8A49B] mt-2 font-light">{sub}</p>
-      </CardContent>
-    </Card>
   );
 }
 
