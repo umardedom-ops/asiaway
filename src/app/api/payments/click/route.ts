@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 import { usdToTiyin } from "@/lib/payments";
 import { notifyRole, fmtMoney } from "@/lib/telegram";
+import { sendPurchaseForBooking } from "@/lib/meta-capi";
 
 // Click SHOP-API webhook (prepare + complete bitta endpointda, action bo'yicha).
 // Click kabinetida Prepare URL va Complete URL: https://<sayt>/api/payments/click
@@ -150,6 +151,9 @@ export async function POST(req: Request) {
       kind: "deposit",
       note: "Sayt broni — zaklat (Click tasdiqlandi)",
     }]);
+
+    // Meta CAPI — real to'lov tasdiqlandi, Purchase yuboramiz (dedup ichkarida)
+    await sendPurchaseForBooking(booking.id);
 
     const { data: apt } = await supabase
       .from("apartments")

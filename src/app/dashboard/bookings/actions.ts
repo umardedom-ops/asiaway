@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { syncClientFromBooking, onBookingCompleted, onBookingCancelled } from "@/lib/clients-sync";
 import { isMissingAttributionColumn } from "@/lib/attribution";
 import { getDashDict } from "@/lib/dash-lang";
+import { sendPurchaseForBooking } from "@/lib/meta-capi";
 
 // Qo'lда bron kiritish (Airbnb / Booking / Instagram / WhatsApp / Telegram / to'g'ridan-to'g'ri)
 export interface ManualBookingInput {
@@ -30,27 +31,6 @@ export interface ManualBookingInput {
 export type BookingResult =
   | { success: true; id?: string; error?: undefined }
   | { success: false; error: string; id?: undefined };
-
-async function triggerMetaCapi(supabase: any, id: string) {
-  try {
-    const { data: booking } = await supabase.from("bookings").select("*").eq("id", id).single();
-    if (booking && booking.booking_status === "confirmed") {
-      // Fire and forget
-      supabase.functions.invoke('meta-capi', {
-        body: {
-          bookingId: booking.id,
-          totalPrice: booking.total_price,
-          guestPhone: booking.guest_phone,
-          guestEmail: booking.guest_email,
-          apartmentId: booking.apartment_id,
-          utmData: booking.utm_data,
-        }
-      }).catch((e: any) => console.error("Meta CAPI Invoke error:", e.message));
-    }
-  } catch (e) {
-    console.error("Meta CAPI check failed:", e);
-  }
-}
 
 export async function createManualBooking(input: ManualBookingInput): Promise<BookingResult> {
   const d = await getDashDict();
@@ -141,9 +121,9 @@ export async function createManualBooking(input: ManualBookingInput): Promise<Bo
     revalidatePath("/dashboard/crm");
   }
 
-  // Meta CAPI ga yuborish (agar darhol tasdiqlangan bo'lsa)
+  // Meta CAPI — darhol tasdiqlangan bron uchun Purchase (dedup ichkarida)
   if (newBooking?.id && (input.booking_status === "confirmed" || !input.booking_status)) {
-    triggerMetaCapi(supabase, newBooking.id);
+    await sendPurchaseForBooking(newBooking.id as string);
   }
 
   revalidatePath("/dashboard/bookings");
@@ -179,6 +159,11 @@ export async function checkInBooking(id: string) {
       .from("clients")
       .update({ stage: "staying" })
       .eq("phone", bk.guest_phone.trim());
+  }
+
+  // Pending bron check-in bilan confirmed bo'ldi — Purchase (dedup ichkarida)
+  if (bk && bk.booking_status !== "confirmed") {
+    await sendPurchaseForBooking(id);
   }
 
   revalidatePath("/dashboard/bookings");
@@ -283,9 +268,9 @@ export async function updateBookingStatus(id: string, status: "pending" | "confi
     revalidatePath("/dashboard/guests");
   }
 
-  // Status confirmed bo'lganda Meta CAPI ga yuborish
+  // Status confirmed bo'lganda Meta CAPI'ga Purchase (dedup ichkarida)
   if (status === "confirmed" && prev && prev.booking_status !== "confirmed") {
-    triggerMetaCapi(supabase, id);
+    await sendPurchaseForBooking(id);
   }
 
   // AUDIT M5 — bron BEKOR qilinsa mijoz statistikasi (LTV) qaytariladi.

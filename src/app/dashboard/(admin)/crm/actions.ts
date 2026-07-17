@@ -19,7 +19,7 @@ export async function createManualLead(input: {
   if (!input.phone?.trim()) return { success: false, error: d.errors.enterPhone };
 
   const supabase = await createClient(); // authenticated — RLS "Admin All Leads" ruxsat beradi
-  const { error } = await supabase.from("leads").insert([
+  const { data: newLead, error } = await supabase.from("leads").insert([
     {
       name: input.name.trim(),
       phone: input.phone.trim(),
@@ -30,9 +30,16 @@ export async function createManualLead(input: {
       source: input.source || "qolda",
       status: "new",
     },
-  ]);
+  ]).select("id").single();
 
   if (error) return { success: false, error: error.message };
+
+  // Meta CAPI — qo'lda kiritilgan murojaat ham Lead event (telefon orqali match bo'ladi)
+  if (newLead?.id) {
+    const { sendLeadEventForLead } = await import("@/lib/meta-capi");
+    await sendLeadEventForLead({ leadId: newLead.id, name: input.name, phone: input.phone });
+  }
+
   revalidatePath("/dashboard/crm");
   return { success: true };
 }

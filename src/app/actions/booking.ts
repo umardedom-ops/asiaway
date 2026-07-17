@@ -14,6 +14,7 @@ import { syncClientFromBooking } from "@/lib/clients-sync";
 import { notifyRole, fmtMoney, fmtDate } from "@/lib/telegram";
 import { paymentConfigured, buildCheckoutUrl, currentFxRate } from "@/lib/payments";
 import { getAttribution, isMissingAttributionColumn } from "@/lib/attribution";
+import { sendPurchaseForBooking } from "@/lib/meta-capi";
 
 export interface BookingInput {
   apartment_id: string;
@@ -199,11 +200,17 @@ export async function createBooking(input: BookingInput) {
       }]);
     }
 
+    // Simulate rejimda bron darhol confirmed — Meta CAPI Purchase
+    // (real rejimda Payme/Click webhook to'lovni tasdiqlagach yuboriladi)
+    if (!realPayment && newBooking?.id) {
+      await sendPurchaseForBooking(newBooking.id);
+    }
+
     // Cache tozalash
     revalidatePath("/dashboard/bookings");
     revalidatePath("/dashboard/income");
     revalidatePath("/dashboard");
-    
+
     return {
       success: true,
       booking: newBooking,

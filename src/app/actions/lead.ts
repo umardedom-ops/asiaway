@@ -4,6 +4,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { notifyRole, esc } from "@/lib/telegram";
 import { getAttribution, isMissingAttributionColumn } from "@/lib/attribution";
+import { sendLeadEventForLead } from "@/lib/meta-capi";
 
 // Service-role klient (RLS'ni chetlab o'tadi). `leads` jadvalida anonim
 // foydalanuvchi faqat INSERT qila oladi, SELECT yo'q — shuning uchun ID qaytarish
@@ -118,6 +119,17 @@ export async function createLead(input: LeadInput) {
       return { text, buttons };
     }
   );
+
+  // Meta CAPI — Lead event (reklamadan kelgan bo'lsa fbclid/fbp bilan bog'lanadi)
+  if (leadId) {
+    await sendLeadEventForLead({
+      leadId,
+      name: input.name,
+      phone: input.phone,
+      email: input.email,
+      utm: attribution.utm_data,
+    });
+  }
 
   return { success: true };
 }

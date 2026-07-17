@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { usdToTiyin } from "@/lib/payments";
 import { notifyRole, fmtMoney } from "@/lib/telegram";
+import { sendPurchaseForBooking } from "@/lib/meta-capi";
 
 // Payme Merchant API (JSON-RPC 2.0) webhook.
 // Payme kabinetida endpoint: https://<sayt>/api/payments/payme
@@ -179,6 +180,9 @@ export async function POST(req: Request) {
           kind: "deposit",
           note: "Sayt broni — zaklat (Payme tasdiqlandi)",
         }]);
+
+        // Meta CAPI — real to'lov tasdiqlandi, Purchase yuboramiz (dedup ichkarida)
+        await sendPurchaseForBooking(booking.id);
 
         const { data: apt } = await supabase
           .from("apartments")

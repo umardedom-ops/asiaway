@@ -140,7 +140,7 @@ export async function draftToLead(supabase: SB, d: DraftData) {
     d.kishi ? `Kishi: ${d.kishi}` : null,
   ].filter(Boolean).join(" · ");
 
-  const { error } = await supabase.from("leads").insert([
+  const { data: newLead, error } = await supabase.from("leads").insert([
     {
       name: d.ism,
       phone: d.telefon || "—",
@@ -149,7 +149,18 @@ export async function draftToLead(supabase: SB, d: DraftData) {
       notes: notes || null,
       status: "new",
     },
-  ]);
+  ]).select("id").single();
+
+  // Meta CAPI — Instagram'dan kelgan murojaat ham Lead sifatida yuboriladi
+  if (!error && newLead?.id) {
+    const { sendLeadEventForLead } = await import("@/lib/meta-capi");
+    await sendLeadEventForLead({
+      leadId: newLead.id,
+      name: d.ism,
+      phone: d.telefon,
+    });
+  }
+
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
