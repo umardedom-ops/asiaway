@@ -6,13 +6,41 @@
 type SB = any;
 
 export const NEW_LEAD_BTN = "➕ Yangi mijoz";
+export const STATUS_BTN = "📊 Bugun holati";
 
 // Doimiy klaviatura (chat pastida turadi)
 export const MAIN_KEYBOARD = {
-  keyboard: [[{ text: NEW_LEAD_BTN }]],
+  keyboard: [[{ text: NEW_LEAD_BTN }, { text: STATUS_BTN }]],
   resize_keyboard: true,
   is_persistent: true,
 };
+
+/** Shef/menejer uchun bugungi holat matni (bandlik, kelishlar, kirim). */
+export async function buildTodayStatus(supabase: SB, lang: string): Promise<string> {
+  const isRu = lang === 'ru';
+  const today = new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString().split('T')[0]; // Toshkent
+  const [{ data: apts }, { data: bookings }, { data: pays }] = await Promise.all([
+    supabase.from('apartments').select('id, kanban_status, status').eq('status', 'active'),
+    supabase.from('bookings').select('check_in, check_out, booking_status, checked_in_at, total_price').neq('booking_status', 'cancelled'),
+    supabase.from('payments').select('amount, kind').gte('paid_at', `${today}T00:00:00+05:00`).lte('paid_at', `${today}T23:59:59+05:00`),
+  ]);
+  const active = (bookings || []).filter((b: { booking_status: string }) => b.booking_status !== 'completed');
+  const staying = active.filter((b: { checked_in_at?: string }) => b.checked_in_at).length;
+  const arriving = active.filter((b: { checked_in_at?: string; check_in: string }) => !b.checked_in_at && b.check_in === today).length;
+  const booked = active.filter((b: { checked_in_at?: string; check_in: string }) => !b.checked_in_at && b.check_in !== today).length;
+  const totalApts = (apts || []).length;
+  const dirty = (apts || []).filter((a: { kanban_status?: string }) => a.kanban_status === 'dirty' || a.kanban_status === 'cleaning').length;
+  const income = (pays || []).reduce((s: number, p: { amount: number; kind: string }) => s + Number(p.amount || 0) * (p.kind === 'refund' ? -1 : 1), 0);
+
+  if (isRu) {
+    return `📊 <b>СТАТУС НА СЕГОДНЯ (${today})</b>\n\n` +
+      `🛎 Проживают: ${staying}\n🔜 Прибывают сегодня: ${arriving}\n📅 Забронировано (позже): ${booked}\n` +
+      `🧹 Ожидают уборки: ${dirty} из ${totalApts}\n💵 Касса сегодня: $${income.toLocaleString('en-US')}`;
+  }
+  return `📊 <b>BUGUNGI HOLAT (${today})</b>\n\n` +
+    `🛎 Hozir turibdi: ${staying}\n🔜 Bugun keladi: ${arriving}\n📅 Bron qilingan (keyin): ${booked}\n` +
+    `🧹 Tozalash kutmoqda: ${dirty} / ${totalApts}\n💵 Bugungi kassa: $${income.toLocaleString('en-US')}`;
+}
 
 export const TEMPLATE_TEXT =
   "📝 <b>Shablonni nusxalab, to'ldiring va yuboring:</b>\n\n" +

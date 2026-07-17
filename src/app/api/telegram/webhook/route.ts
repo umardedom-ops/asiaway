@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { completeCleaningTaskAndFreeRoom } from '@/lib/cleaning';
 import { notifyRole, esc } from '@/lib/telegram';
 import {
-  NEW_LEAD_BTN, MAIN_KEYBOARD, TEMPLATE_TEXT,
-  parseTemplate, saveDraft, getDraft, buildSummary, draftToLead, draftToBooking,
+  NEW_LEAD_BTN, STATUS_BTN, MAIN_KEYBOARD, TEMPLATE_TEXT,
+  parseTemplate, saveDraft, getDraft, buildSummary, draftToLead, draftToBooking, buildTodayStatus,
 } from '@/lib/bot-lead';
 
 // Barcha botlar uchun yagona webhook.
@@ -53,6 +53,46 @@ async function tg(token: string, method: string, payload: Record<string, unknown
     return await res.json();
   } catch (e) {
     console.error(`telegram ${method}:`, e);
+    return null;
+  }
+}
+
+/**
+ * Telegram'dan kelgan rasmni yuklab olib Supabase Storage'ga saqlaydi.
+ * Farrosh vazifani yakunlaganда dalil-foto sifatida ishlatiladi.
+ * Qaytadi: public URL yoki null (xato bo'lsa).
+ */
+async function downloadTelegramPhoto(
+  token: string,
+  fileId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  taskId: string
+): Promise<string | null> {
+  try {
+    // 1. Fayl yo'lini olamiz
+    const info = await tg(token, 'getFile', { file_id: fileId });
+    const filePath = info?.result?.file_path;
+    if (!filePath) return null;
+
+    // 2. Faylni yuklab olamiz
+    const res = await fetch(`https://api.telegram.org/file/bot${token}/${filePath}`);
+    if (!res.ok) return null;
+    const buffer = Buffer.from(await res.arrayBuffer());
+
+    // 3. Supabase Storage'ga (apartments bucket, proofs/ papka)
+    const ext = filePath.split('.').pop() || 'jpg';
+    const path = `proofs/bot_${taskId}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from('apartments')
+      .upload(path, buffer, { upsert: true, contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}` });
+    if (error) {
+      console.error('Storage upload xato:', error.message);
+      return null;
+    }
+    return supabase.storage.from('apartments').getPublicUrl(path).data.publicUrl as string;
+  } catch (e) {
+    console.error('downloadTelegramPhoto:', e);
     return null;
   }
 }
@@ -230,20 +270,16 @@ export async function POST(req: Request) {
           }
         }
       } else if (kind === 'task' && id && value === 'done') {
-        // Yagona helper: task done + tozalash bo'lsa xona 'available' (yashil)
-        const res = await completeCleaningTaskAndFreeRoom(supabase, id);
-        const error = res.success ? null : { message: res.error || 'xato' };
-        answerText = error
-          ? (lang === 'ru' ? `Ошибка: ${error.message}` : `Xato: ${error.message}`)
-          : (lang === 'ru' ? '✅ Спасибо! Задача отмечена как выполненная' : '✅ Rahmat! Vazifa bajarildi deb belgilandi');
-
-        if (!error && chatId && messageId) {
-          const orig = cq.message?.text || '';
-          const appendTxt = lang === 'ru' ? `\n\n— ✅ УБРАНО` : `\n\n— ✅ TOZALANDI`;
-          await tg(token, 'editMessageText', {
+        // [Bajarildi] bosildi — DARHOL yakunlamaymiz, avval RASM (dalil) so'raymiz.
+        // pending_task_id saqlaymiz; keyingi rasm shu vazifani yakunlaydi.
+        await supabase.from('bot_subscribers').update({ pending_task_id: id }).eq('chat_id', chatId);
+        answerText = lang === 'ru' ? '📷 Отправьте фото' : '📷 Rasm yuboring';
+        if (chatId) {
+          await tg(token, 'sendMessage', {
             chat_id: chatId,
-            message_id: messageId,
-            text: `${orig}${appendTxt}`,
+            text: lang === 'ru'
+              ? '📷 Отправьте фото убранной комнаты как доказательство.\n\nЕсли фото нет — отправьте команду /tayyor (завершить без фото).'
+              : "📷 Tozalangan xona rasmini dalil sifatida yuboring.\n\nRasm bo'lmasa — /tayyor deb yuboring (rasmsiz yakunlash).",
           });
         }
       }
@@ -256,14 +292,73 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: 'callback_handled' });
     }
 
-    // ---------- 2. Oddiy xabar: parol bilan obuna ----------
-    if (!body.message || !body.message.text) {
+    if (!body.message) {
       return NextResponse.json({ status: 'ignored' });
     }
 
     const chatId = body.message.chat.id;
-    const text = body.message.text.trim();
     const supabase = serviceClient();
+
+    // ---------- RASM (dalil) — farrosh vazifani yakunlash uchun ----------
+    // [Bajarildi] bosgach pending_task_id o'rnatilgan bo'ladi; rasm kelsa shu
+    // vazifa proof-foto bilan yakunlanadi.
+    if (body.message.photo && Array.isArray(body.message.photo) && body.message.photo.length > 0) {
+      const { data: psub } = await supabase
+        .from('bot_subscribers')
+        .select('pending_task_id, lang')
+        .eq('chat_id', chatId)
+        .not('pending_task_id', 'is', null)
+        .limit(1)
+        .maybeSingle();
+      const plang = psub?.lang || 'uz';
+      if (psub?.pending_task_id) {
+        const photos = body.message.photo;
+        const fileId = photos[photos.length - 1].file_id; // eng katta o'lcham
+        const proofUrl = await downloadTelegramPhoto(token, fileId, supabase, psub.pending_task_id);
+        const res = await completeCleaningTaskAndFreeRoom(supabase, psub.pending_task_id, proofUrl ? { proofUrl } : undefined);
+        await supabase.from('bot_subscribers').update({ pending_task_id: null }).eq('chat_id', chatId);
+        await tg(token, 'sendMessage', {
+          chat_id: chatId,
+          text: res.success
+            ? (plang === 'ru' ? '✅ Готово! Задача завершена с фото. Спасибо!' : "✅ Tayyor! Vazifa rasm bilan yakunlandi. Rahmat!")
+            : (plang === 'ru' ? `Ошибка: ${res.error}` : `Xato: ${res.error}`),
+        });
+        return NextResponse.json({ status: 'photo_proof_done' });
+      }
+      return NextResponse.json({ status: 'photo_no_pending' });
+    }
+
+    // ---------- 2. Oddiy matnli xabar ----------
+    if (!body.message.text) {
+      return NextResponse.json({ status: 'ignored' });
+    }
+
+    const text = body.message.text.trim();
+
+    // /tayyor — rasmsiz yakunlash (pending vazifa bo'lsa)
+    if (text === '/tayyor' || text === '/skip') {
+      const { data: psub } = await supabase
+        .from('bot_subscribers')
+        .select('pending_task_id, lang')
+        .eq('chat_id', chatId)
+        .not('pending_task_id', 'is', null)
+        .limit(1)
+        .maybeSingle();
+      const plang = psub?.lang || 'uz';
+      if (psub?.pending_task_id) {
+        const res = await completeCleaningTaskAndFreeRoom(supabase, psub.pending_task_id);
+        await supabase.from('bot_subscribers').update({ pending_task_id: null }).eq('chat_id', chatId);
+        await tg(token, 'sendMessage', {
+          chat_id: chatId,
+          text: res.success
+            ? (plang === 'ru' ? '✅ Задача завершена (без фото).' : "✅ Vazifa yakunlandi (rasmsiz).")
+            : (plang === 'ru' ? `Ошибка: ${res.error}` : `Xato: ${res.error}`),
+        });
+      } else {
+        await tg(token, 'sendMessage', { chat_id: chatId, text: plang === 'ru' ? 'Нет активной задачи.' : "Faol vazifa yo'q." });
+      }
+      return NextResponse.json({ status: 'skip_done' });
+    }
 
     let role: 'shef' | 'menejer' | 'cleaning' | null = null;
     if (text === PASSWORDS.shef) role = 'shef';
@@ -335,6 +430,13 @@ export async function POST(req: Request) {
     // Faqat ulangan shef/menejerga ruxsat
     if (sub.role !== 'shef' && sub.role !== 'menejer') {
       return NextResponse.json({ status: 'ignored_not_staff' });
+    }
+
+    // [📊 Bugun holati] — bandlik, kelishlar, kassa (on-demand)
+    if (text === STATUS_BTN || text === '/holat' || text === '/status') {
+      const statusText = await buildTodayStatus(supabase, lang);
+      await tg(token, 'sendMessage', { chat_id: chatId, text: statusText, parse_mode: 'HTML', reply_markup: MAIN_KEYBOARD });
+      return NextResponse.json({ status: 'today_status_sent' });
     }
 
     if (text === NEW_LEAD_BTN || text === '/yangi' || text === '/start') {
