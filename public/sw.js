@@ -1,42 +1,63 @@
-/* ASIA WAY PWA service worker — minimal va xavfsiz.
-   Vazifasi: o'rnatiluvchanlik (installability) + offline fallback.
-   API/POST so'rovlari HECH QACHON kesh qilinmaydi. */
-const CACHE = "aw-pwa-v1";
+/* ASIA WAY PWA service worker — v2 (silliq F5 + tez ochilish).
+   Navigatsiya HAR DOIM tarmoqdan (yangi kontent), navigation preload bilan
+   tezlashtirilgan. Statik (immutable) resurslar cache-first. API keshlanmaydi. */
+const CACHE = "aw-pwa-v2";
 const OFFLINE_URL = "/dashboard/login";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll([OFFLINE_URL]).catch(() => null))
+    caches.open(CACHE).then((c) => c.add(OFFLINE_URL).catch(() => null))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // yangi SW darrov faollashadi
+});
+
+// Client "SKIP_WAITING" desa — kutmasdan faollashamiz (avto-yangilanish)
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    )
+    (async () => {
+      // Eski kesh versiyalarini tozalaymiz (deploy'dan keyin bayat kontent qolmasin)
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+      // Navigation preload — sahifa yuklanishini tezlashtiradi (F5 silliq)
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable();
+      }
+      await self.clients.claim();
+    })()
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  if (url.pathname.startsWith("/api/")) return; // API — doim tarmoqdan
 
-  // Navigatsiya: network-first, offline'da fallback
+  // API — hech qachon keshlanmaydi
+  if (url.pathname.startsWith("/api/")) return;
+
+  // Navigatsiya (sahifa/F5): DOIM tarmoqdan, preload bilan tez.
+  // Faqat HAQIQATAN offline bo'lsa — keshdagi login sahifasi.
   if (req.mode === "navigate") {
     event.respondWith(
-      fetch(req).catch(() =>
-        caches.match(OFFLINE_URL).then((r) => r || Response.error())
-      )
+      (async () => {
+        try {
+          const preload = await event.preloadResponse;
+          if (preload) return preload;
+          return await fetch(req);
+        } catch {
+          const cached = await caches.match(OFFLINE_URL);
+          return cached || Response.error();
+        }
+      })()
     );
     return;
   }
 
-  // Statik resurslar (ikonkalar, _next/static): cache-first
+  // Statik resurslar (content-hash'li, immutable): cache-first — tez ochiladi
   if (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||

@@ -39,15 +39,19 @@ export default async function LoginPage({ searchParams }: PageProps) {
             </div>
           )}
 
-          <form action={login} className="space-y-5">
+          <form action={login} className="space-y-5" autoComplete="off">
+            {/* Brauzer eski admin@makon.uz ni avto-to'ldirmasligi uchun soxta maydonlar */}
+            <input type="text" name="fake-user" autoComplete="username" className="hidden" tabIndex={-1} aria-hidden="true" />
+            <input type="password" name="fake-pass" autoComplete="new-password" className="hidden" tabIndex={-1} aria-hidden="true" />
             <div className="space-y-3">
               <Label htmlFor="email" className="text-[13px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Email manzili</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="admin@makon.uz"
+                placeholder="rol@asiaway.uz"
                 required
+                autoComplete="off"
                 className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:ring-[#C5A46D]/30 focus-visible:border-[#C5A46D]"
               />
             </div>
@@ -60,6 +64,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
                 name="password"
                 type="password"
                 required
+                autoComplete="new-password"
                 placeholder="••••••••"
                 className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:ring-[#C5A46D]/30 focus-visible:border-[#C5A46D]"
               />

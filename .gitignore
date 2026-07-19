@@ -53,3 +53,5 @@ scratch/
 scripts/access-card-data.json
 ACCESS-CARD*.jpg
 ACCESS-CARD*.html
+
+scripts/reset-and-passwords.mjs
