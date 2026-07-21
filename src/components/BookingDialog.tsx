@@ -47,7 +47,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"payme" | "click" | "click_card" | "foreign">("payme");
+  const [paymentMethod, setPaymentMethod] = useState<"payme" | "click" | "click_card" | "foreign" | "uzum">("click");
   const [paymentCategory, setPaymentCategory] = useState<"card" | "foreign">("card");
   
   // Card payment inputs
@@ -408,7 +408,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
                     type="button"
                     onClick={() => {
                       setPaymentCategory("card");
-                      setPaymentMethod("payme");
+                      setPaymentMethod("click");
                     }}
                     className={`flex items-center justify-center h-14 rounded-[8px] border transition-all duration-300 ${
                       paymentCategory === "card"
@@ -451,18 +451,7 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
               {paymentCategory === "card" && (
                 <div className="space-y-3 pt-2 animate-fadeIn">
                   <Label className="text-[#A8A49B] text-[12px] font-semibold uppercase tracking-[0.12em]">{b.methodLabel}</Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("payme")}
-                      className={`flex items-center justify-center h-14 rounded-[8px] border transition-all duration-300 ${
-                        paymentMethod === "payme"
-                          ? "border-[#C5A46D] bg-[#C5A46D]/10 text-[#C5A46D]"
-                          : "border-[rgba(197,164,109,0.22)] bg-[#111417] text-[#A8A49B] hover:border-[#C5A46D]/50"
-                      }`}
-                    >
-                      <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">Payme</span>
-                    </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("click")}
@@ -472,24 +461,18 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
                           : "border-[rgba(197,164,109,0.22)] bg-[#111417] text-[#A8A49B] hover:border-[#C5A46D]/50"
                       }`}
                     >
-                      <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">Click App</span>
+                      <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">Click</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPaymentMethod("click_card")}
+                      onClick={() => setPaymentMethod("uzum")}
                       className={`flex items-center justify-center h-14 rounded-[8px] border transition-all duration-300 ${
-                        paymentMethod === "click_card"
+                        paymentMethod === "uzum"
                           ? "border-[#C5A46D] bg-[#C5A46D]/10 text-[#C5A46D]"
                           : "border-[rgba(197,164,109,0.22)] bg-[#111417] text-[#A8A49B] hover:border-[#C5A46D]/50"
                       }`}
                     >
-                      <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">
-                        {{
-                          uz: "Karta (Click)",
-                          ru: "Карта (Click)",
-                          en: "Card (Click)",
-                        }[lang]}
-                      </span>
+                      <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">Uzum Bank</span>
                     </button>
                   </div>
                 </div>

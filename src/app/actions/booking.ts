@@ -23,7 +23,7 @@ export interface BookingInput {
   guest_email?: string;
   check_in: string;
   check_out: string;
-  payment_method: "payme" | "click" | "foreign";
+  payment_method: "payme" | "click" | "foreign" | "uzum";
 }
 
 export async function createBooking(input: BookingInput) {
@@ -89,7 +89,8 @@ export async function createBooking(input: BookingInput) {
     // webhook to'lovni tasdiqlagach 'paid'+'confirmed' bo'ladi.
     // Simulate rejim (env yo'q): hozirgidek darhol tasdiqlanadi.
     const isForeign = input.payment_method === "foreign";
-    const realPayment = isForeign ? false : paymentConfigured(input.payment_method as "payme" | "click");
+    const isUzum = input.payment_method === "uzum";
+    const realPayment = (isForeign || isUzum) ? false : paymentConfigured(input.payment_method as "payme" | "click");
 
     const svc = serviceClient();
     const dbClient = svc || supabase;
