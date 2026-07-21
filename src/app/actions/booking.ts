@@ -23,7 +23,7 @@ export interface BookingInput {
   guest_email?: string;
   check_in: string;
   check_out: string;
-  payment_method: "payme" | "click";
+  payment_method: "payme" | "click" | "foreign";
 }
 
 export async function createBooking(input: BookingInput) {
@@ -88,7 +88,8 @@ export async function createBooking(input: BookingInput) {
     // Real to'lov rejimi (Payme/Click env sozlangan): bron 'pending' bo'lib turadi,
     // webhook to'lovni tasdiqlagach 'paid'+'confirmed' bo'ladi.
     // Simulate rejim (env yo'q): hozirgidek darhol tasdiqlanadi.
-    const realPayment = paymentConfigured(input.payment_method);
+    const isForeign = input.payment_method === "foreign";
+    const realPayment = isForeign ? false : paymentConfigured(input.payment_method as "payme" | "click");
 
     const svc = serviceClient();
     const dbClient = svc || supabase;
@@ -106,9 +107,9 @@ export async function createBooking(input: BookingInput) {
       nights: nights,
       total_price: total_price,
       deposit_amount: deposit_amount,
-      deposit_status: realPayment ? "pending" : "paid",
-      booking_status: realPayment ? "pending" : "confirmed",
-      payment_provider: realPayment ? input.payment_method : "simulate",
+      deposit_status: (realPayment || isForeign) ? "pending" : "paid",
+      booking_status: (realPayment || isForeign) ? "pending" : "confirmed",
+      payment_provider: isForeign ? "foreign" : (realPayment ? input.payment_method : "simulate"),
       source: attribution.source,
       utm_data: attribution.utm_data,
       // AUDIT H7: valyuta kursini bronga MUZLATAMIZ — kurs keyin o'zgarsa ham
@@ -149,7 +150,7 @@ export async function createBooking(input: BookingInput) {
 
     // Real rejimda checkout havolasini qaytaramiz
     const paymentUrl = realPayment
-      ? buildCheckoutUrl(input.payment_method, newBooking.id, deposit_amount)
+      ? buildCheckoutUrl(input.payment_method as "payme" | "click", newBooking.id, deposit_amount)
       : null;
 
     // Menejer botiga yangi bron xabari
@@ -168,8 +169,12 @@ export async function createBooking(input: BookingInput) {
         const amounts = isRu 
           ? `💰 Итого: ${fmtMoney(total_price)} · Аванс: ${fmtMoney(deposit_amount)}`
           : `💰 Jami: ${fmtMoney(total_price)} · Zaklat: ${fmtMoney(deposit_amount)}`;
-        const payMethod = isRu ? `💳 Оплата: ${input.payment_method}` : `💳 To'lov: ${input.payment_method}`;
-        const wait = realPayment ? (isRu ? "\n⏳ Ожидается оплата аванса..." : "\n⏳ Zaklat to'lovi kutilmoqda...") : "";
+        const payMethod = isRu 
+          ? `💳 Оплата: ${isForeign ? "Иностранный гражданин (обратный звонок)" : input.payment_method}` 
+          : `💳 To'lov: ${isForeign ? "Xorijiy fuqaro (qayta aloqa)" : input.payment_method}`;
+        const wait = isForeign 
+          ? (isRu ? "\n📞 Требуется связаться для подтверждения!" : "\n📞 Tasdiqlash uchun bog'lanish zarur!")
+          : (realPayment ? (isRu ? "\n⏳ Ожидается оплата аванса..." : "\n⏳ Zaklat to'lovi kutilmoqda...") : "");
 
         return {
           text: `${title}\n\n🏠 ${aptTitle}\n👤 ${input.guest_name}\n📞 ${input.guest_phone}\n📅 ${dates}\n${amounts}\n${payMethod}${wait}`
@@ -188,7 +193,7 @@ export async function createBooking(input: BookingInput) {
 
     // Simulyatsiya rejimida zaklat darhol "to'langan" → kirim kassasiga yozamiz.
     // Real rejimda to'lov webhook orqali tasdiqlangач alohida yoziladi.
-    if (!realPayment && (deposit_amount || 0) > 0) {
+    if (!realPayment && !isForeign && (deposit_amount || 0) > 0) {
       await supabase.from("payments").insert([{
         booking_id: newBooking.id,
         client_id: client?.id || null,
@@ -202,7 +207,7 @@ export async function createBooking(input: BookingInput) {
 
     // Simulate rejimda bron darhol confirmed — Meta CAPI Purchase
     // (real rejimda Payme/Click webhook to'lovni tasdiqlagach yuboriladi)
-    if (!realPayment && newBooking?.id) {
+    if (!realPayment && !isForeign && newBooking?.id) {
       await sendPurchaseForBooking(newBooking.id);
     }
 
@@ -215,6 +220,8 @@ export async function createBooking(input: BookingInput) {
       success: true,
       booking: newBooking,
       paymentUrl,
+      clickServiceId: process.env.CLICK_SERVICE_ID,
+      clickMerchantId: process.env.CLICK_MERCHANT_ID,
     };
   } catch (error: any) {
     console.error("Booking error:", error);
@@ -222,6 +229,25 @@ export async function createBooking(input: BookingInput) {
       success: false,
       error: error.message || "Tizimda noma'lum xatolik yuz berdi.",
     };
+  }
+}
+
+// Click Pay by Card bekor qilinganda yoki yopilganda bronni o'chirish/bekor qilish
+export async function cancelPendingBooking(bookingId: string) {
+  const supabase = await createClient();
+  try {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ booking_status: "cancelled" })
+      .eq("id", bookingId)
+      .eq("booking_status", "pending")
+      .eq("deposit_status", "pending");
+
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error("Failed to cancel pending booking:", err);
+    return { success: false };
   }
 }
 

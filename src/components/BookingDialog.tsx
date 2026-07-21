@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createBooking, getBookedDates } from "@/app/actions/booking";
+import { createBooking, getBookedDates, cancelPendingBooking } from "@/app/actions/booking";
+import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { btnPrimary, btnSecondary } from "@/lib/ui";
 import { Input } from "@/components/ui/input";
@@ -46,7 +47,8 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"payme" | "click">("payme");
+  const [paymentMethod, setPaymentMethod] = useState<"payme" | "click" | "click_card" | "foreign">("payme");
+  const [paymentCategory, setPaymentCategory] = useState<"card" | "foreign">("card");
   
   // Card payment inputs
   const [cardNumber, setCardNumber] = useState("");
@@ -117,6 +119,55 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
   // o'rniga Payme/Click checkout sahifasiga yo'naltiriladi.
   const realPayments = process.env.NEXT_PUBLIC_PAYMENTS_MODE === "real";
 
+  const handlePayWithClickCard = (
+    bookingId: string,
+    depositAmountUsd: number,
+    serviceId?: string | null,
+    merchantId?: string | null,
+    fxRate?: number | null
+  ) => {
+    if (typeof window !== "undefined" && (window as any).createPaymentRequest) {
+      const rate = fxRate || 12500;
+      const amountSom = (depositAmountUsd * rate).toFixed(2);
+
+      setIsSubmitting(true);
+
+      (window as any).createPaymentRequest(
+        {
+          service_id: serviceId || "",
+          merchant_id: merchantId || "",
+          amount: amountSom,
+          transaction_param: bookingId,
+        },
+        async (data: any) => {
+          console.log("Click Card payment callback status:", data.status);
+          
+          if (data.status === 2) {
+            setBookingResult({
+              id: bookingId,
+              check_in: format(checkIn!, "yyyy-MM-dd"),
+              check_out: format(checkOut!, "yyyy-MM-dd"),
+              nights: nights,
+              guest_name: guestName,
+              deposit_amount: depositAmountUsd,
+            });
+            setStep(3);
+          } else if (data.status < 0) {
+            // To'lov muvaffaqiyatsiz bo'lsa yoki bekor qilinsa bronni bekor qilamiz
+            await cancelPendingBooking(bookingId);
+            setErrorMsg(b.errorGeneric + " (To'lov bekor qilindi / Rad etildi)");
+            setIsSubmitting(false);
+          } else {
+            setIsSubmitting(false);
+          }
+        }
+      );
+    } else {
+      setErrorMsg("Click to'lov tizimi yuklanmagan. Iltimos qayta urinib ko'ring.");
+      setIsSubmitting(false);
+    }
+  };
+
   const submitBooking = async () => {
     setIsSubmitting(true);
     setErrorMsg(null);
@@ -132,12 +183,15 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
         guest_email: guestEmail || undefined,
         check_in: checkInStr,
         check_out: checkOutStr,
-        payment_method: paymentMethod,
+        payment_method: paymentMethod === "click_card" ? "click" : paymentMethod,
       });
 
       if (!res.success) {
         setErrorMsg(res.error || b.errorGeneric);
         setStep(1);
+      } else if (paymentMethod === "click_card" && realPayments) {
+        // Click Pay by Card overlay oynasini ochish
+        handlePayWithClickCard(res.booking.id, res.booking.deposit_amount, res.clickServiceId, res.clickMerchantId, res.booking.fx_rate);
       } else if (res.paymentUrl) {
         // Payme/Click checkout sahifasiga o'tamiz — to'lov tasdiqlangach
         // webhook bronni 'confirmed' qiladi.
@@ -166,8 +220,8 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
       return;
     }
     setErrorMsg(null);
-    if (realPayments) {
-      // Karta formasi kerak emas — bron yaratib checkout'ga yo'naltiramiz
+    if (realPayments || paymentMethod === "foreign") {
+      // Karta formasi kerak emas — bron yaratib checkout'ga yo'naltiramiz yoki ro'yxatdan o'tamiz
       submitBooking();
       return;
     }
@@ -340,34 +394,130 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
                 </div>
               )}
 
-              {/* Select payment gateway */}
+              {/* Select payment category */}
               <div className="space-y-3 pt-2">
-                <Label className="text-[#A8A49B] text-[12px] font-semibold uppercase tracking-[0.12em]">{b.methodLabel}</Label>
-                <div className="grid grid-cols-2 gap-4">
+                <Label className="text-[#A8A49B] text-[12px] font-semibold uppercase tracking-[0.12em]">
+                  {{
+                    uz: "To'lov turi",
+                    ru: "Тип оплаты",
+                    en: "Payment category",
+                  }[lang]}
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod("payme")}
+                    onClick={() => {
+                      setPaymentCategory("card");
+                      setPaymentMethod("payme");
+                    }}
                     className={`flex items-center justify-center h-14 rounded-[8px] border transition-all duration-300 ${
-                      paymentMethod === "payme"
+                      paymentCategory === "card"
                         ? "border-[#C5A46D] bg-[#C5A46D]/10 text-[#C5A46D]"
                         : "border-[rgba(197,164,109,0.22)] bg-[#111417] text-[#A8A49B] hover:border-[#C5A46D]/50"
                     }`}
                   >
-                    <span className="font-semibold text-[14px] tracking-wider uppercase">Payme</span>
+                    <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">
+                      {{
+                        uz: "💳 Karta orqali",
+                        ru: "💳 Картой",
+                        en: "💳 By Card",
+                      }[lang]}
+                    </span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod("click")}
+                    onClick={() => {
+                      setPaymentCategory("foreign");
+                      setPaymentMethod("foreign");
+                    }}
                     className={`flex items-center justify-center h-14 rounded-[8px] border transition-all duration-300 ${
-                      paymentMethod === "click"
+                      paymentCategory === "foreign"
                         ? "border-[#C5A46D] bg-[#C5A46D]/10 text-[#C5A46D]"
                         : "border-[rgba(197,164,109,0.22)] bg-[#111417] text-[#A8A49B] hover:border-[#C5A46D]/50"
                     }`}
                   >
-                    <span className="font-semibold text-[14px] tracking-wider uppercase">Click</span>
+                    <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">
+                      {{
+                        uz: "🌐 Xorij fuqarolari",
+                        ru: "🌐 Иностр. граждане",
+                        en: "🌐 Foreign Citizens",
+                      }[lang]}
+                    </span>
                   </button>
                 </div>
               </div>
+
+              {/* Card sub-options */}
+              {paymentCategory === "card" && (
+                <div className="space-y-3 pt-2 animate-fadeIn">
+                  <Label className="text-[#A8A49B] text-[12px] font-semibold uppercase tracking-[0.12em]">{b.methodLabel}</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("payme")}
+                      className={`flex items-center justify-center h-14 rounded-[8px] border transition-all duration-300 ${
+                        paymentMethod === "payme"
+                          ? "border-[#C5A46D] bg-[#C5A46D]/10 text-[#C5A46D]"
+                          : "border-[rgba(197,164,109,0.22)] bg-[#111417] text-[#A8A49B] hover:border-[#C5A46D]/50"
+                      }`}
+                    >
+                      <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">Payme</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("click")}
+                      className={`flex items-center justify-center h-14 rounded-[8px] border transition-all duration-300 ${
+                        paymentMethod === "click"
+                          ? "border-[#C5A46D] bg-[#C5A46D]/10 text-[#C5A46D]"
+                          : "border-[rgba(197,164,109,0.22)] bg-[#111417] text-[#A8A49B] hover:border-[#C5A46D]/50"
+                      }`}
+                    >
+                      <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">Click App</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("click_card")}
+                      className={`flex items-center justify-center h-14 rounded-[8px] border transition-all duration-300 ${
+                        paymentMethod === "click_card"
+                          ? "border-[#C5A46D] bg-[#C5A46D]/10 text-[#C5A46D]"
+                          : "border-[rgba(197,164,109,0.22)] bg-[#111417] text-[#A8A49B] hover:border-[#C5A46D]/50"
+                      }`}
+                    >
+                      <span className="font-semibold text-[13px] sm:text-[14px] tracking-wider uppercase">
+                        {{
+                          uz: "Karta (Click)",
+                          ru: "Карта (Click)",
+                          en: "Card (Click)",
+                        }[lang]}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Foreign Citizen callback details */}
+              {paymentCategory === "foreign" && (
+                <div className="p-4 bg-[#C5A46D]/5 border border-[#C5A46D]/20 rounded-[8px] space-y-2 mt-2 animate-fadeIn">
+                  <p className="text-[14px] text-[#C5A46D] font-medium">
+                    {
+                      {
+                        uz: "📞 Qayta aloqa orqali bron qilish",
+                        ru: "📞 Бронирование через обратный звонок",
+                        en: "📞 Callback booking option",
+                      }[lang]
+                    }
+                  </p>
+                  <p className="text-[13px] text-[#A8A49B] font-light leading-relaxed">
+                    {
+                      {
+                        uz: "Xorijiy fuqarolar uchun milliy to'lov tizimlarisiz bron qilish. Ma'lumotlarni to'ldirib yuborgach, menejerimiz to'lov tafsilotlarini kelishish uchun siz bilan tez orada bog'lanadi.",
+                        ru: "Для иностранных граждан без необходимости оплаты через национальные системы. После отправки менеджер свяжется с вами для согласования альтернативных способов оплаты.",
+                        en: "For foreign citizens without standard local card payments. After submission, our manager will contact you shortly to coordinate alternative payment methods.",
+                      }[lang]
+                    }
+                  </p>
+                </div>
+              )}
 
               <Button
                 type="submit"
@@ -508,7 +658,17 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
               </div>
               <div className="flex justify-between pt-1">
                 <span className="text-[#C5A46D] font-medium">{b.voucherDepositStatus}:</span>
-                <span className="text-[#F5F2EB] font-medium">{b.voucherPaid}</span>
+                <span className="text-[#F5F2EB] font-medium">
+                  {paymentMethod === "foreign" || bookingResult.payment_provider === "foreign" ? (
+                    {
+                      uz: "Menejer bog'lanadi",
+                      ru: "Менеджер свяжется",
+                      en: "Manager will contact",
+                    }[lang]
+                  ) : (
+                    b.voucherPaid
+                  )}
+                </span>
               </div>
             </div>
 
@@ -535,6 +695,10 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
           </div>
         )}
 
+        <Script
+          src="https://my.click.uz/pay/checkout.js"
+          strategy="lazyOnload"
+        />
         </div>
       </DialogContent>
     </Dialog>
