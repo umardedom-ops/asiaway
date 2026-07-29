@@ -105,8 +105,8 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
       const newFilesArray = Array.from(files);
       const totalCount = existingImages.length + galleryPreviews.length + newFilesArray.length;
       
-      if (totalCount > 8) {
-        alert(isRu ? "Можно загрузить максимум 8 фото в галерею!" : "Galereyaga maksimum 8 ta rasm yuklash mumkin!");
+      if (totalCount > 20) {
+        alert(isRu ? "Можно загрузить максимум 20 фото в галерею!" : "Galereyaga maksimum 20 ta rasm yuklash mumkin!");
         return;
       }
 

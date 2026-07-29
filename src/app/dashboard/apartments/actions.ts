@@ -90,21 +90,46 @@ export async function saveApartment(prevState: any, formData: FormData) {
 
     if (id) {
       // Yangilash (Update)
-      const { error } = await supabase
+      let { error } = await supabase
         .from("apartments")
         .update(apartmentData)
         .eq("id", id);
 
+      if (error && (error.message?.includes("column") || error.code === "PGRST204" || error.message?.includes("description_ru"))) {
+        // Fallback: title_ru/description_ru ustuni bazada yo'q bo'lsa
+        const fallbackData = { ...apartmentData };
+        delete (fallbackData as any).title_ru;
+        delete (fallbackData as any).description_ru;
+        const res = await supabase
+          .from("apartments")
+          .update(fallbackData)
+          .eq("id", id);
+        error = res.error;
+      }
+
       if (error) throw error;
     } else {
       // Yaratish (Create)
-      const { data: newApt, error } = await supabase
+      let { data: newApt, error } = await supabase
         .from("apartments")
         .insert([apartmentData])
         .select("id")
         .single();
 
-      if (error) throw error;
+      if (error && (error.message?.includes("column") || error.code === "PGRST204" || error.message?.includes("description_ru"))) {
+        const fallbackData = { ...apartmentData };
+        delete (fallbackData as any).title_ru;
+        delete (fallbackData as any).description_ru;
+        const res = await supabase
+          .from("apartments")
+          .insert([fallbackData])
+          .select("id")
+          .single();
+        newApt = res.data;
+        error = res.error;
+      }
+
+      if (error || !newApt) throw error || new Error("Apartament yaratib bo'lmadi");
       targetAptId = newApt.id;
     }
 
