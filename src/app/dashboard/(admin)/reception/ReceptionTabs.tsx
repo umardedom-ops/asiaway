@@ -15,6 +15,8 @@ import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
+import RoomStatusCalendarModal from "./RoomStatusCalendarModal";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = any;
 
@@ -177,15 +179,24 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
                 const occ = occupantOf(a.id);
                 const busy = !!occ;
                 return (
-                  <div key={a.id} className={`rounded-[12px] border p-4 transition-colors ${busy ? "border-red-500/20 bg-red-500/5 opacity-60" : "border-blue-500/25 bg-blue-500/5"}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${busy ? "text-red-400" : "text-blue-400"}`}>
-                        <span className={`h-2 w-2 rounded-full ${busy ? "bg-red-400" : "bg-blue-400"}`} /> {busy ? d.reception.busy : d.reception.free}
-                      </span>
-                      {a.floor != null && <span className="text-[11px] text-[#A8A49B]">{a.floor}-{d.reception.floor}</span>}
+                  <div key={a.id} className={`rounded-[12px] border p-4 flex flex-col justify-between transition-colors ${busy ? "border-red-500/20 bg-red-500/5" : "border-blue-500/25 bg-blue-500/5"}`}>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${busy ? "text-red-400" : "text-blue-400"}`}>
+                          <span className={`h-2 w-2 rounded-full ${busy ? "bg-red-400" : "bg-blue-400"}`} /> {busy ? d.reception.busy : d.reception.free}
+                        </span>
+                        {a.floor != null && <span className="text-[11px] text-[#A8A49B]">{a.floor}-{d.reception.floor}</span>}
+                      </div>
+                      <div className="text-[14px] font-medium text-[#F5F2EB] leading-snug line-clamp-2">{a.title}</div>
+                      {occ && <div className="mt-2 pt-2 border-t border-[rgba(197,164,109,0.1)] text-[12px] text-[#A8A49B]"><div className="text-[#F5F2EB]">{occ.guest_name}</div><div>{fmtDate(occ.check_in)} → {fmtDate(occ.check_out)}</div></div>}
                     </div>
-                    <div className="text-[14px] font-medium text-[#F5F2EB] leading-snug line-clamp-2">{a.title}</div>
-                    {occ && <div className="mt-2 pt-2 border-t border-[rgba(197,164,109,0.1)] text-[12px] text-[#A8A49B]"><div className="text-[#F5F2EB]">{occ.guest_name}</div><div>{fmtDate(occ.check_in)} → {fmtDate(occ.check_out)}</div></div>}
+
+                    <div className="mt-4 pt-3 border-t border-[rgba(197,164,109,0.1)]">
+                      <RoomStatusCalendarModal
+                        apartment={a}
+                        existingBookings={bookings.filter((b) => b.apartment_id === a.id && b.booking_status !== "cancelled")}
+                      />
+                    </div>
                   </div>
                 );
               })}
