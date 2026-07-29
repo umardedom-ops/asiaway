@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { metaCapiConfigured, sendMetaEvent } from "@/lib/meta-capi";
+import { metaCapiConfigured, sendMetaEvent, cleanEnvVar } from "@/lib/meta-capi";
 
 /**
  * Meta CAPI & Pixel diagnostika — sozlamani tekshirish va sinov eventi yuborish.
@@ -10,8 +10,8 @@ import { metaCapiConfigured, sendMetaEvent } from "@/lib/meta-capi";
 export async function GET(req: Request) {
   const url = new URL(req.url);
 
-  const pixelId = process.env.META_PIXEL_ID || "120247308451950061";
-  const publicPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || "120247308451950061";
+  const pixelId = cleanEnvVar(process.env.META_PIXEL_ID) || "1610789177047933";
+  const publicPixelId = cleanEnvVar(process.env.NEXT_PUBLIC_META_PIXEL_ID) || "1610789177047933";
 
   const status = {
     configured: metaCapiConfigured(),

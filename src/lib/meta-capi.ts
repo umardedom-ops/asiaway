@@ -58,15 +58,21 @@ export interface MetaEventInput {
   actionSource?: "website" | "system_generated" | "phone_call" | "chat";
 }
 
+export function cleanEnvVar(val?: string | null): string {
+  if (!val) return "";
+  return val.replace(/[\uFEFF\u200B\s"']/g, "").trim();
+}
+
 export function metaCapiConfigured(): boolean {
-  const pixelId = process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID || "120247308451950061";
-  return Boolean(pixelId && process.env.META_CAPI_ACCESS_TOKEN);
+  const pixelId = cleanEnvVar(process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID) || "1610789177047933";
+  const token = cleanEnvVar(process.env.META_CAPI_ACCESS_TOKEN);
+  return Boolean(pixelId && token);
 }
 
 /** Bitta eventni Meta CAPI'ga yuboradi. Hech qachon throw qilmaydi. */
 export async function sendMetaEvent(input: MetaEventInput): Promise<{ sent: boolean; reason?: string; meta_error?: unknown }> {
-  const pixelId = process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID || "120247308451950061";
-  const token = process.env.META_CAPI_ACCESS_TOKEN;
+  const pixelId = cleanEnvVar(process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID) || "1610789177047933";
+  const token = cleanEnvVar(process.env.META_CAPI_ACCESS_TOKEN);
   if (!pixelId || !token) return { sent: false, reason: "META_PIXEL_ID / META_CAPI_ACCESS_TOKEN env yo'q" };
 
   try {
