@@ -46,6 +46,11 @@ export default function FloatingContact() {
                 href={it.href}
                 target={it.href.startsWith("http") ? "_blank" : undefined}
                 rel="noopener noreferrer"
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.trackClientMetaEvent) {
+                    window.trackClientMetaEvent("Contact", { content_name: it.label });
+                  }
+                }}
                 className="group flex items-center gap-3"
               >
                 <span className="rounded-full bg-[#111417] border border-[rgba(197,164,109,0.22)] px-3 py-1.5 text-[13px] font-medium text-[#F5F2EB] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">

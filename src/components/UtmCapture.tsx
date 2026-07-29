@@ -27,7 +27,15 @@ export default function UtmCapture() {
       if (m) {
         try { prev = JSON.parse(decodeURIComponent(m[1])); } catch { /* buzuq cookie — e'tiborsiz */ }
       }
-      const merged = { ...prev, ...found, landed_at: prev.landed_at || new Date().toISOString() };
+
+      // Meta _fbp va _fbc cookie'larini ham o'qiymiz
+      const fbpMatch = document.cookie.match(/(?:^|; )_fbp=([^;]*)/);
+      const fbcMatch = document.cookie.match(/(?:^|; )_fbc=([^;]*)/);
+      const extraMeta: Record<string, string> = {};
+      if (fbpMatch?.[1]) extraMeta.fbp = fbpMatch[1];
+      if (fbcMatch?.[1]) extraMeta.fbc = fbcMatch[1];
+
+      const merged = { ...prev, ...found, ...extraMeta, landed_at: prev.landed_at || new Date().toISOString() };
       document.cookie = `aw_utm=${encodeURIComponent(JSON.stringify(merged))}; path=/; max-age=${MAX_AGE}; SameSite=Lax`;
 
       // Meta _fbc: fbclid bor-u _fbc yo'q bo'lsa — standart formatda o'zimiz yozamiz

@@ -39,7 +39,7 @@ function normalizeEmail(email?: string | null): string | null {
 }
 
 export interface MetaEventInput {
-  eventName: "Purchase" | "Lead" | "InitiateCheckout" | "Contact";
+  eventName: "Purchase" | "Lead" | "InitiateCheckout" | "Contact" | "ViewContent" | "PageView";
   /** Dedup kaliti — bir xil event_id ikki marta hisoblanmaydi */
   eventId: string;
   phone?: string | null;
@@ -48,6 +48,8 @@ export interface MetaEventInput {
   externalId?: string | null;
   fbp?: string | null;
   fbc?: string | null;
+  clientIp?: string | null;
+  userAgent?: string | null;
   value?: number;
   currency?: string;
   contentName?: string;
@@ -67,7 +69,7 @@ export async function sendMetaEvent(input: MetaEventInput): Promise<{ sent: bool
   if (!pixelId || !token) return { sent: false, reason: "META_PIXEL_ID / META_CAPI_ACCESS_TOKEN env yo'q" };
 
   try {
-    // user_data — hammasi xeshlangan (fbp/fbc dan tashqari, Meta talabi shunday)
+    // user_data — hammasi xeshlangan (fbp/fbc/client_ip/client_user_agent dan tashqari)
     const userData: Record<string, unknown> = {};
     const ph = normalizePhone(input.phone);
     if (ph) userData.ph = [sha256(ph)];
@@ -78,9 +80,12 @@ export async function sendMetaEvent(input: MetaEventInput): Promise<{ sent: bool
     if (input.externalId) userData.external_id = [sha256(input.externalId)];
     if (input.fbp) userData.fbp = input.fbp;
     if (input.fbc) userData.fbc = input.fbc;
+    if (input.clientIp) userData.client_ip_address = input.clientIp;
+    if (input.userAgent) userData.client_user_agent = input.userAgent;
 
+    // Contact/PageView/Lead/ViewContent eventlarida kamida IP, UserAgent yoki fbp bo'lsa yetarli
     if (Object.keys(userData).length === 0) {
-      return { sent: false, reason: "user_data bo'sh — hech bo'lmasa telefon kerak" };
+      return { sent: false, reason: "user_data bo'sh" };
     }
 
     const event: Record<string, unknown> = {
@@ -201,6 +206,8 @@ export async function sendLeadEventForLead(params: {
   phone?: string | null;
   email?: string | null;
   utm?: Record<string, string> | null;
+  clientIp?: string | null;
+  userAgent?: string | null;
 }): Promise<void> {
   if (!metaCapiConfigured()) return;
   const { fbp, fbc } = fbcFromUtm(params.utm);
@@ -213,6 +220,8 @@ export async function sendLeadEventForLead(params: {
     externalId: params.leadId,
     fbp,
     fbc,
+    clientIp: params.clientIp,
+    userAgent: params.userAgent,
     actionSource: "website",
   });
 }

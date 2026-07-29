@@ -120,15 +120,32 @@ export async function createLead(input: LeadInput) {
     }
   );
 
-  // Meta CAPI — Lead event (reklamadan kelgan bo'lsa fbclid/fbp bilan bog'lanadi)
+  // Meta CAPI — Lead event (reklamadan kelgan bo'lsa fbclid/fbp va IP/UserAgent bilan bog'lanadi)
   if (leadId) {
-    await sendLeadEventForLead({
-      leadId,
-      name: input.name,
-      phone: input.phone,
-      email: input.email,
-      utm: attribution.utm_data,
-    });
+    try {
+      const { headers } = await import("next/headers");
+      const h = await headers();
+      const clientIp = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || null;
+      const userAgent = h.get("user-agent") || null;
+
+      await sendLeadEventForLead({
+        leadId,
+        name: input.name,
+        phone: input.phone,
+        email: input.email,
+        utm: attribution.utm_data,
+        clientIp,
+        userAgent,
+      });
+    } catch {
+      await sendLeadEventForLead({
+        leadId,
+        name: input.name,
+        phone: input.phone,
+        email: input.email,
+        utm: attribution.utm_data,
+      });
+    }
   }
 
   return { success: true };

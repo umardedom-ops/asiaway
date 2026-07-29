@@ -6,6 +6,7 @@ import LenisProvider from "@/components/LenisProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import UtmCapture from "@/components/UtmCapture";
 import PwaRegister from "@/components/PwaRegister";
+import MetaPixel from "@/components/MetaPixel";
 import { Lang } from "@/lib/i18n";
 
 const manrope = Manrope({
@@ -116,6 +117,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
         <UtmCapture />
+        <MetaPixel />
         <PwaRegister />
         <LanguageProvider initialLang={initialLang}>
           <LenisProvider>{children}</LenisProvider>

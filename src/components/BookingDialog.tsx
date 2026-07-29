@@ -220,6 +220,17 @@ export default function BookingDialog({ apartment, isOpen, onClose }: BookingDia
       return;
     }
     setErrorMsg(null);
+
+    // Meta Pixel — InitiateCheckout
+    if (typeof window !== "undefined" && window.trackClientMetaEvent) {
+      window.trackClientMetaEvent("InitiateCheckout", {
+        content_name: apartment.title,
+        content_ids: [String(apartment.id)],
+        value: totalPrice,
+        currency: "USD",
+      });
+    }
+
     if (realPayments || paymentMethod === "foreign") {
       // Karta formasi kerak emas — bron yaratib checkout'ga yo'naltiramiz yoki ro'yxatdan o'tamiz
       submitBooking();
