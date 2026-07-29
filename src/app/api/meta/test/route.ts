@@ -10,14 +10,15 @@ import { metaCapiConfigured, sendMetaEvent } from "@/lib/meta-capi";
 export async function GET(req: Request) {
   const url = new URL(req.url);
 
-  const pixelId = process.env.META_PIXEL_ID;
-  const publicPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const pixelId = process.env.META_PIXEL_ID || "120247308451950061";
+  const publicPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || "120247308451950061";
 
   const status = {
     configured: metaCapiConfigured(),
-    pixel_id: pixelId ? `...${pixelId.slice(-4)}` : null,
-    next_public_pixel_id: publicPixelId ? `...${publicPixelId.slice(-4)}` : null,
-    pixel_matched: Boolean(pixelId && publicPixelId && pixelId === publicPixelId),
+    pixel_id: `...${pixelId.slice(-4)}`,
+    full_pixel_id: pixelId,
+    next_public_pixel_id: `...${publicPixelId.slice(-4)}`,
+    pixel_matched: Boolean(pixelId === publicPixelId),
     token: process.env.META_CAPI_ACCESS_TOKEN ? "bor" : "yo'q",
     test_event_code: process.env.META_TEST_EVENT_CODE || null,
   };

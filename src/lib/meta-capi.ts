@@ -59,12 +59,13 @@ export interface MetaEventInput {
 }
 
 export function metaCapiConfigured(): boolean {
-  return Boolean(process.env.META_PIXEL_ID && process.env.META_CAPI_ACCESS_TOKEN);
+  const pixelId = process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID || "120247308451950061";
+  return Boolean(pixelId && process.env.META_CAPI_ACCESS_TOKEN);
 }
 
 /** Bitta eventni Meta CAPI'ga yuboradi. Hech qachon throw qilmaydi. */
-export async function sendMetaEvent(input: MetaEventInput): Promise<{ sent: boolean; reason?: string }> {
-  const pixelId = process.env.META_PIXEL_ID;
+export async function sendMetaEvent(input: MetaEventInput): Promise<{ sent: boolean; reason?: string; meta_error?: unknown }> {
+  const pixelId = process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID || "120247308451950061";
   const token = process.env.META_CAPI_ACCESS_TOKEN;
   if (!pixelId || !token) return { sent: false, reason: "META_PIXEL_ID / META_CAPI_ACCESS_TOKEN env yo'q" };
 
@@ -118,8 +119,9 @@ export async function sendMetaEvent(input: MetaEventInput): Promise<{ sent: bool
 
     const json = await res.json().catch(() => null);
     if (!res.ok) {
-      console.error("Meta CAPI xato:", res.status, JSON.stringify(json)?.slice(0, 500));
-      return { sent: false, reason: `HTTP ${res.status}` };
+      const errorMsg = json?.error?.message || `HTTP ${res.status}`;
+      console.error("Meta CAPI xato:", res.status, errorMsg, JSON.stringify(json)?.slice(0, 500));
+      return { sent: false, reason: `HTTP ${res.status}: ${errorMsg}`, meta_error: json?.error || json };
     }
     console.log(`Meta CAPI OK: ${input.eventName} (${input.eventId})`, json?.events_received != null ? `received=${json.events_received}` : "");
     return { sent: true };
