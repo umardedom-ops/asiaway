@@ -9,10 +9,6 @@ import { metaCapiConfigured, sendMetaEvent } from "@/lib/meta-capi";
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const secret = url.searchParams.get("secret") || req.headers.get("authorization")?.replace("Bearer ", "");
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
 
   const pixelId = process.env.META_PIXEL_ID;
   const publicPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
