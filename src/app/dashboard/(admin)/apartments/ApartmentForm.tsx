@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveApartment } from "@/app/dashboard/apartments/actions";
 import { Button } from "@/components/ui/button";
@@ -43,26 +43,78 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
   const [existingImages, setExistingImages] = useState<any[]>(initialData?.apartment_images || []);
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [galleryFilesList, setGalleryFilesList] = useState<File[]>([]);
+
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          
+          const maxDim = 1200;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const newFile = new File([blob], file.name, {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                });
+                resolve(newFile);
+              } else {
+                resolve(file);
+              }
+            },
+            "image/jpeg",
+            0.8
+          );
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleRemoveExistingImage = (id: string) => {
     setDeletedImageIds((prev) => [...prev, id]);
     setExistingImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGalleryChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const newPreviews: string[] = [];
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          newPreviews.push(reader.result as string);
-          if (newPreviews.length === files.length) {
-            setGalleryPreviews(newPreviews);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+      const newFilesArray = Array.from(files);
+      const totalCount = existingImages.length + galleryPreviews.length + newFilesArray.length;
+      
+      if (totalCount > 8) {
+        alert(isRu ? "Можно загрузить максимум 8 фото в галерею!" : "Galereyaga maksimum 8 ta rasm yuklash mumkin!");
+        return;
+      }
+
+      const compressedFiles = await Promise.all(newFilesArray.map(compressImage));
+      setGalleryFilesList((prev) => [...prev, ...compressedFiles]);
+      
+      const newPreviews = compressedFiles.map((f) => URL.createObjectURL(f));
+      setGalleryPreviews((prev) => [...prev, ...newPreviews]);
     }
   };
 
@@ -72,15 +124,34 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
     }
   }, [state, router]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const compressed = await compressImage(file);
+      setCoverFile(compressed);
+      setImagePreview(URL.createObjectURL(compressed));
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    // Replace files with compressed versions if any
+    if (coverFile) {
+      formData.set("cover_image_file", coverFile);
+    } else {
+      formData.delete("cover_image_file");
+    }
+    
+    formData.delete("gallery_files");
+    galleryFilesList.forEach((file) => {
+      formData.append("gallery_files", file);
+    });
+
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
@@ -103,7 +174,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
 
       <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
         <CardContent className="p-8">
-          <form action={formAction} className="space-y-10">
+          <form onSubmit={handleSubmit} className="space-y-10">
             {initialData?.id && <input type="hidden" name="id" value={initialData.id} />}
             {initialData?.cover_image && (
               <input type="hidden" name="existing_cover_image" value={initialData.cover_image} />
@@ -119,28 +190,54 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
             <div className="grid gap-10 md:grid-cols-2">
               {/* Asosiy ma'lumotlar */}
               <div className="space-y-6">
-                <div className="space-y-3">
-                  <Label htmlFor="title" className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">{isRu ? "Название (Заголовок)" : "Apartament nomi (Sarlavha)"}</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    defaultValue={initialData?.title}
-                    placeholder={isRu ? "Например: 34 этаж | 78 м² | Premium Penthouse" : "Masalan: 34-qavat | 78 m² | Premium Penthouse"}
-                    required
-                    className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"
-                  />
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="title" className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Sarlavha (UZ)</Label>
+                    <Input
+                      id="title"
+                      name="title"
+                      defaultValue={initialData?.title}
+                      placeholder="Masalan: 34-qavat | 78 m² | Premium Penthouse"
+                      required
+                      className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="title_ru" className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Название (RU)</Label>
+                    <Input
+                      id="title_ru"
+                      name="title_ru"
+                      defaultValue={initialData?.title_ru}
+                      placeholder="Например: 34 этаж | 78 м² | Premium Penthouse"
+                      required
+                      className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="description" className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">{isRu ? "Описание (Description)" : "Tavsif (Description)"}</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    defaultValue={initialData?.description}
-                    placeholder={isRu ? "Подробная информация о квартире..." : "Kvartira haqida to'liqroq ma'lumotlar..."}
-                    rows={4}
-                    className="rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30 resize-none pt-3"
-                  />
+                <div className="grid grid-cols-2 gap-6 mt-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="description" className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Tavsif (UZ)</Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      defaultValue={initialData?.description}
+                      placeholder="Kvartira haqida to'liqroq ma'lumotlar (o'zbek tilida)..."
+                      rows={4}
+                      className="rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30 resize-none pt-3"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="description_ru" className="text-[12px] text-[#A8A49B] uppercase tracking-[0.1em] font-semibold">Описание (RU)</Label>
+                    <Textarea
+                      id="description_ru"
+                      name="description_ru"
+                      defaultValue={initialData?.description_ru}
+                      placeholder="Подробная информация о квартире (на русском)..."
+                      rows={4}
+                      className="rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30 resize-none pt-3"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">

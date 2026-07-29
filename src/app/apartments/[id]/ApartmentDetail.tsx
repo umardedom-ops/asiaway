@@ -46,11 +46,11 @@ export default function ApartmentDetail({ apartment }: { apartment: any }) {
   const description =
     lang === "uz"
       ? apartment.description
-      : APARTMENT_TR[apartment.id]?.[lang]?.description ?? apartment.description;
+      : (lang === "ru" && apartment.description_ru) ? apartment.description_ru : APARTMENT_TR[apartment.id]?.[lang]?.description ?? apartment.description;
   const title =
     lang === "uz"
       ? apartment.title
-      : apartment.title.replace(/-qavat/gi, lang === "ru" ? " этаж" : " floor");
+      : (lang === "ru" && apartment.title_ru) ? apartment.title_ru : apartment.title.replace(/-qavat/gi, lang === "ru" ? " этаж" : " floor");
 
   const fmtPrice = (n: number) => `$${Number(n).toLocaleString("en-US")}`;
 

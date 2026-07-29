@@ -10,7 +10,9 @@ export async function saveApartment(prevState: any, formData: FormData) {
   try {
     const id = formData.get("id") as string;
     const title = formData.get("title") as string;
+    const title_ru = formData.get("title_ru") as string;
     const description = formData.get("description") as string;
+    const description_ru = formData.get("description_ru") as string;
     const address = formData.get("address") as string;
     const district = formData.get("district") as string;
     const price_per_day = Number(formData.get("price_per_day"));
@@ -63,7 +65,9 @@ export async function saveApartment(prevState: any, formData: FormData) {
 
     const apartmentData = {
       title,
+      title_ru,
       description,
+      description_ru,
       address,
       district,
       price_per_day,
