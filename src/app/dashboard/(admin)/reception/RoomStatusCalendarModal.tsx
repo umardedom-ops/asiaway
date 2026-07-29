@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Lock, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { createManualBooking } from "@/app/dashboard/bookings/actions";
+import { placeGuestNow } from "@/app/dashboard/bookings/actions";
 import { useDashLang } from "@/components/DashboardLangProvider";
 import { useRouter } from "next/navigation";
 
@@ -35,7 +35,6 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [hoverDate, setHoverDate] = useState<string | null>(null);
-  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState(false);
@@ -126,7 +125,7 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
     return "text-[#F5F2EB] hover:bg-[#C5A46D]/15 hover:text-[#C5A46D] cursor-pointer transition-colors";
   };
 
-  // Saqlash amali
+  // Saqlash va Zaselenie yaratish amali
   const handleSaveBlock = async () => {
     if (!startDate || !endDate) {
       setErrorMsg(isRu ? "Выберите дату начала и окончания!" : "Boshlanish va tugash sanasini tanlang!");
@@ -136,9 +135,9 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
     setLoading(true);
     setErrorMsg(null);
 
-    const res = await createManualBooking({
+    const res = await placeGuestNow({
       apartment_id: apartment.id,
-      guest_name: notes.trim() || (isRu ? "Занято (Блок)" : "Band qilingan (Zanyat)"),
+      guest_name: isRu ? "Заселение (Не заполнен)" : "Zaselenie (To'ldirilmagan)",
       guest_phone: "-",
       channel: "manual",
       check_in: startDate,
@@ -147,7 +146,6 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
       deposit_amount: 0,
       deposit_status: "pending",
       booking_status: "confirmed",
-      notes: notes.trim() || undefined,
     });
 
     setLoading(false);
@@ -159,9 +157,8 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
         setSuccessMsg(false);
         setStartDate(null);
         setEndDate(null);
-        setNotes("");
         router.refresh();
-      }, 1200);
+      }, 1000);
     } else {
       setErrorMsg(res.error || (isRu ? "Ошибка при сохранении" : "Saqlashda xatolik yuz berdi"));
     }
@@ -187,15 +184,15 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger className="w-full h-9 rounded-[8px] border border-[rgba(197,164,109,0.3)] bg-[#0B0D0F] hover:bg-[#C5A46D]/15 text-[#C5A46D] hover:text-[#D4B77F] text-[12px] font-medium flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer">
-        <CalendarIcon className="h-3.5 w-3.5" />
-        <span>{isRu ? "Заблокировать даты" : "Sana band qilish (Zanyat)"}</span>
+      <DialogTrigger className="w-full h-10 rounded-[8px] border border-[rgba(197,164,109,0.35)] bg-gradient-to-r from-[#111417] via-[#1A1E23] to-[#111417] hover:bg-[#C5A46D]/15 text-[#C5A46D] hover:text-[#D4B77F] text-[13px] font-semibold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-[#C5A46D]/10 active:scale-[0.98]">
+        <CalendarIcon className="h-4 w-4 text-[#C5A46D]" />
+        <span>{isRu ? "Забронировать номер" : "Xonani band qilish"}</span>
       </DialogTrigger>
       <DialogContent className="max-w-md border-[rgba(197,164,109,0.2)] bg-[#111417] text-[#F5F2EB] rounded-[16px] p-6 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-[18px] font-medium text-[#F5F2EB] flex items-center gap-2">
             <Lock className="h-4 w-4 text-[#C5A46D]" />
-            <span>{isRu ? "Блокировка дат для объекта" : "Xonaga band (Zanyat) sanalarini qo'yish"}</span>
+            <span>{isRu ? "Забронировать номер (Заселение)" : "Xonaga band (Zaselenie) sanalarini belgilash"}</span>
           </DialogTitle>
           <p className="text-[12px] text-[#A8A49B] mt-1 line-clamp-1">{apartment.title}</p>
         </DialogHeader>
@@ -204,7 +201,7 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
         {successMsg && (
           <div className="rounded-[8px] bg-emerald-950/60 p-3 text-emerald-400 border border-emerald-800 text-[13px] flex items-center gap-2 animate-in fade-in">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
-            <span>{isRu ? "Даты успешно заблокированы!" : "Sanalar muvaffaqiyatli band qilindi!"}</span>
+            <span>{isRu ? "Заселение создано! Даты заблокированы." : "Zaselenie yaratildi! Sanalar yopildi."}</span>
           </div>
         )}
 
@@ -281,7 +278,7 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
         {/* Selected Dates Summary */}
         <div className="mt-4 p-3 bg-[#0B0D0F] rounded-[10px] border border-[rgba(197,164,109,0.14)] space-y-2">
           <div className="flex items-center justify-between text-[12px]">
-            <span className="text-[#A8A49B]">{isRu ? "Период блокировки:" : "Bandlik oralig'i:"}</span>
+            <span className="text-[#A8A49B]">{isRu ? "Период заезда:" : "Joylashtirish oralig'i:"}</span>
             <span className="font-medium text-[#C5A46D]">
               {startDate ? startDate : "—"} {endDate ? `➔ ${endDate}` : ""}
             </span>
@@ -292,17 +289,6 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
               <span className="font-semibold text-[#F5F2EB]">{calculateNights()} {isRu ? "ночей" : "kecha"}</span>
             </div>
           )}
-
-          {/* Note Input */}
-          <div className="pt-2 border-t border-[rgba(197,164,109,0.1)]">
-            <input
-              type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={isRu ? "Причина (например: Ремонт, Профилактика, Занято)" : "Sabab (masalan: Ta'mirlash, Egasi turadi, Zanyat)"}
-              className="w-full h-9 px-3 rounded-[6px] border border-[rgba(197,164,109,0.2)] bg-[#111417] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 text-[12px] focus:outline-none focus:border-[#C5A46D]"
-            />
-          </div>
         </div>
 
         {/* Action Buttons */}
@@ -319,10 +305,10 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
             type="button"
             onClick={handleSaveBlock}
             disabled={loading || !startDate || !endDate}
-            className="h-10 px-6 rounded-[8px] bg-[#C5A46D] text-[#0B0D0F] hover:bg-[#D4B77F] font-semibold text-[13px] disabled:opacity-50 flex items-center gap-2"
+            className="h-10 px-6 rounded-[8px] bg-[#C5A46D] text-[#0B0D0F] hover:bg-[#D4B77F] font-semibold text-[13px] disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-[#C5A46D]/15"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
-            <span>{isRu ? "Сохранить (Занято)" : "Saqlash (Zanyat)"}</span>
+            <span>{isRu ? "Создать заселение" : "Zaselenie yaratish"}</span>
           </Button>
         </div>
       </DialogContent>

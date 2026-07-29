@@ -345,3 +345,49 @@ export async function payBookingBalance(bookingId: string, amount: number, guest
   revalidatePath("/dashboard");
   return { success: true };
 }
+
+export interface UpdateBookingDetailsInput {
+  id: string;
+  guest_name: string;
+  guest_phone?: string;
+  guest_email?: string;
+  total_price?: number;
+  deposit_amount?: number;
+  deposit_status?: "pending" | "paid" | "refunded";
+  notes?: string;
+}
+
+export async function updateBookingDetails(input: UpdateBookingDetailsInput) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("bookings")
+    .update({
+      guest_name: input.guest_name.trim(),
+      guest_phone: input.guest_phone?.trim() || "",
+      guest_email: input.guest_email?.trim() || null,
+      total_price: input.total_price || 0,
+      deposit_amount: input.deposit_amount || 0,
+      deposit_status: input.deposit_status || "pending",
+      notes: input.notes?.trim() || null,
+    })
+    .eq("id", input.id);
+
+  if (error) {
+    throw new Error(`Ma'lumotlarni yangilashda xatolik: ${error.message}`);
+  }
+
+  if (input.guest_name) {
+    await syncClientFromBooking(supabase, {
+      name: input.guest_name,
+      phone: input.guest_phone || "",
+      email: input.guest_email,
+      amount: input.total_price || 0,
+    });
+  }
+
+  revalidatePath("/dashboard/bookings");
+  revalidatePath("/dashboard/reception");
+  revalidatePath("/dashboard/guests");
+  revalidatePath("/dashboard");
+  return { success: true };
+}

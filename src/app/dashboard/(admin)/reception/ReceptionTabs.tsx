@@ -16,6 +16,7 @@ import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
 import RoomStatusCalendarModal from "./RoomStatusCalendarModal";
+import EditPlacementModal from "./EditPlacementModal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = any;
@@ -148,11 +149,24 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
                     {staying.length === 0 && <tr><td colSpan={5} className="px-6 py-10 text-center text-[#A8A49B]">{d.reception.noGuests}</td></tr>}
                     {staying.map((b) => (
                       <tr key={b.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
-                        <td className="px-6 py-3"><div className="text-[#F5F2EB] font-medium">{b.guest_name}</div><div className="text-[11px] text-[#A8A49B]">{b.guest_phone}</div></td>
+                        <td className="px-6 py-3">
+                          <div className="text-[#F5F2EB] font-medium flex items-center gap-2">
+                            <span>{b.guest_name}</span>
+                            {(b.guest_name?.includes("Zaselenie") || b.guest_name?.includes("Заселение")) && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+                                Pusto
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-[#A8A49B]">{b.guest_phone || "—"}</div>
+                        </td>
                         <td className="px-4 py-3 text-[#A8A49B] max-w-[160px] truncate">{b.apartments?.title || aptTitle(b.apartment_id)}</td>
                         <td className="px-4 py-3 text-[#A8A49B] whitespace-nowrap">{fmtShort(b.check_in)} → {fmtShort(b.check_out)}<div className="text-[11px] text-[#A8A49B]/70">{b.nights} {d.reception.nights}</div></td>
                         <td className="px-4 py-3 text-right text-[#C5A46D] font-medium">{money(b.total_price)}</td>
-                        <td className="px-6 py-3 text-right"><GuestCheckoutButton id={b.id} booking={{ ...b, apartment_title: b.apartments?.title || aptTitle(b.apartment_id) }} /></td>
+                        <td className="px-6 py-3 text-right flex items-center justify-end gap-2">
+                          <EditPlacementModal booking={{ ...b, apartment_title: b.apartments?.title || aptTitle(b.apartment_id) }} />
+                          <GuestCheckoutButton id={b.id} booking={{ ...b, apartment_title: b.apartments?.title || aptTitle(b.apartment_id) }} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
