@@ -51,7 +51,7 @@ const PLACES: Place[] = [
   },
   {
     key: "airport", min: 15, mode: "drive",
-    img: `https://uzairports.com/storage/blog/1783400009_6a4c864980ace.jpg`,
+    img: `${WM}/d/d4/Tashkent_International_Airport_Terminal_2_01.jpg/1280px-Tashkent_International_Airport_Terminal_2_01.jpg`,
   },
 ];
 
