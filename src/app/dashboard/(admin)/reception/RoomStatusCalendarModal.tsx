@@ -139,7 +139,7 @@ export default function RoomStatusCalendarModal({ apartment, existingBookings = 
       apartment_id: apartment.id,
       guest_name: isRu ? "Заселение (Не заполнен)" : "Zaselenie (To'ldirilmagan)",
       guest_phone: "-",
-      channel: "manual",
+      channel: "direct",
       check_in: startDate,
       check_out: endDate,
       total_price: 0,
