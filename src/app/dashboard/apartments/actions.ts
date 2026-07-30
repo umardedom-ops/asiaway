@@ -36,23 +36,24 @@ export async function saveApartment(prevState: any, formData: FormData) {
     const amenities = formData.getAll("amenities") as string[];
 
     // Rasm faylini yuklash
-    const imageFile = formData.get("cover_image_file") as File;
-    let cover_image = formData.get("existing_cover_image") as string || "";
+    const imageFile = formData.get("cover_image_file");
+    let cover_image = (formData.get("existing_cover_image") as string) || "";
 
-    if (imageFile && imageFile.size > 0) {
-      const fileExt = imageFile.name.split(".").pop();
+    if (imageFile && typeof imageFile === "object" && "size" in imageFile && (imageFile as File).size > 0) {
+      const file = imageFile as File;
+      const fileExt = (file.name || "jpg").split(".").pop();
       const fileName = `${id || Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const { error: uploadError } = await supabase.storage
         .from("apartments")
         .upload(fileName, buffer, {
-          contentType: imageFile.type,
+          contentType: file.type || "image/jpeg",
           upsert: true,
         });
 
       if (uploadError) {
-        throw new Error(`Rasm yuklashda xatolik: ${uploadError.message}`);
+        throw new Error(`Asosiy rasmni yuklashda xatolik: ${uploadError.message}`);
       }
 
       // Public URL olish
@@ -150,15 +151,16 @@ export async function saveApartment(prevState: any, formData: FormData) {
     const uploadedUrls: string[] = [];
     for (let i = 0; i < galleryFiles.length; i++) {
       const file = galleryFiles[i];
-      if (file && file.size > 0) {
-        const fileExt = file.name.split(".").pop();
+      if (file && typeof file === "object" && "size" in file && (file as File).size > 0) {
+        const fileObj = file as File;
+        const fileExt = (fileObj.name || "jpg").split(".").pop();
         const fileName = `gallery_${targetAptId}_${Date.now()}_${i}.${fileExt}`;
-        const buffer = Buffer.from(await file.arrayBuffer());
+        const buffer = Buffer.from(await fileObj.arrayBuffer());
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("apartments")
           .upload(fileName, buffer, {
-            contentType: file.type,
+            contentType: fileObj.type || "image/jpeg",
             upsert: true,
           });
 
@@ -169,6 +171,7 @@ export async function saveApartment(prevState: any, formData: FormData) {
           uploadedUrls.push(publicUrl);
         } else {
           console.error("Error uploading gallery image:", uploadError);
+          throw new Error(`Galereya rasmini yuklashda xatolik: ${uploadError.message}`);
         }
       }
     }

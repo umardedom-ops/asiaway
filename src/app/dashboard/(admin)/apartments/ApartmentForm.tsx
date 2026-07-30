@@ -48,9 +48,15 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
 
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve) => {
+      if (!file.type.startsWith("image/")) {
+        resolve(file);
+        return;
+      }
       const reader = new FileReader();
+      reader.onerror = () => resolve(file);
       reader.onload = (e) => {
         const img = new Image();
+        img.onerror = () => resolve(file);
         img.onload = () => {
           const canvas = document.createElement("canvas");
           let width = img.width;
@@ -85,7 +91,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
               }
             },
             "image/jpeg",
-            0.8
+            0.75
           );
         };
         img.src = e.target?.result as string;
