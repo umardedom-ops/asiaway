@@ -22,17 +22,55 @@ export async function saveApartment(prevState: any, formData: FormData) {
     const floor = formData.get("floor") ? Number(formData.get("floor")) : null;
     const max_guests = Number(formData.get("max_guests"));
     const status = formData.get("status") as string;
-    // Tan narx (biz egaga to'laydigan oylik) + ega ma'lumoti
     const monthly_lease_cost = formData.get("monthly_lease_cost") ? Number(formData.get("monthly_lease_cost")) : 0;
     const owner_name = (formData.get("owner_name") as string) || null;
     const owner_phone = (formData.get("owner_phone") as string) || null;
-    // Egaga to'lov kuni (oyning sanasi, 1-31) — bot eslatmasi uchun
     const leaseDayRaw = Number(formData.get("lease_payment_day"));
     const lease_payment_day =
       leaseDayRaw >= 1 && leaseDayRaw <= 31 ? Math.floor(leaseDayRaw) : null;
     
-    // Qulayliklarni parse qilish
     const amenities = formData.getAll("amenities") as string[];
+
+    // Helper: Fail-safe Storage Upload with Auto Bucket Creation & Data URL Fallback
+    const uploadImage = async (fileName: string, buffer: Buffer, mimeType: string): Promise<string> => {
+      // 1. Try uploading to 'apartments' bucket
+      let { error: uploadErr } = await supabase.storage
+        .from("apartments")
+        .upload(fileName, buffer, {
+          contentType: mimeType,
+          upsert: true,
+        });
+
+      if (uploadErr && (uploadErr.message?.toLowerCase().includes("not found") || uploadErr.message?.includes("Bucket"))) {
+        console.warn("Storage bucket missing, attempting auto-creation:", uploadErr.message);
+        try {
+          await supabase.storage.createBucket("apartments", { public: true });
+        } catch (e) {
+          console.error("Bucket creation failed:", e);
+        }
+
+        // Retry upload
+        const retry = await supabase.storage
+          .from("apartments")
+          .upload(fileName, buffer, {
+            contentType: mimeType,
+            upsert: true,
+          });
+        uploadErr = retry.error;
+      }
+
+      if (!uploadErr) {
+        const { data: { publicUrl } } = supabase.storage
+          .from("apartments")
+          .getPublicUrl(fileName);
+        return publicUrl;
+      }
+
+      console.warn("Storage upload failed completely, using data URL fallback:", uploadErr?.message);
+      // Fallback: convert buffer to base64 Data URL so the image is NEVER lost
+      const base64 = buffer.toString("base64");
+      return `data:${mimeType};base64,${base64}`;
+    };
 
     // Rasm faylini yuklash
     const imageFile = formData.get("cover_image_file");
@@ -42,33 +80,16 @@ export async function saveApartment(prevState: any, formData: FormData) {
       const file = imageFile as File;
       const fileExt = (file.name || "jpg").split(".").pop();
       const fileName = `${id || Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-      
       const buffer = Buffer.from(await file.arrayBuffer());
-      const { error: uploadError } = await supabase.storage
-        .from("apartments")
-        .upload(fileName, buffer, {
-          contentType: file.type || "image/jpeg",
-          upsert: true,
-        });
 
-      if (uploadError) {
-        console.error("Cover image upload error:", uploadError);
-        throw new Error(`Asosiy rasmni yuklashda xatolik: ${uploadError.message}`);
-      }
-
-      // Public URL olish
-      const { data: { publicUrl } } = supabase.storage
-        .from("apartments")
-        .getPublicUrl(fileName);
-        
-      cover_image = publicUrl;
+      cover_image = await uploadImage(fileName, buffer, file.type || "image/jpeg");
     }
 
-    const apartmentData = {
+    const apartmentData: Record<string, any> = {
       title,
-      title_ru,
+      title_ru: title_ru || title,
       description,
-      description_ru,
+      description_ru: description_ru || description,
       address,
       district,
       price_per_day,
@@ -90,85 +111,62 @@ export async function saveApartment(prevState: any, formData: FormData) {
     let targetAptId = id;
 
     if (id) {
-      // Yangilash (Update) — 1-urinish (barcha maydonlar bilan)
+      // Yangilash (Update)
+      let dataToUpdate = { ...apartmentData };
       let { error } = await supabase
         .from("apartments")
-        .update(apartmentData)
+        .update(dataToUpdate)
         .eq("id", id);
 
       if (error) {
-        console.warn("Full update error, trying fallback 1 (without owner/lease fields):", error.message);
-        // Fallback 1: Owner va lease maydonlarisiz saqlash
-        const fallback1 = { ...apartmentData };
-        delete (fallback1 as any).monthly_lease_cost;
-        delete (fallback1 as any).owner_name;
-        delete (fallback1 as any).owner_phone;
-        delete (fallback1 as any).lease_payment_day;
-
-        let res1 = await supabase
-          .from("apartments")
-          .update(fallback1)
-          .eq("id", id);
-
-        if (res1.error) {
-          console.warn("Fallback 1 update error, trying fallback 2 (without title_ru/description_ru):", res1.error.message);
-          // Fallback 2: Multilingual title_ru va description_ru siz saqlash
-          delete (fallback1 as any).title_ru;
-          delete (fallback1 as any).description_ru;
-
-          let res2 = await supabase
-            .from("apartments")
-            .update(fallback1)
-            .eq("id", id);
-
-          error = res2.error;
-        } else {
-          error = null;
+        console.warn("Initial update error:", error.message);
+        // Specific column missing fallback
+        const match = error.message.match(/column "(.*?)"/i) || error.message.match(/column apartments\.(.*?) /i);
+        if (match && match[1]) {
+          const missingCol = match[1];
+          delete dataToUpdate[missingCol];
+          const res = await supabase.from("apartments").update(dataToUpdate).eq("id", id);
+          error = res.error;
         }
+      }
+
+      if (error) {
+        // Fallback: Remove optional owner/lease fields if schema missing
+        delete dataToUpdate.monthly_lease_cost;
+        delete dataToUpdate.owner_name;
+        delete dataToUpdate.owner_phone;
+        delete dataToUpdate.lease_payment_day;
+        const res = await supabase.from("apartments").update(dataToUpdate).eq("id", id);
+        error = res.error;
       }
 
       if (error) {
         throw new Error(`Kvartirani yangilashda xatolik: ${error.message}`);
       }
     } else {
-      // Yaratish (Create) — 1-urinish
+      // Yaratish (Create)
+      let dataToInsert = { ...apartmentData };
       let { data: newApt, error } = await supabase
         .from("apartments")
-        .insert([apartmentData])
+        .insert([dataToInsert])
         .select("id")
         .single();
 
       if (error) {
-        console.warn("Full insert error, trying fallback 1:", error.message);
-        const fallback1 = { ...apartmentData };
-        delete (fallback1 as any).monthly_lease_cost;
-        delete (fallback1 as any).owner_name;
-        delete (fallback1 as any).owner_phone;
-        delete (fallback1 as any).lease_payment_day;
+        console.warn("Initial insert error:", error.message);
+        delete dataToInsert.monthly_lease_cost;
+        delete dataToInsert.owner_name;
+        delete dataToInsert.owner_phone;
+        delete dataToInsert.lease_payment_day;
 
-        let res1 = await supabase
+        const res = await supabase
           .from("apartments")
-          .insert([fallback1])
+          .insert([dataToInsert])
           .select("id")
           .single();
 
-        if (res1.error) {
-          console.warn("Fallback 1 insert error, trying fallback 2:", res1.error.message);
-          delete (fallback1 as any).title_ru;
-          delete (fallback1 as any).description_ru;
-
-          let res2 = await supabase
-            .from("apartments")
-            .insert([fallback1])
-            .select("id")
-            .single();
-
-          newApt = res2.data;
-          error = res2.error;
-        } else {
-          newApt = res1.data;
-          error = null;
-        }
+        newApt = res.data;
+        error = res.error;
       }
 
       if (error || !newApt) {
@@ -200,22 +198,8 @@ export async function saveApartment(prevState: any, formData: FormData) {
         const fileName = `gallery_${targetAptId}_${Date.now()}_${i}.${fileExt}`;
         const buffer = Buffer.from(await fileObj.arrayBuffer());
 
-        const { error: uploadError } = await supabase.storage
-          .from("apartments")
-          .upload(fileName, buffer, {
-            contentType: fileObj.type || "image/jpeg",
-            upsert: true,
-          });
-
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage
-            .from("apartments")
-            .getPublicUrl(fileName);
-          uploadedUrls.push(publicUrl);
-        } else {
-          console.error("Error uploading gallery image:", uploadError);
-          throw new Error(`Galereya rasmini yuklashda xatolik: ${uploadError.message}`);
-        }
+        const publicUrl = await uploadImage(fileName, buffer, fileObj.type || "image/jpeg");
+        uploadedUrls.push(publicUrl);
       }
     }
 
