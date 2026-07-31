@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export async function saveApartment(prevState: any, formData: FormData) {
   const supabase = await createClient();
@@ -53,6 +52,7 @@ export async function saveApartment(prevState: any, formData: FormData) {
         });
 
       if (uploadError) {
+        console.error("Cover image upload error:", uploadError);
         throw new Error(`Asosiy rasmni yuklashda xatolik: ${uploadError.message}`);
       }
 
@@ -90,47 +90,90 @@ export async function saveApartment(prevState: any, formData: FormData) {
     let targetAptId = id;
 
     if (id) {
-      // Yangilash (Update)
+      // Yangilash (Update) — 1-urinish (barcha maydonlar bilan)
       let { error } = await supabase
         .from("apartments")
         .update(apartmentData)
         .eq("id", id);
 
-      if (error && (error.message?.includes("column") || error.code === "PGRST204" || error.message?.includes("description_ru"))) {
-        // Fallback: title_ru/description_ru ustuni bazada yo'q bo'lsa
-        const fallbackData = { ...apartmentData };
-        delete (fallbackData as any).title_ru;
-        delete (fallbackData as any).description_ru;
-        const res = await supabase
+      if (error) {
+        console.warn("Full update error, trying fallback 1 (without owner/lease fields):", error.message);
+        // Fallback 1: Owner va lease maydonlarisiz saqlash
+        const fallback1 = { ...apartmentData };
+        delete (fallback1 as any).monthly_lease_cost;
+        delete (fallback1 as any).owner_name;
+        delete (fallback1 as any).owner_phone;
+        delete (fallback1 as any).lease_payment_day;
+
+        let res1 = await supabase
           .from("apartments")
-          .update(fallbackData)
+          .update(fallback1)
           .eq("id", id);
-        error = res.error;
+
+        if (res1.error) {
+          console.warn("Fallback 1 update error, trying fallback 2 (without title_ru/description_ru):", res1.error.message);
+          // Fallback 2: Multilingual title_ru va description_ru siz saqlash
+          delete (fallback1 as any).title_ru;
+          delete (fallback1 as any).description_ru;
+
+          let res2 = await supabase
+            .from("apartments")
+            .update(fallback1)
+            .eq("id", id);
+
+          error = res2.error;
+        } else {
+          error = null;
+        }
       }
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(`Kvartirani yangilashda xatolik: ${error.message}`);
+      }
     } else {
-      // Yaratish (Create)
+      // Yaratish (Create) — 1-urinish
       let { data: newApt, error } = await supabase
         .from("apartments")
         .insert([apartmentData])
         .select("id")
         .single();
 
-      if (error && (error.message?.includes("column") || error.code === "PGRST204" || error.message?.includes("description_ru"))) {
-        const fallbackData = { ...apartmentData };
-        delete (fallbackData as any).title_ru;
-        delete (fallbackData as any).description_ru;
-        const res = await supabase
+      if (error) {
+        console.warn("Full insert error, trying fallback 1:", error.message);
+        const fallback1 = { ...apartmentData };
+        delete (fallback1 as any).monthly_lease_cost;
+        delete (fallback1 as any).owner_name;
+        delete (fallback1 as any).owner_phone;
+        delete (fallback1 as any).lease_payment_day;
+
+        let res1 = await supabase
           .from("apartments")
-          .insert([fallbackData])
+          .insert([fallback1])
           .select("id")
           .single();
-        newApt = res.data;
-        error = res.error;
+
+        if (res1.error) {
+          console.warn("Fallback 1 insert error, trying fallback 2:", res1.error.message);
+          delete (fallback1 as any).title_ru;
+          delete (fallback1 as any).description_ru;
+
+          let res2 = await supabase
+            .from("apartments")
+            .insert([fallback1])
+            .select("id")
+            .single();
+
+          newApt = res2.data;
+          error = res2.error;
+        } else {
+          newApt = res1.data;
+          error = null;
+        }
       }
 
-      if (error || !newApt) throw error || new Error("Apartament yaratib bo'lmadi");
+      if (error || !newApt) {
+        throw error || new Error("Apartament yaratib bo'lmadi");
+      }
       targetAptId = newApt.id;
     }
 
@@ -187,7 +230,15 @@ export async function saveApartment(prevState: any, formData: FormData) {
       const { error: imgErr } = await supabase
         .from("apartment_images")
         .insert(imgInserts);
-      if (imgErr) console.error("Error inserting apartment images:", imgErr);
+
+      if (imgErr) {
+        console.warn("Full apartment_images insert error, trying simple insert:", imgErr.message);
+        const simpleInserts = uploadedUrls.map((url) => ({
+          apartment_id: targetAptId,
+          url,
+        }));
+        await supabase.from("apartment_images").insert(simpleInserts);
+      }
     }
 
     revalidatePath("/dashboard/apartments");
@@ -197,7 +248,7 @@ export async function saveApartment(prevState: any, formData: FormData) {
     return { success: true };
   } catch (error: any) {
     console.error("Save apartment error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || "Apartamentni saqlashda kutilmagan xatolik" };
   }
 }
 
