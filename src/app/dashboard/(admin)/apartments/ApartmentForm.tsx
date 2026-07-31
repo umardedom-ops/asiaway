@@ -160,6 +160,17 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
     });
   };
 
+  const rawDesc = initialData?.description || "";
+  let defaultUzDesc = rawDesc;
+  let defaultRuDesc = initialData?.description_ru || "";
+  if (rawDesc.includes("[RU]:")) {
+    const parts = rawDesc.split("[RU]:");
+    defaultUzDesc = parts[0].trim();
+    if (!defaultRuDesc) {
+      defaultRuDesc = parts[1].trim();
+    }
+  }
+
   return (
     <div className="space-y-8 font-sans">
       <div className="flex items-center space-x-5">
@@ -227,7 +238,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                     <Textarea
                       id="description"
                       name="description"
-                      defaultValue={initialData?.description}
+                      defaultValue={defaultUzDesc}
                       placeholder="Kvartira haqida to'liqroq ma'lumotlar (o'zbek tilida)..."
                       rows={4}
                       className="rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30 resize-none pt-3"
@@ -238,7 +249,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                     <Textarea
                       id="description_ru"
                       name="description_ru"
-                      defaultValue={initialData?.description_ru}
+                      defaultValue={defaultRuDesc}
                       placeholder="Подробная информация о квартире (на русском)..."
                       rows={4}
                       className="rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30 resize-none pt-3"

@@ -43,10 +43,19 @@ export default function ApartmentDetail({ apartment }: { apartment: any }) {
     lang === "uz"
       ? apartment.view
       : APARTMENT_TR[apartment.id]?.[lang]?.view ?? apartment.view;
+  const rawDesc = apartment.description || "";
+  let uzDesc = rawDesc;
+  let ruDesc = apartment.description_ru || "";
+  if (rawDesc.includes("[RU]:")) {
+    const parts = rawDesc.split("[RU]:");
+    uzDesc = parts[0].trim();
+    if (!ruDesc) ruDesc = parts[1].trim();
+  }
+
   const description =
     lang === "uz"
-      ? apartment.description
-      : (lang === "ru" && apartment.description_ru) ? apartment.description_ru : APARTMENT_TR[apartment.id]?.[lang]?.description ?? apartment.description;
+      ? uzDesc
+      : (lang === "ru" && ruDesc) ? ruDesc : APARTMENT_TR[apartment.id]?.[lang]?.description ?? uzDesc;
   const title =
     lang === "uz"
       ? apartment.title

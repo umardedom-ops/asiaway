@@ -3,6 +3,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+const getMissingColumn = (errMessage: string): string | null => {
+  const match =
+    errMessage.match(/column ['"](.*?)['"] of/i) ||
+    errMessage.match(/Could not find the ['"](.*?)['"] column/i) ||
+    errMessage.match(/column ['"](.*?)['"]/i) ||
+    errMessage.match(/column apartments\.(.*?) /i);
+  return match ? match[1] : null;
+};
+
 export async function saveApartment(prevState: any, formData: FormData) {
   const supabase = await createClient();
 
@@ -33,7 +42,6 @@ export async function saveApartment(prevState: any, formData: FormData) {
 
     // Helper: Fail-safe Storage Upload with Auto Bucket Creation & Data URL Fallback
     const uploadImage = async (fileName: string, buffer: Buffer, mimeType: string): Promise<string> => {
-      // 1. Try uploading to 'apartments' bucket
       let { error: uploadErr } = await supabase.storage
         .from("apartments")
         .upload(fileName, buffer, {
@@ -49,7 +57,6 @@ export async function saveApartment(prevState: any, formData: FormData) {
           console.error("Bucket creation failed:", e);
         }
 
-        // Retry upload
         const retry = await supabase.storage
           .from("apartments")
           .upload(fileName, buffer, {
@@ -67,7 +74,6 @@ export async function saveApartment(prevState: any, formData: FormData) {
       }
 
       console.warn("Storage upload failed completely, using data URL fallback:", uploadErr?.message);
-      // Fallback: convert buffer to base64 Data URL so the image is NEVER lost
       const base64 = buffer.toString("base64");
       return `data:${mimeType};base64,${base64}`;
     };
@@ -111,66 +117,93 @@ export async function saveApartment(prevState: any, formData: FormData) {
     let targetAptId = id;
 
     if (id) {
-      // Yangilash (Update)
+      // Yangilash (Update) — 6 martagacha ustun xatoliklarini avto-to'g'rilab saqlaydi
       let dataToUpdate = { ...apartmentData };
-      let { error } = await supabase
-        .from("apartments")
-        .update(dataToUpdate)
-        .eq("id", id);
+      let updateSuccess = false;
+      let lastErr = "";
 
-      if (error) {
-        console.warn("Initial update error:", error.message);
-        // Specific column missing fallback
-        const match = error.message.match(/column "(.*?)"/i) || error.message.match(/column apartments\.(.*?) /i);
-        if (match && match[1]) {
-          const missingCol = match[1];
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const { error } = await supabase
+          .from("apartments")
+          .update(dataToUpdate)
+          .eq("id", id);
+
+        if (!error) {
+          updateSuccess = true;
+          break;
+        }
+
+        lastErr = error.message;
+        console.warn(`Update attempt ${attempt + 1} error:`, error.message);
+        const missingCol = getMissingColumn(error.message);
+
+        if (missingCol && missingCol in dataToUpdate) {
+          console.warn(`Stripping missing DB column: ${missingCol}`);
+          if (missingCol === "description_ru" && dataToUpdate.description_ru) {
+            if (!dataToUpdate.description?.includes("[RU]:")) {
+              dataToUpdate.description = `${dataToUpdate.description || ""}\n\n[RU]: ${dataToUpdate.description_ru}`.trim();
+            }
+          }
           delete dataToUpdate[missingCol];
-          const res = await supabase.from("apartments").update(dataToUpdate).eq("id", id);
-          error = res.error;
+        } else {
+          // General fallback
+          delete dataToUpdate.monthly_lease_cost;
+          delete dataToUpdate.owner_name;
+          delete dataToUpdate.owner_phone;
+          delete dataToUpdate.lease_payment_day;
+          delete dataToUpdate.title_ru;
+          delete dataToUpdate.description_ru;
         }
       }
 
-      if (error) {
-        // Fallback: Remove optional owner/lease fields if schema missing
-        delete dataToUpdate.monthly_lease_cost;
-        delete dataToUpdate.owner_name;
-        delete dataToUpdate.owner_phone;
-        delete dataToUpdate.lease_payment_day;
-        const res = await supabase.from("apartments").update(dataToUpdate).eq("id", id);
-        error = res.error;
-      }
-
-      if (error) {
-        throw new Error(`Kvartirani yangilashda xatolik: ${error.message}`);
+      if (!updateSuccess) {
+        throw new Error(`Kvartirani yangilashda xatolik: ${lastErr}`);
       }
     } else {
       // Yaratish (Create)
       let dataToInsert = { ...apartmentData };
-      let { data: newApt, error } = await supabase
-        .from("apartments")
-        .insert([dataToInsert])
-        .select("id")
-        .single();
+      let newApt: any = null;
+      let insertSuccess = false;
+      let lastErr = "";
 
-      if (error) {
-        console.warn("Initial insert error:", error.message);
-        delete dataToInsert.monthly_lease_cost;
-        delete dataToInsert.owner_name;
-        delete dataToInsert.owner_phone;
-        delete dataToInsert.lease_payment_day;
-
-        const res = await supabase
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const { data, error } = await supabase
           .from("apartments")
           .insert([dataToInsert])
           .select("id")
           .single();
 
-        newApt = res.data;
-        error = res.error;
+        if (!error && data) {
+          newApt = data;
+          insertSuccess = true;
+          break;
+        }
+
+        if (error) {
+          lastErr = error.message;
+          console.warn(`Insert attempt ${attempt + 1} error:`, error.message);
+          const missingCol = getMissingColumn(error.message);
+
+          if (missingCol && missingCol in dataToInsert) {
+            if (missingCol === "description_ru" && dataToInsert.description_ru) {
+              if (!dataToInsert.description?.includes("[RU]:")) {
+                dataToInsert.description = `${dataToInsert.description || ""}\n\n[RU]: ${dataToInsert.description_ru}`.trim();
+              }
+            }
+            delete dataToInsert[missingCol];
+          } else {
+            delete dataToInsert.monthly_lease_cost;
+            delete dataToInsert.owner_name;
+            delete dataToInsert.owner_phone;
+            delete dataToInsert.lease_payment_day;
+            delete dataToInsert.title_ru;
+            delete dataToInsert.description_ru;
+          }
+        }
       }
 
-      if (error || !newApt) {
-        throw error || new Error("Apartament yaratib bo'lmadi");
+      if (!insertSuccess || !newApt) {
+        throw new Error(`Apartament yaratib bo'lmadi: ${lastErr}`);
       }
       targetAptId = newApt.id;
     }
@@ -237,7 +270,6 @@ export async function saveApartment(prevState: any, formData: FormData) {
 }
 
 export async function deleteApartment(id: string) {
-  // Apartamentni O'CHIRISH — FAQAT SHEF
   const { denyUnlessRole } = await import("@/lib/export-auth");
   const deny = await denyUnlessRole(["shef"]);
   if (deny) throw new Error(deny.error);
