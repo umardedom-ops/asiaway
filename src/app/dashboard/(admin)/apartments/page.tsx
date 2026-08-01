@@ -145,7 +145,16 @@ export default async function ApartmentsPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium text-[15px] text-[#F5F2EB]">{apt.title}</div>
+                    <div className="font-medium text-[15px] text-[#F5F2EB]">
+                      {(() => {
+                        const rawTitle = apt.title || "";
+                        if (rawTitle.includes("[RU]:")) {
+                          const parts = rawTitle.split("[RU]:");
+                          return lang === "ru" ? (apt.title_ru || parts[1].trim()) : parts[0].trim();
+                        }
+                        return (lang === "ru" && apt.title_ru) ? apt.title_ru : rawTitle;
+                      })()}
+                    </div>
                     <div className="text-[12px] text-[#A8A49B] truncate max-w-xs mt-1 font-light">{apt.view || t.noView}</div>
                   </TableCell>
                   <TableCell className="text-[#F5F2EB]/90 text-[14px]">

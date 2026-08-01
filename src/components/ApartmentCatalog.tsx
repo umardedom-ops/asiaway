@@ -48,12 +48,31 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
     setIsDetailsOpen(true);
   };
 
-  // Apartament matnini joriy tilga o'girish
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const locView = (apt: any) => (lang === "uz" ? apt.view : APARTMENT_TR[apt.id]?.[lang]?.view ?? apt.view);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const locDesc = (apt: any) => (lang === "uz" ? apt.description : APARTMENT_TR[apt.id]?.[lang]?.description ?? apt.description);
-  const locTitle = (title: string) => (lang === "uz" ? title : title.replace(/-qavat/gi, lang === "ru" ? " этаж" : " floor"));
+  const locDesc = (apt: any) => {
+    const raw = apt?.description || "";
+    if (raw.includes("[RU]:")) {
+      const parts = raw.split("[RU]:");
+      const uz = parts[0].trim();
+      const ru = parts[1].trim();
+      return lang === "ru" ? (apt.description_ru || ru) : uz;
+    }
+    return lang === "uz" ? raw : (lang === "ru" && apt.description_ru) ? apt.description_ru : APARTMENT_TR[apt.id]?.[lang]?.description ?? raw;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const locTitle = (apt: any) => {
+    const titleStr = typeof apt === "string" ? apt : apt?.title || "";
+    const titleRuStr = typeof apt === "object" ? apt?.title_ru : "";
+    if (titleStr.includes("[RU]:")) {
+      const parts = titleStr.split("[RU]:");
+      const uz = parts[0].trim();
+      const ru = parts[1].trim();
+      return lang === "ru" ? (titleRuStr || ru) : uz;
+    }
+    return lang === "uz" ? titleStr : (lang === "ru" && titleRuStr) ? titleRuStr : titleStr.replace(/-qavat/gi, lang === "ru" ? " этаж" : " floor");
+  };
 
   const filteredApartments = apartments.filter((apt) => {
     const hay = `${apt.title} ${apt.description} ${locView(apt)} ${locDesc(apt)}`.toLowerCase();
@@ -148,7 +167,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                 <CardContent className="p-5 md:p-6 flex-1 flex flex-col justify-between">
                   <div className="space-y-2 cursor-pointer" onClick={() => openDetails(apt)}>
                     <h3 className="font-heading text-[24px] md:text-[28px] font-medium text-[#F5F2EB] group-hover:text-[#C5A46D] transition-colors leading-[1.1] line-clamp-2">
-                       {locTitle(apt.title)}
+                       {locTitle(apt)}
                     </h3>
                     <div className="text-[13px] text-[#A8A49B] font-light">
                       {apt.floor}-{mx.unitFloor} • {apt.max_guests || 4} {mx.unitGuest}
@@ -269,7 +288,7 @@ export default function ApartmentCatalog({ initialApartments }: { initialApartme
                     <div className="flex flex-col xl:flex-row justify-between xl:items-end gap-6 mb-10 border-b border-[rgba(197,164,109,0.14)] pb-8">
                       <div className="space-y-4 pr-12 md:pr-0">
                         <span className="text-[12px] font-semibold text-[#C5A46D] tracking-[0.12em] uppercase">Tashkent City • Nest One</span>
-                        <h2 className="font-heading text-[32px] lg:text-[42px] font-medium text-[#F5F2EB] leading-[1.05]">{locTitle(selectedApartment.title)}</h2>
+                        <h2 className="font-heading text-[32px] lg:text-[42px] font-medium text-[#F5F2EB] leading-[1.05]">{locTitle(selectedApartment)}</h2>
                       </div>
                       <div className="text-left xl:text-right shrink-0">
                         <div className="text-[12px] text-[#A8A49B] font-semibold uppercase tracking-[0.12em] mb-1">{mx.priceLabel}</div>

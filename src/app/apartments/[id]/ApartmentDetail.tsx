@@ -43,6 +43,15 @@ export default function ApartmentDetail({ apartment }: { apartment: any }) {
     lang === "uz"
       ? apartment.view
       : APARTMENT_TR[apartment.id]?.[lang]?.view ?? apartment.view;
+  const rawTitle = apartment.title || "";
+  let uzTitle = rawTitle;
+  let ruTitle = apartment.title_ru || "";
+  if (rawTitle.includes("[RU]:")) {
+    const parts = rawTitle.split("[RU]:");
+    uzTitle = parts[0].trim();
+    if (!ruTitle) ruTitle = parts[1].trim();
+  }
+
   const rawDesc = apartment.description || "";
   let uzDesc = rawDesc;
   let ruDesc = apartment.description_ru || "";
@@ -58,8 +67,8 @@ export default function ApartmentDetail({ apartment }: { apartment: any }) {
       : (lang === "ru" && ruDesc) ? ruDesc : APARTMENT_TR[apartment.id]?.[lang]?.description ?? uzDesc;
   const title =
     lang === "uz"
-      ? apartment.title
-      : (lang === "ru" && apartment.title_ru) ? apartment.title_ru : apartment.title.replace(/-qavat/gi, lang === "ru" ? " этаж" : " floor");
+      ? uzTitle
+      : (lang === "ru" && ruTitle) ? ruTitle : uzTitle.replace(/-qavat/gi, lang === "ru" ? " этаж" : " floor");
 
   const fmtPrice = (n: number) => `$${Number(n).toLocaleString("en-US")}`;
 

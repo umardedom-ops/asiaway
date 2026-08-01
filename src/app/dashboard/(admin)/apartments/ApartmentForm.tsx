@@ -160,6 +160,17 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
     });
   };
 
+  const rawTitle = initialData?.title || "";
+  let defaultUzTitle = rawTitle;
+  let defaultRuTitle = initialData?.title_ru || "";
+  if (rawTitle.includes("[RU]:")) {
+    const parts = rawTitle.split("[RU]:");
+    defaultUzTitle = parts[0].trim();
+    if (!defaultRuTitle) {
+      defaultRuTitle = parts[1].trim();
+    }
+  }
+
   const rawDesc = initialData?.description || "";
   let defaultUzDesc = rawDesc;
   let defaultRuDesc = initialData?.description_ru || "";
@@ -213,7 +224,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                     <Input
                       id="title"
                       name="title"
-                      defaultValue={initialData?.title}
+                      defaultValue={defaultUzTitle}
                       placeholder="Masalan: 34-qavat | 78 m² | Premium Penthouse"
                       required
                       className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"
@@ -224,7 +235,7 @@ export default function ApartmentForm({ initialData }: ApartmentFormProps) {
                     <Input
                       id="title_ru"
                       name="title_ru"
-                      defaultValue={initialData?.title_ru}
+                      defaultValue={defaultRuTitle}
                       placeholder="Например: 34 этаж | 78 м² | Premium Penthouse"
                       required
                       className="h-12 rounded-[8px] border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] text-[#F5F2EB] placeholder:text-[#A8A49B]/50 focus-visible:border-[#C5A46D] focus-visible:ring-[#C5A46D]/30"

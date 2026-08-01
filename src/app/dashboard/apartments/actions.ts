@@ -144,6 +144,11 @@ export async function saveApartment(prevState: any, formData: FormData) {
               dataToUpdate.description = `${dataToUpdate.description || ""}\n\n[RU]: ${dataToUpdate.description_ru}`.trim();
             }
           }
+          if (missingCol === "title_ru" && dataToUpdate.title_ru) {
+            if (!dataToUpdate.title?.includes("[RU]:")) {
+              dataToUpdate.title = `${dataToUpdate.title || ""} [RU]: ${dataToUpdate.title_ru}`.trim();
+            }
+          }
           delete dataToUpdate[missingCol];
         } else {
           // General fallback
@@ -188,6 +193,11 @@ export async function saveApartment(prevState: any, formData: FormData) {
             if (missingCol === "description_ru" && dataToInsert.description_ru) {
               if (!dataToInsert.description?.includes("[RU]:")) {
                 dataToInsert.description = `${dataToInsert.description || ""}\n\n[RU]: ${dataToInsert.description_ru}`.trim();
+              }
+            }
+            if (missingCol === "title_ru" && dataToInsert.title_ru) {
+              if (!dataToInsert.title?.includes("[RU]:")) {
+                dataToInsert.title = `${dataToInsert.title || ""} [RU]: ${dataToInsert.title_ru}`.trim();
               }
             }
             delete dataToInsert[missingCol];
