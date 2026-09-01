@@ -27,7 +27,7 @@ export default async function KassaPage() {
     supabase.from("payments").select("*").order("paid_at", { ascending: false }).limit(400),
     supabase.from("expenses").select("*").order("spent_on", { ascending: false }).limit(400),
     supabase.from("bookings").select("id, guest_name, apartments(title)").neq("booking_status", "cancelled").order("created_at", { ascending: false }).limit(100),
-    supabase.from("apartments").select("id, title"),
+    supabase.from("apartments").select("id, title").order("title", { ascending: true }),
   ]);
 
   const pays = payments ?? [];

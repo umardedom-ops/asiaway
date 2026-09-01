@@ -22,7 +22,14 @@ export async function updateSession(request: NextRequest) {
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              // 30 kun davomida session saqlanadi (brauzer yopilsa ham)
+              maxAge: 60 * 60 * 24 * 30,
+              httpOnly: true,
+              sameSite: "lax",
+              path: "/",
+            })
           );
         },
       },
@@ -96,7 +103,7 @@ export async function updateSession(request: NextRequest) {
       } else if (role === 'menejer') {
         const blocked = [
           '/dashboard/finance', '/dashboard/owner-payments',
-          '/dashboard/cashflow', '/dashboard/income', '/dashboard/staff',
+          '/dashboard/cashflow', '/dashboard/income',
           '/dashboard/apartments', // obyektlar CRUD — menejerga kerak emas
         ];
         if (blocked.some((p) => path.startsWith(p))) return redirectTo('/dashboard');

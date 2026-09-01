@@ -17,7 +17,7 @@ export default async function CleaningTasksPage() {
       .in("status", ["todo", "in_progress"])
       .order("priority", { ascending: false })
       .order("due_date", { ascending: true }),
-    supabase.from("apartments").select("id, title, address"),
+    supabase.from("apartments").select("id, title, address").order("title", { ascending: true }),
   ]);
 
   const aptMap = new Map(

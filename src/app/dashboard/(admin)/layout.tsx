@@ -60,6 +60,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
   const canMoney = role === "shef" || role === "finansist";      // moliya bloki
   const canKassa = canMoney || role === "menejer";               // kassa menejer uchun ham
   const canApartments = role === "shef";                         // obyektlar (CRUD) — faqat shef
+  const canStaff = role === "shef" || role === "menejer";        // xodimlar + vazifa berish
 
   const sections: { title: string | null; items: { name: string; href: string; icon: typeof Home }[] }[] = [
     { title: null, items: [
@@ -78,7 +79,7 @@ export default async function AdminLayout({ children }: LayoutProps) {
       ...(canKassa ? [{ name: d.sidebar.kassa, href: "/dashboard/kassa", icon: Wallet }] : []),
       ...(canMoney ? [{ name: d.sidebar.finance, href: "/dashboard/finance", icon: Wallet }] : []),
     ] }] : []),
-    ...(isShef ? [{ title: lang === "ru" ? "Команда" : "Jamoa", items: [
+    ...(canStaff ? [{ title: lang === "ru" ? "Команда" : "Jamoa", items: [
       { name: d.sidebar.staff, href: "/dashboard/staff", icon: UserCog },
     ] }] : []),
   ];

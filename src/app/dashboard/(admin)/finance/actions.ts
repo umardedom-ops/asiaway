@@ -14,8 +14,8 @@ export interface ExpenseInput {
 }
 
 export async function addExpense(input: ExpenseInput) {
-  // Xarajat kiritish — faqat moliya vakolati (shef/finansist)
-  const deny = await denyUnlessRole(["shef", "finansist"]);
+  // Xarajat kiritish — moliya vakolati (shef/finansist) + menejer ham kassa orqali kirita oladi
+  const deny = await denyUnlessRole(["shef", "finansist", "menejer"]);
   if (deny) return deny;
 
   if (!input.amount || input.amount <= 0) {

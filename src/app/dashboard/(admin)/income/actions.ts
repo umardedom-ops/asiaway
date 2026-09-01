@@ -14,9 +14,9 @@ export interface PaymentInput {
   paid_at?: string; // ISO; berilmasa hozir
 }
 
-// Qo'lda to'lov qo'shish (kirim kassasiga) — moliya vakolati
+// Qo'lda to'lov qo'shish (kirim kassasiga) — moliya vakolati + menejer ham kassa orqali qo'sha oladi
 export async function addPayment(input: PaymentInput) {
-  const deny = await denyUnlessRole(["shef", "finansist"]);
+  const deny = await denyUnlessRole(["shef", "finansist", "menejer"]);
   if (deny) return deny;
 
   if (!input.guest_name?.trim()) return { success: false, error: "Mehmon ismini kiriting" };

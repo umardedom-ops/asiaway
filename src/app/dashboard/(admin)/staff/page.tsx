@@ -21,18 +21,22 @@ export default async function StaffPage() {
   const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
   const d = D[lang];
 
-  // Rolni aniqlaymiz — faqat shef xodimlarni boshqara/o'chira oladi
+  // Rolni aniqlaymiz
   const { data: { user } } = await supabase.auth.getUser();
   let isShef = false;
+  let isMenejer = false;
   if (user) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
     isShef = profile?.role === "shef";
+    isMenejer = profile?.role === "menejer";
   }
+  const canManageStaff = isShef;           // xodim qo'shish/o'chirish — faqat shef
+  const canAssignTasks = isShef || isMenejer; // vazifa berish va KPI ko'rish
 
   const [{ data: staffRaw }, { data: tasksRaw }, { data: aptsRaw }, { data: journalRaw }] = await Promise.all([
     supabase.from("staff").select("*").order("created_at", { ascending: false }),
     supabase.from("tasks").select("*").order("created_at", { ascending: false }),
-    supabase.from("apartments").select("id, title"),
+    supabase.from("apartments").select("id, title").order("title", { ascending: true }),
     // Kirish jurnali (anketa) — oxirgi 30 ta; jadval hali yo'q bo'lsa bo'sh keladi
     supabase.from("login_journal").select("id, role, name, purpose, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
@@ -109,11 +113,13 @@ export default async function StaffPage() {
         <MiniStat title={t.doneTasks} value={`${doneTasks} ${t.count}`} icon={<CheckCircle2 className="h-4 w-4 text-emerald-400" />} sub={t.doneSub} />
       </div>
 
-      {/* Xodim qo'shish */}
-      <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-        <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.addStaff}</CardTitle></CardHeader>
-        <CardContent><AddStaffForm /></CardContent>
-      </Card>
+      {/* Xodim qo'shish — FAQAT SHEF */}
+      {canManageStaff && (
+        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+          <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.addStaff}</CardTitle></CardHeader>
+          <CardContent><AddStaffForm /></CardContent>
+        </Card>
+      )}
 
       {/* Xodimlar + KPI */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -149,11 +155,13 @@ export default async function StaffPage() {
         ))}
       </div>
 
-      {/* Vazifa qo'shish */}
-      <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
-        <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.addTask}</CardTitle></CardHeader>
-        <CardContent><AddTaskForm staff={staff} apartments={apartments} /></CardContent>
-      </Card>
+      {/* Vazifa qo'shish — shef va menejer */}
+      {canAssignTasks && (
+        <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
+          <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.addTask}</CardTitle></CardHeader>
+          <CardContent><AddTaskForm staff={staff} apartments={apartments} /></CardContent>
+        </Card>
+      )}
 
       {/* Vazifalar ro'yxati */}
       <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">

@@ -21,7 +21,7 @@ export default async function NewBookingPage({
   const { data: apartments } = await supabase
     .from("apartments")
     .select("id, title, price_per_day, deposit_amount")
-    .order("floor", { ascending: false });
+    .order("title", { ascending: true });
 
   // CRM'dan kelgan bo'lsa — leadning TO'LIQ yozuvini olamiz (hech narsa yo'qolmasin:
   // source, utm_data, izoh/xabar, email — hammasi bronga ko'chadi).

@@ -21,8 +21,7 @@ export default async function ReceptionPage() {
     supabase
       .from("apartments")
       .select("id, title, floor, price_per_day, deposit_amount, status")
-      .eq("status", "active")
-      .order("floor", { ascending: false }),
+      .order("title", { ascending: true }),
     supabase.from("clients").select("*").order("total_spent", { ascending: false }),
   ]);
 

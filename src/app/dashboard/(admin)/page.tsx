@@ -42,7 +42,8 @@ export default async function DashboardPage() {
   // 1. Barcha kvartiralarni olish
   const { data: apartments } = await supabase
     .from("apartments")
-    .select("id, title, status, monthly_lease_cost, kanban_status, owner_name, owner_phone, lease_payment_day, lease_last_paid_period");
+    .select("id, title, status, monthly_lease_cost, kanban_status, owner_name, owner_phone, lease_payment_day, lease_last_paid_period")
+    .order("title", { ascending: true });
 
   const totalApts = apartments?.length || 0;
   const activeApts = apartments?.filter(a => a.status === "active").length || 0;
