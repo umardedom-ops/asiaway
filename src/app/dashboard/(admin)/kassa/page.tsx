@@ -23,13 +23,15 @@ export default async function KassaPage() {
   const monthStartDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
   const todayKey = now.toISOString().split("T")[0];
 
-  const [{ data: payments }, { data: expenses }, { data: bookings }, { data: apartments }] = await Promise.all([
-    supabase.from("payments").select("*").order("paid_at", { ascending: false }).limit(400),
-    supabase.from("expenses").select("*").order("spent_on", { ascending: false }).limit(400),
-    supabase.from("bookings").select("id, guest_name, apartments(title)").neq("booking_status", "cancelled").order("created_at", { ascending: false }).limit(100),
-    supabase.from("apartments").select("id, title").order("title", { ascending: true }),
+  const [{ data: payments }, { data: expenses }, { data: bookings }, { data: apartmentsRaw }] = await Promise.all([
+    supabase.from("payments").select("*, bookings(id, apartment_id, apartments(id, title, floor))").order("paid_at", { ascending: false }).limit(500),
+    supabase.from("expenses").select("*").order("spent_on", { ascending: false }).limit(500),
+    supabase.from("bookings").select("id, guest_name, apartment_id, apartments(id, title, floor)").neq("booking_status", "cancelled").order("created_at", { ascending: false }).limit(200),
+    supabase.from("apartments").select("id, title, title_ru, floor, status, price_per_day"),
   ]);
 
+  const { sortApartments } = await import("@/lib/apartment-label");
+  const apartments = sortApartments(apartmentsRaw ?? []);
   const pays = payments ?? [];
   const exps = expenses ?? [];
   const sign = (p: { amount: number; kind: string }) => Number(p.amount || 0) * (p.kind === "refund" ? -1 : 1);

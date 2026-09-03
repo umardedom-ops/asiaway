@@ -40,10 +40,12 @@ export default async function DashboardPage() {
   const canSeeFinance = role === "shef" || role === "finansist";
 
   // 1. Barcha kvartiralarni olish
-  const { data: apartments } = await supabase
+  const { data: apartmentsRaw } = await supabase
     .from("apartments")
-    .select("id, title, status, monthly_lease_cost, kanban_status, owner_name, owner_phone, lease_payment_day, lease_last_paid_period")
-    .order("title", { ascending: true });
+    .select("id, title, title_ru, floor, status, monthly_lease_cost, kanban_status, owner_name, owner_phone, lease_payment_day, lease_last_paid_period");
+
+  const { getCleanApartmentLabel, sortApartments } = await import("@/lib/apartment-label");
+  const apartments = sortApartments(apartmentsRaw ?? []);
 
   const totalApts = apartments?.length || 0;
   const activeApts = apartments?.filter(a => a.status === "active").length || 0;
@@ -123,7 +125,7 @@ export default async function DashboardPage() {
     .filter((a) => a.status === "active" && Number(a.monthly_lease_cost || 0) > 0)
     .map((a) => ({
       id: a.id as string,
-      title: a.title as string,
+      title: getCleanApartmentLabel(a, lang),
       owner_name: (a.owner_name as string) || "",
       owner_phone: (a.owner_phone as string) || "",
       cost: Number(a.monthly_lease_cost || 0),

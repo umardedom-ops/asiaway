@@ -27,16 +27,18 @@ export default async function FinancePage() {
   // 6 oylik diagramma uchun boshlanish
   const chartSince = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().split("T")[0];
 
+  const { getCleanApartmentLabel, sortApartments } = await import("@/lib/apartment-label");
+
   // Ma'lumotlar (jadval hali yaratilmagan bo'lsa — bo'sh)
   const [{ data: apts }, { data: bookings }, { data: expensesRaw }, { data: staff }, { data: expenses6m }] = await Promise.all([
-    supabase.from("apartments").select("id, title, status, monthly_lease_cost").order("title", { ascending: true }),
+    supabase.from("apartments").select("id, title, title_ru, floor, status, monthly_lease_cost"),
     supabase.from("bookings").select("total_price, check_in, booking_status, apartment_id, channel"),
     supabase.from("expenses").select("*").gte("spent_on", monthStart).lt("spent_on", nextMonthStart).order("spent_on", { ascending: false }),
     supabase.from("staff").select("monthly_salary, active"),
     supabase.from("expenses").select("spent_on, amount, category").gte("spent_on", chartSince),
   ]);
 
-  const apartments = apts ?? [];
+  const apartments = sortApartments(apts ?? []);
   const allBookings = bookings ?? [];
   const expenses = expensesRaw ?? [];
   const staffList = staff ?? [];
@@ -154,7 +156,7 @@ export default async function FinancePage() {
     // Arenda: kelishilgan oylik yoki qo'lda yozilgan xarajat (qaysi biri katta) — M2
     const lease = rentPerApt(a.id, Number(a.monthly_lease_cost || 0));
     const exp = variableExpenses.filter((e) => e.apartment_id === a.id).reduce((s, e) => s + Number(e.amount || 0), 0);
-    return { id: a.id, title: a.title, inc, lease, exp, net: inc - lease - exp };
+    return { id: a.id, title: getCleanApartmentLabel(a, lang), inc, lease, exp, net: inc - lease - exp };
   }).sort((x, y) => y.net - x.net);
 
   // BUG FIX: Intl "uz-UZ" bilan month:"long" ishlatilganda "M07" kabi buzuq chiqadi

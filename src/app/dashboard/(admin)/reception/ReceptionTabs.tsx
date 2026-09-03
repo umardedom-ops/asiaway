@@ -12,6 +12,7 @@ import WalkInForm from "./WalkInForm";
 import { CHANNEL_STYLE } from "../bookings/channels";
 import { useDashLang } from "@/components/DashboardLangProvider";
 import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
+import { getCleanApartmentLabel } from "@/lib/apartment-label";
 
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
@@ -24,8 +25,11 @@ type Row = any;
 export default function ReceptionTabs({ bookings, apartments, clients = [] }: { bookings: Row[]; apartments: Row[]; clients?: Row[] }) {
   const [tab, setTab] = useState<"bron" | "joylash" | "xona" | "mehmon">("bron");
   const today = new Date().toISOString().split("T")[0];
-  const aptTitle = (id: string) => apartments.find((a) => a.id === id)?.title || "—";
   const d = useDashLang();
+  const aptTitle = (id: string) => {
+    const apt = apartments.find((a) => a.id === id);
+    return apt ? getCleanApartmentLabel(apt, d.lang) : "—";
+  };
   // BUG FIX: Intl "uz-UZ" bilan month:"short" ishlatilganda "M07" kabi buzuq chiqadi
   const fmtDate = (dt?: string) => fmtDateLib(dt, d.lang, { day: "numeric", month: "short", year: "numeric" });
   const fmtShort = (dt?: string) => fmtDateLib(dt, d.lang, { day: "numeric", month: "short" });
@@ -102,7 +106,7 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-[#A8A49B] max-w-[160px] truncate">{b.apartments?.title || "—"}</td>
+                      <td className="px-4 py-4 text-[#A8A49B] max-w-[160px] truncate">{b.apartments ? getCleanApartmentLabel(b.apartments, d.lang) : "—"}</td>
                       <td className="px-4 py-4 text-[#A8A49B] whitespace-nowrap">{fmtShort(b.check_in)} — {fmtShort(b.check_out)}<div className="text-[11px] text-[#A8A49B]/70">{b.nights} {d.reception.nights}</div></td>
                       <td className="px-4 py-4"><div className="text-[#F5F2EB] font-medium">{money(b.total_price)}</div><div className="text-[11px] text-[#A8A49B]">{d.reception.deposit}: {money(b.deposit_amount)}</div></td>
                       <td className="px-4 py-4">
@@ -201,7 +205,7 @@ export default function ReceptionTabs({ bookings, apartments, clients = [] }: { 
                         </span>
                         {a.floor != null && <span className="text-[11px] text-[#A8A49B]">{a.floor}-{d.reception.floor}</span>}
                       </div>
-                      <div className="text-[14px] font-medium text-[#F5F2EB] leading-snug line-clamp-2">{a.title}</div>
+                      <div className="text-[14px] font-medium text-[#F5F2EB] leading-snug line-clamp-2">{getCleanApartmentLabel(a, d.lang)}</div>
                       {occ && <div className="mt-2 pt-2 border-t border-[rgba(197,164,109,0.1)] text-[12px] text-[#A8A49B]"><div className="text-[#F5F2EB]">{occ.guest_name}</div><div>{fmtDate(occ.check_in)} → {fmtDate(occ.check_out)}</div></div>}
                     </div>
 

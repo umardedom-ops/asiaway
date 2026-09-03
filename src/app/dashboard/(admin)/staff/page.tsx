@@ -36,18 +36,22 @@ export default async function StaffPage() {
   const [{ data: staffRaw }, { data: tasksRaw }, { data: aptsRaw }, { data: journalRaw }] = await Promise.all([
     supabase.from("staff").select("*").order("created_at", { ascending: false }),
     supabase.from("tasks").select("*").order("created_at", { ascending: false }),
-    supabase.from("apartments").select("id, title").order("title", { ascending: true }),
+    supabase.from("apartments").select("id, title, title_ru, floor"),
     // Kirish jurnali (anketa) — oxirgi 30 ta; jadval hali yo'q bo'lsa bo'sh keladi
     supabase.from("login_journal").select("id, role, name, purpose, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
 
+  const { getCleanApartmentLabel, sortApartments } = await import("@/lib/apartment-label");
   const staff = staffRaw ?? [];
   const tasks = tasksRaw ?? [];
-  const apartments = aptsRaw ?? [];
+  const apartments = sortApartments(aptsRaw ?? []);
 
   const unassigned = lang === "uz" ? "— Tayinlanmagan" : lang === "ru" ? "— Не назначен" : "— Unassigned";
   const staffName = (id: string | null) => staff.find((s) => s.id === id)?.full_name || unassigned;
-  const aptTitle = (id: string | null) => apartments.find((a) => a.id === id)?.title || "—";
+  const aptTitle = (id: string | null) => {
+    const a = apartments.find((s) => s.id === id);
+    return a ? getCleanApartmentLabel(a, lang) : "—";
+  };
 
   // KPI: xodim bo'yicha bajarilgan / faol vazifalar
   const kpi = staff.map((s) => {

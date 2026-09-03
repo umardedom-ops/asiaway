@@ -17,11 +17,12 @@ export default async function CleaningTasksPage() {
       .in("status", ["todo", "in_progress"])
       .order("priority", { ascending: false })
       .order("due_date", { ascending: true }),
-    supabase.from("apartments").select("id, title, address").order("title", { ascending: true }),
+    supabase.from("apartments").select("id, title, title_ru, floor, address"),
   ]);
 
+  const { getCleanApartmentLabel } = await import("@/lib/apartment-label");
   const aptMap = new Map(
-    (apartments || []).map((a) => [a.id, { title: a.title as string, address: (a.address as string) || "" }])
+    (apartments || []).map((a) => [a.id, { title: getCleanApartmentLabel(a, "uz"), address: (a.address as string) || "" }])
   );
 
   const list = (tasks || []).map((t) => ({

@@ -18,10 +18,12 @@ export default async function NewBookingPage({
   const supabase = await createClient();
   const d = await getDashDict();
 
-  const { data: apartments } = await supabase
+  const { data: apartmentsRaw } = await supabase
     .from("apartments")
-    .select("id, title, price_per_day, deposit_amount")
-    .order("title", { ascending: true });
+    .select("id, title, title_ru, floor, price_per_day, deposit_amount");
+
+  const { sortApartments } = await import("@/lib/apartment-label");
+  const apartments = sortApartments(apartmentsRaw ?? []);
 
   // CRM'dan kelgan bo'lsa — leadning TO'LIQ yozuvini olamiz (hech narsa yo'qolmasin:
   // source, utm_data, izoh/xabar, email — hammasi bronga ko'chadi).

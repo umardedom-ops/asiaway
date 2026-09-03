@@ -31,8 +31,10 @@ export const EXPENSE_CATEGORIES_RU: Record<string, string> = {
 const inputCls =
   "w-full h-11 rounded-[8px] border border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] px-3 text-[14px] text-[#F5F2EB] outline-none focus:border-[#C5A46D] transition-colors";
 
+import { getCleanApartmentLabel, sortApartments } from "@/lib/apartment-label";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function ExpenseForm({ apartments }: { apartments: any[] }) {
+export default function ExpenseForm({ apartments = [] }: { apartments?: any[] }) {
   const [category, setCategory] = useState("utilities");
   const [amount, setAmount] = useState("");
   const [spentOn, setSpentOn] = useState(new Date().toISOString().split("T")[0]);
@@ -44,6 +46,8 @@ export default function ExpenseForm({ apartments }: { apartments: any[] }) {
   const d = useDashLang();
   const isRu = d.lang === "ru";
   const cats = isRu ? EXPENSE_CATEGORIES_RU : EXPENSE_CATEGORIES;
+
+  const sortedApartments = sortApartments(apartments);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +85,11 @@ export default function ExpenseForm({ apartments }: { apartments: any[] }) {
         <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Апартамент" : "Apartament"}</label>
         <select value={apartmentId} onChange={(e) => setApartmentId(e.target.value)} className={inputCls}>
           <option value="">— {isRu ? "Общий" : "Umumiy"} —</option>
-          {apartments.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
+          {sortedApartments.map((a) => (
+            <option key={a.id} value={a.id}>
+              {getCleanApartmentLabel(a, d.lang)}
+            </option>
+          ))}
         </select>
       </div>
       <div className="space-y-1.5 col-span-1 lg:col-span-1">

@@ -13,17 +13,19 @@ export default async function ReceptionPage() {
   const lang = (cookieStore.get("asiaway-lang")?.value || "uz") as Lang;
   const d = D[lang];
 
-  const [{ data: bookings }, { data: apartments }, { data: clients }] = await Promise.all([
+  const [{ data: bookings }, { data: apartmentsRaw }, { data: clients }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("*, apartments(title)")
+      .select("*, apartments(id, title, title_ru, floor)")
       .order("created_at", { ascending: false }),
     supabase
       .from("apartments")
-      .select("id, title, floor, price_per_day, deposit_amount, status")
-      .order("title", { ascending: true }),
+      .select("id, title, title_ru, floor, price_per_day, deposit_amount, status"),
     supabase.from("clients").select("*").order("total_spent", { ascending: false }),
   ]);
+
+  const { sortApartments } = await import("@/lib/apartment-label");
+  const apartments = sortApartments(apartmentsRaw ?? []);
 
   return (
     <div className="space-y-8">

@@ -23,13 +23,16 @@ interface Prefill {
   place?: boolean;
 }
 
+import { getCleanApartmentLabel, sortApartments } from "@/lib/apartment-label";
+
 const inputCls =
   "w-full h-11 rounded-[8px] border border-[rgba(197,164,109,0.22)] bg-[#0B0D0F] px-3 text-[14px] text-[#F5F2EB] outline-none focus:border-[#C5A46D] transition-colors";
 const labelCls = "text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function ManualBookingForm({ apartments, prefill }: { apartments: any[]; prefill?: Prefill }) {
+export default function ManualBookingForm({ apartments = [], prefill }: { apartments?: any[]; prefill?: Prefill }) {
   const router = useRouter();
+  const sortedApartments = sortApartments(apartments);
   const [f, setF] = useState({
     apartment_id: "", guest_name: prefill?.name || "", guest_phone: prefill?.phone || "", guest_email: prefill?.email || "",
     // BUG FIX: avval doim "airbnb" oldindan tanlangan edi — menejer o'zgartirmasa
@@ -129,7 +132,11 @@ export default function ManualBookingForm({ apartments, prefill }: { apartments:
           <label className={labelCls}>{isRu ? "Апартамент *" : "Apartament *"}</label>
           <select value={f.apartment_id} onChange={(e) => set("apartment_id", e.target.value)} className={inputCls} required>
             <option value="">— {isRu ? "Выберите" : "Tanlang"} —</option>
-            {apartments.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
+            {sortedApartments.map((a) => (
+              <option key={a.id} value={a.id}>
+                {getCleanApartmentLabel(a, d.lang)}
+              </option>
+            ))}
           </select>
         </div>
         <div className="space-y-2">

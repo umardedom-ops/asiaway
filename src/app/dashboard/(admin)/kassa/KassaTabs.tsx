@@ -9,6 +9,7 @@ import ExpenseForm, { EXPENSE_CATEGORIES, EXPENSE_CATEGORIES_RU } from "../finan
 import DeleteExpenseButton from "../finance/DeleteExpenseButton";
 import { useDashLang } from "@/components/DashboardLangProvider";
 import { fmtDate as fmtDateLib } from "@/lib/date-fmt";
+import { getCleanApartmentLabel } from "@/lib/apartment-label";
 
 const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 const fmtDateTime = (d: string) =>
@@ -28,8 +29,21 @@ export default function KassaTabs({
   payments, expenses, bookings, apartments,
 }: { payments: Row[]; expenses: Row[]; bookings: Row[]; apartments: Row[] }) {
   const [tab, setTab] = useState<"kirim" | "chiqim" | "kunlik">("kirim");
-  const aptTitle = (id: string | null) => apartments.find((a) => a.id === id)?.title || "—";
   const d = useDashLang();
+
+  const aptTitle = (id: string | null) => {
+    const apt = apartments.find((a) => a.id === id);
+    return apt ? getCleanApartmentLabel(apt, d.lang) : "—";
+  };
+
+  const paymentAptTitle = (p: Row) => {
+    if (p.bookings?.apartments) {
+      return getCleanApartmentLabel(p.bookings.apartments, d.lang);
+    }
+    const match = p.note?.match(/\[(.*?)\]/);
+    if (match) return match[1];
+    return "—";
+  };
 
   const isUz = d.lang === "uz";
 
@@ -70,7 +84,7 @@ export default function KassaTabs({
   const t = isUz ? {
     tabIn: "Kirim (prixod)", tabOut: "Chiqim (rasxod)", tabDay: "Kunlik oqim",
     addIn: "Kirim qo'shish (mehmondan pul)", inLog: "Kirim jurnali",
-    date: "Sana / Soat", guest: "Mehmon", type: "Turi", method: "Usul", note: "Izoh", amount: "Summa", noIn: "Hali kirim yo'q.",
+    date: "Sana / Soat", guest: "Mehmon", aptIn: "Apartament", type: "Turi", method: "Usul", note: "Izoh", amount: "Summa", noIn: "Hali kirim yo'q.",
     addOut: "Chiqim qo'shish (xarajat)", addOutSub: "Masalan: xodim mahsulotga pul oldi, kommunal, ta'mirlash, ish haqi.", outLog: "Chiqim jurnali",
     dateOut: "Sana", catOut: "Turi", aptOut: "Apartament", noOut: "Hali chiqim yo'q.",
     noAction: "Oxirgi 30 kunda harakat yo'q.",
@@ -78,7 +92,7 @@ export default function KassaTabs({
   } : {
     tabIn: "Приход", tabOut: "Расход", tabDay: "Ежедневный поток",
     addIn: "Добавить приход (от гостя)", inLog: "Журнал приходов",
-    date: "Дата / Время", guest: "Гость", type: "Тип", method: "Способ", note: "Примечание", amount: "Сумма", noIn: "Приходов пока нет.",
+    date: "Дата / Время", guest: "Гость", aptIn: "Апартамент", type: "Тип", method: "Способ", note: "Примечание", amount: "Сумма", noIn: "Приходов пока нет.",
     addOut: "Добавить расход", addOutSub: "Например: продукты, коммунальные, ремонт, зарплата.", outLog: "Журнал расходов",
     dateOut: "Дата", catOut: "Категория", aptOut: "Апартамент", noOut: "Расходов пока нет.",
     noAction: "За последние 30 дней движений нет.",
@@ -98,7 +112,7 @@ export default function KassaTabs({
         <>
           <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
             <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.addIn}</CardTitle></CardHeader>
-            <CardContent><PaymentForm bookings={bookings} /></CardContent>
+            <CardContent><PaymentForm bookings={bookings} apartments={apartments} /></CardContent>
           </Card>
           <Card className="border-[rgba(197,164,109,0.14)] bg-[#111417] rounded-[12px] shadow-none">
             <CardHeader><CardTitle className="text-[16px] font-medium text-[#F5F2EB]">{t.inLog}</CardTitle></CardHeader>
@@ -109,6 +123,7 @@ export default function KassaTabs({
                     <tr className="text-[#A8A49B] text-[11px] uppercase tracking-[0.08em] border-b border-[rgba(197,164,109,0.14)]">
                       <th className="text-left font-semibold px-6 py-3">{t.date}</th>
                       <th className="text-left font-semibold px-4 py-3">{t.guest}</th>
+                      <th className="text-left font-semibold px-4 py-3">{t.aptIn}</th>
                       <th className="text-left font-semibold px-4 py-3">{t.type}</th>
                       <th className="text-left font-semibold px-4 py-3">{t.method}</th>
                       <th className="text-left font-semibold px-4 py-3">{t.note}</th>
@@ -118,12 +133,13 @@ export default function KassaTabs({
                   </thead>
                   <tbody>
                     {payments.length === 0 && (
-                      <tr><td colSpan={7} className="px-6 py-10 text-center text-[#A8A49B]">{t.noIn}</td></tr>
+                      <tr><td colSpan={8} className="px-6 py-10 text-center text-[#A8A49B]">{t.noIn}</td></tr>
                     )}
                     {payments.map((p) => (
                       <tr key={p.id} className="border-b border-[rgba(197,164,109,0.08)] last:border-0 hover:bg-[#0B0D0F]/30">
                         <td className="px-6 py-3 text-[#A8A49B] whitespace-nowrap">{fmtDateTime(p.paid_at)}</td>
                         <td className="px-4 py-3 text-[#F5F2EB] font-medium">{p.guest_name || "—"}</td>
+                        <td className="px-4 py-3 text-[#C5A46D] max-w-[160px] truncate">{paymentAptTitle(p)}</td>
                         <td className="px-4 py-3"><span className={`inline-block text-[11px] font-medium px-2.5 py-1 rounded-full border ${KIND_STYLE[p.kind] || KIND_STYLE.payment}`}>{KIND_LABELS[p.kind] || p.kind}</span></td>
                         <td className="px-4 py-3 text-[#A8A49B]">{METHOD_LABELS[p.method] || p.method}</td>
                         <td className="px-4 py-3 text-[#A8A49B] max-w-[200px] truncate">{p.note || "—"}</td>
@@ -204,7 +220,9 @@ export default function KassaTabs({
                     {d.dp.map((p) => (
                       <tr key={`in-${p.id}`} className="border-b border-[rgba(197,164,109,0.06)] last:border-0">
                         <td className="px-6 py-2.5 w-8"><ArrowUpCircle className="h-3.5 w-3.5 text-emerald-400" /></td>
-                        <td className="px-2 py-2.5 text-[#F5F2EB]">{KIND_LABELS[p.kind] || t.paymentStr} · {p.guest_name || t.guest}</td>
+                        <td className="px-2 py-2.5 text-[#F5F2EB]">
+                          {KIND_LABELS[p.kind] || t.paymentStr} · {p.guest_name || t.guest} {paymentAptTitle(p) !== "—" ? <span className="text-[#C5A46D] font-normal">({paymentAptTitle(p)})</span> : ""}
+                        </td>
                         <td className="px-4 py-2.5 text-[#A8A49B]">{METHOD_LABELS[p.method] || p.method}</td>
                         <td className={`px-6 py-2.5 text-right font-medium ${p.kind === "refund" ? "text-red-400" : "text-emerald-400"}`}>{p.kind === "refund" ? "−" : "+"}{money(p.amount)}</td>
                       </tr>

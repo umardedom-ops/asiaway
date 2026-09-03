@@ -22,7 +22,7 @@ export default async function GuestsPage() {
     s ? new Date(s).toLocaleDateString(dateLocale, { day: "numeric", month: "short" }) : "—";
 
   const [{ data: aptsRaw }, { data: bookingsRaw }] = await Promise.all([
-    supabase.from("apartments").select("id, title, floor, status, kanban_status").eq("status", "active").order("floor", { ascending: false }),
+    supabase.from("apartments").select("id, title, title_ru, floor, status, kanban_status"),
     supabase
       .from("bookings")
       .select("id, apartment_id, guest_name, guest_phone, check_in, check_out, nights, total_price, checked_in_at, booking_status")
@@ -30,7 +30,8 @@ export default async function GuestsPage() {
       .order("check_in", { ascending: true }),
   ]);
 
-  const apartments = aptsRaw ?? [];
+  const { getCleanApartmentLabel, sortApartments } = await import("@/lib/apartment-label");
+  const apartments = sortApartments(aptsRaw ?? []);
   const bookings = bookingsRaw ?? [];
 
   // Xona bandligi — bugungi kun bron oralig'iga to'g'ri kelsa band (sana asosida)
@@ -111,7 +112,7 @@ export default async function GuestsPage() {
                     </span>
                     {a.floor != null && <span className="text-[11px] text-[#A8A49B]">{a.floor}{d.guestsPage.floorSuffix}</span>}
                   </div>
-                  <div className="text-[14px] font-medium text-[#F5F2EB] leading-snug line-clamp-2">{a.title}</div>
+                  <div className="text-[14px] font-medium text-[#F5F2EB] leading-snug line-clamp-2">{getCleanApartmentLabel(a, d.lang)}</div>
                   {occ && (
                     <div className="mt-2 pt-2 border-t border-[rgba(197,164,109,0.1)] text-[12px] text-[#A8A49B]">
                       <div className="text-[#F5F2EB]">{occ.guest_name}</div>
@@ -155,7 +156,7 @@ export default async function GuestsPage() {
                         <div className="text-[#F5F2EB] font-medium">{b.guest_name}</div>
                         <div className="text-[11px] text-[#A8A49B]">{b.guest_phone || ""}</div>
                       </td>
-                      <td className="px-4 py-3 text-[#A8A49B] max-w-[180px] truncate">{apt?.title || "—"}</td>
+                      <td className="px-4 py-3 text-[#A8A49B] max-w-[180px] truncate">{apt ? getCleanApartmentLabel(apt, d.lang) : "—"}</td>
                       <td className="px-4 py-3 text-[#A8A49B] whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-[#C5A46D]" /> {fmtDate(b.check_in)} → {fmtDate(b.check_out)}</span>
                         <div className="text-[11px] text-[#A8A49B]/70">{b.nights} {d.guestsPage.nights}</div>

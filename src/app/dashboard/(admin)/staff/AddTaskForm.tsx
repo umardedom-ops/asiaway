@@ -13,9 +13,14 @@ import { uz, ru } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashLang } from "@/components/DashboardLangProvider";
+import { getCleanApartmentLabel, sortApartments } from "@/lib/apartment-label";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function AddTaskForm({ staff, apartments }: { staff: any[]; apartments: any[] }) {
+export default function AddTaskForm({ staff = [], apartments = [] }: { staff?: any[]; apartments?: any[] }) {
+  const d = useDashLang();
+  const isRu = d.lang === "ru";
+  const sortedApartments = sortApartments(apartments);
+
   const [title, setTitle] = useState("");
   const [type, setType] = useState("cleaning");
   const [assignedTo, setAssignedTo] = useState("");
@@ -29,8 +34,6 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
   const [photo, setPhoto] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const d = useDashLang();
-  const isRu = d.lang === "ru";
 
   const pickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -106,7 +109,11 @@ export default function AddTaskForm({ staff, apartments }: { staff: any[]; apart
         <label className="text-[11px] font-semibold text-[#A8A49B] uppercase tracking-[0.1em]">{isRu ? "Апартамент" : "Apartament"}</label>
         <select value={apartmentId} onChange={(e) => setApartmentId(e.target.value)} className={inputCls}>
           <option value="">—</option>
-          {apartments.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
+          {sortedApartments.map((a) => (
+            <option key={a.id} value={a.id}>
+              {getCleanApartmentLabel(a, d.lang)}
+            </option>
+          ))}
         </select>
       </div>
       <div className="space-y-1.5 flex flex-col">
