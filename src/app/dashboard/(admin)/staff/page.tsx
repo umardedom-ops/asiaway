@@ -36,7 +36,7 @@ export default async function StaffPage() {
   const [{ data: staffRaw }, { data: tasksRaw }, { data: aptsRaw }, { data: journalRaw }] = await Promise.all([
     supabase.from("staff").select("*").order("created_at", { ascending: false }),
     supabase.from("tasks").select("*").order("created_at", { ascending: false }),
-    supabase.from("apartments").select("id, title, title_ru, floor"),
+    supabase.from("apartments").select("id, title, floor"),
     // Kirish jurnali (anketa) — oxirgi 30 ta; jadval hali yo'q bo'lsa bo'sh keladi
     supabase.from("login_journal").select("id, role, name, purpose, created_at").order("created_at", { ascending: false }).limit(30),
   ]);

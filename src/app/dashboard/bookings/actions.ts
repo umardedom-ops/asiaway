@@ -140,7 +140,7 @@ export async function checkInBooking(id: string) {
 
   const { data: bk } = await supabase
     .from("bookings")
-    .select("guest_phone, booking_status")
+    .select("apartment_id, guest_phone, booking_status")
     .eq("id", id)
     .maybeSingle();
 
@@ -151,6 +151,14 @@ export async function checkInBooking(id: string) {
   if (error) {
     const d = await getDashDict();
     throw new Error(`${d.errors.statusUpdate}: ${error.message}`);
+  }
+
+  // Apartament kanban statusini "occupied" ga o'tkazish
+  if (bk?.apartment_id) {
+    await supabase
+      .from("apartments")
+      .update({ kanban_status: "occupied" })
+      .eq("id", bk.apartment_id);
   }
 
   // Mijoz bosqichi → "staying" (yashamoqda)
@@ -169,6 +177,7 @@ export async function checkInBooking(id: string) {
   revalidatePath("/dashboard/bookings");
   revalidatePath("/dashboard/guests");
   revalidatePath("/dashboard/clients");
+  revalidatePath("/dashboard/reception");
   revalidatePath("/dashboard");
   return { success: true };
 }
@@ -190,6 +199,13 @@ export async function placeGuestNow(input: ManualBookingInput): Promise<BookingR
     .from("bookings")
     .update({ checked_in_at: new Date().toISOString() })
     .eq("id", bookingId);
+
+  if (input.apartment_id) {
+    await supabase
+      .from("apartments")
+      .update({ kanban_status: "occupied" })
+      .eq("id", input.apartment_id);
+  }
 
   if (input.guest_phone) {
     await supabase.from("clients").update({ stage: "staying" }).eq("phone", input.guest_phone.trim());

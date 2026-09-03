@@ -22,7 +22,7 @@ export default async function GuestsPage() {
     s ? new Date(s).toLocaleDateString(dateLocale, { day: "numeric", month: "short" }) : "—";
 
   const [{ data: aptsRaw }, { data: bookingsRaw }] = await Promise.all([
-    supabase.from("apartments").select("id, title, title_ru, floor, status, kanban_status"),
+    supabase.from("apartments").select("id, title, floor, status, kanban_status"),
     supabase
       .from("bookings")
       .select("id, apartment_id, guest_name, guest_phone, check_in, check_out, nights, total_price, checked_in_at, booking_status")
@@ -34,15 +34,18 @@ export default async function GuestsPage() {
   const apartments = sortApartments(aptsRaw ?? []);
   const bookings = bookingsRaw ?? [];
 
-  // Xona bandligi — bugungi kun bron oralig'iga to'g'ri kelsa band (sana asosida)
-  const occupantOf = (aptId: string) =>
-    bookings.find(
-      (b) => b.apartment_id === aptId && b.check_in <= today && b.check_out > today
-    );
+  // "Hozir turibdi" — faqat JOYLASHTIRILGAN (check-in qilingan) va hali chiqib ketmagan mehmonlar
+  const staying = bookings.filter(
+    (b) => (b.checked_in_at && b.booking_status !== "completed" && b.booking_status !== "cancelled") ||
+           (b.booking_status === "confirmed" && b.check_in <= today && b.check_out >= today)
+  );
 
-  // "Hozir turibdi" — faqat JOYLASHTIRILGAN (check-in qilingan) mehmonlar.
-  // Voronka bilan bir xil ta'rif (chalkashlik bo'lmasin).
-  const staying = bookings.filter((b) => b.checked_in_at);
+  // Xona bandligi — xonada hozir mehmon yashayotgan bo'lsa band
+  const occupantOf = (aptId: string) =>
+    staying.find((b) => b.apartment_id === aptId) ||
+    bookings.find(
+      (b) => b.apartment_id === aptId && b.booking_status !== "cancelled" && b.booking_status !== "completed" && b.check_in <= today && b.check_out >= today
+    );
 
   // Bugun keladi (kutilmoqda) — sana bugun, lekin hali joylashtirilmagan
   const arrivingToday = bookings.filter(

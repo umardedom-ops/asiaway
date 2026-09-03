@@ -20,7 +20,7 @@ export default async function NewBookingPage({
 
   const { data: apartmentsRaw } = await supabase
     .from("apartments")
-    .select("id, title, title_ru, floor, price_per_day, deposit_amount");
+    .select("id, title, floor, price_per_day, deposit_amount");
 
   const { sortApartments } = await import("@/lib/apartment-label");
   const apartments = sortApartments(apartmentsRaw ?? []);

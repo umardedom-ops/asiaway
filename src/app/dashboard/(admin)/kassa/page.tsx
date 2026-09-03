@@ -27,7 +27,7 @@ export default async function KassaPage() {
     supabase.from("payments").select("*, bookings(id, apartment_id, apartments(id, title, floor))").order("paid_at", { ascending: false }).limit(500),
     supabase.from("expenses").select("*").order("spent_on", { ascending: false }).limit(500),
     supabase.from("bookings").select("id, guest_name, apartment_id, apartments(id, title, floor)").neq("booking_status", "cancelled").order("created_at", { ascending: false }).limit(200),
-    supabase.from("apartments").select("id, title, title_ru, floor, status, price_per_day"),
+    supabase.from("apartments").select("id, title, floor, status, price_per_day"),
   ]);
 
   const { sortApartments } = await import("@/lib/apartment-label");

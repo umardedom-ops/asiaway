@@ -42,7 +42,7 @@ export default async function DashboardPage() {
   // 1. Barcha kvartiralarni olish
   const { data: apartmentsRaw } = await supabase
     .from("apartments")
-    .select("id, title, title_ru, floor, status, monthly_lease_cost, kanban_status, owner_name, owner_phone, lease_payment_day, lease_last_paid_period");
+    .select("id, title, floor, status, monthly_lease_cost, kanban_status, owner_name, owner_phone, lease_payment_day, lease_last_paid_period");
 
   const { getCleanApartmentLabel, sortApartments } = await import("@/lib/apartment-label");
   const apartments = sortApartments(apartmentsRaw ?? []);
@@ -57,25 +57,36 @@ export default async function DashboardPage() {
 
   const totalBookings = bookings?.length || 0;
   
-  const activeBookingsToday = bookings?.filter(b => {
-    return b.booking_status === "confirmed" && 
-           b.check_in <= today && 
-           b.check_out > today;
-  }) || [];
-  
-  const occupiedCount = activeBookingsToday.length;
-  const vacantCount = activeApts - occupiedCount;
+  // Hozir yashayotgan mehmonlar:
+  // 1) Joylashtirilgan (checked_in_at mavjud) va hali chiqib ketmagan (completed/cancelled emas)
+  // 2) Yoki bugungi kun oralig'iga to'g'ri kelgan tasdiqlangan bronlar
+  const stayingBookings = (bookings || []).filter((b) => {
+    if (b.booking_status === "cancelled" || b.booking_status === "completed") return false;
+    if (b.checked_in_at) return true;
+    return b.booking_status === "confirmed" && b.check_in <= today && b.check_out >= today;
+  });
 
-  const stayingCount = (bookings || []).filter(
-    (b) => b.booking_status === "confirmed" && b.check_in <= today && b.check_out > today
-  ).length;
+  const stayingCount = stayingBookings.length;
+
+  // Band apartamentlar (mehmon joylashgan xonalar)
+  const occupiedAptIds = new Set(
+    stayingBookings.map((b) => b.apartment_id).filter(Boolean)
+  );
+  const occupiedCount = apartments.filter((a) => a.status === "active" && occupiedAptIds.has(a.id)).length;
+  const vacantCount = Math.max(0, activeApts - occupiedCount);
 
   const currentMonthStart = new Date();
   currentMonthStart.setDate(1);
   const startOfMonthStr = currentMonthStart.toISOString().split("T")[0];
-  
+  const nextMonthStr = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 1)
+    .toISOString().split("T")[0];
+
   const monthlyBookings = bookings?.filter(b => {
-    return b.check_in >= startOfMonthStr && b.booking_status !== "cancelled";
+    if (b.booking_status === "cancelled") return false;
+    return (
+      (b.check_in >= startOfMonthStr && b.check_in < nextMonthStr) ||
+      (b.check_in < startOfMonthStr && b.check_out >= startOfMonthStr)
+    );
   }) || [];
 
   const totalRevenue = bookings
@@ -87,9 +98,6 @@ export default async function DashboardPage() {
     ?.reduce((sum, b) => sum + Number(b.total_price), 0) || 0;
 
   const occupancyRate = activeApts > 0 ? Math.round((occupiedCount / activeApts) * 100) : 0;
-
-  const nextMonthStr = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 1)
-    .toISOString().split("T")[0];
   const [{ data: monthExpenses }, { data: staffRows }] = await Promise.all([
     supabase.from("expenses").select("amount, category, apartment_id").gte("spent_on", startOfMonthStr).lt("spent_on", nextMonthStr),
     supabase.from("staff").select("monthly_salary, active"),

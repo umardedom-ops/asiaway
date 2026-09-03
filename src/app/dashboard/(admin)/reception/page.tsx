@@ -16,11 +16,11 @@ export default async function ReceptionPage() {
   const [{ data: bookings }, { data: apartmentsRaw }, { data: clients }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("*, apartments(id, title, title_ru, floor)")
+      .select("*, apartments(id, title, floor)")
       .order("created_at", { ascending: false }),
     supabase
       .from("apartments")
-      .select("id, title, title_ru, floor, price_per_day, deposit_amount, status"),
+      .select("id, title, floor, price_per_day, deposit_amount, status"),
     supabase.from("clients").select("*").order("total_spent", { ascending: false }),
   ]);
 

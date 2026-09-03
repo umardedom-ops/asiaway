@@ -31,7 +31,7 @@ export default async function FinancePage() {
 
   // Ma'lumotlar (jadval hali yaratilmagan bo'lsa — bo'sh)
   const [{ data: apts }, { data: bookings }, { data: expensesRaw }, { data: staff }, { data: expenses6m }] = await Promise.all([
-    supabase.from("apartments").select("id, title, title_ru, floor, status, monthly_lease_cost"),
+    supabase.from("apartments").select("id, title, floor, status, monthly_lease_cost"),
     supabase.from("bookings").select("total_price, check_in, booking_status, apartment_id, channel"),
     supabase.from("expenses").select("*").gte("spent_on", monthStart).lt("spent_on", nextMonthStart).order("spent_on", { ascending: false }),
     supabase.from("staff").select("monthly_salary, active"),

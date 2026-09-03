@@ -20,12 +20,16 @@ export default function GuestFunnelBoard({ bookings, apartments }: { bookings: R
   const d = useDashLang();
 
   const today = new Date().toISOString().split("T")[0];
-  const waiting = bookings.filter((b) => b.booking_status === "confirmed" && !b.checked_in_at && b.check_out > today);
-  const staying = bookings.filter((b) => b.booking_status === "confirmed" && b.check_in <= today && b.check_out > today);
+  const waiting = bookings.filter(
+    (b) => (b.booking_status === "confirmed" || b.booking_status === "pending") && !b.checked_in_at && b.booking_status !== "cancelled"
+  );
+  const staying = bookings.filter(
+    (b) => (b.checked_in_at && b.booking_status !== "completed" && b.booking_status !== "cancelled") ||
+           (b.booking_status === "confirmed" && b.check_in <= today && b.check_out >= today)
+  );
   const left = bookings
     .filter((b) => b.booking_status === "completed")
-    .sort((a, b) => (a.check_out < b.check_out ? 1 : -1))
-    .slice(0, 12);
+    .sort((a, b) => (a.check_out < b.check_out ? 1 : -1));
 
   const columns = [
     { key: "waiting", title: d.funnel.waiting, items: waiting, icon: <Clock className="h-4 w-4" />, color: "text-emerald-400", dot: "bg-emerald-400" },
@@ -49,7 +53,7 @@ export default function GuestFunnelBoard({ bookings, apartments }: { bookings: R
                 </span>
                 <span className="text-[12px] font-medium">{col.items.length}</span>
               </div>
-              <div className="space-y-2 min-h-[60px]">
+              <div className="space-y-2 min-h-[60px] max-h-[500px] overflow-y-auto pr-1">
                 {col.items.length === 0 && (
                   <div className="text-[12px] text-[#A8A49B]/50 text-center py-4">{d.funnel.empty}</div>
                 )}

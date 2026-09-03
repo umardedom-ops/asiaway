@@ -17,7 +17,7 @@ export default async function CleaningTasksPage() {
       .in("status", ["todo", "in_progress"])
       .order("priority", { ascending: false })
       .order("due_date", { ascending: true }),
-    supabase.from("apartments").select("id, title, title_ru, floor, address"),
+    supabase.from("apartments").select("id, title, floor, address"),
   ]);
 
   const { getCleanApartmentLabel } = await import("@/lib/apartment-label");
