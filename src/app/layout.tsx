@@ -83,17 +83,28 @@ const JSON_LD = {
   description:
     "Nest One osmono'par binosida premium apartamentlar kunlik va oylik ijarasi. Aeroport transferi va 24/7 konsyerj xizmati.",
   url: SITE_URL,
+  telephone: ["+998901101301", "+998952565776", "+998992266262"],
   address: {
     "@type": "PostalAddress",
-    streetAddress: "Nest One, Tashkent City",
+    streetAddress: "Botir Zokirov ko'chasi 1A/1, Nest One, Tashkent City",
     addressLocality: "Tashkent",
     addressCountry: "UZ",
   },
-  priceRange: "$$",
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 41.304217,
+    longitude: 69.417816,
+  },
+  priceRange: "$90 - $170",
+  currenciesAccepted: "USD, UZS",
   amenityFeature: [
     { "@type": "LocationFeatureSpecification", name: "Airport transfer" },
     { "@type": "LocationFeatureSpecification", name: "24/7 concierge" },
     { "@type": "LocationFeatureSpecification", name: "Free Wi-Fi" },
+    { "@type": "LocationFeatureSpecification", name: "Panoramic City View" },
+    { "@type": "LocationFeatureSpecification", name: "Full Kitchen" },
+    { "@type": "LocationFeatureSpecification", name: "Technogym Fitness" },
+    { "@type": "LocationFeatureSpecification", name: "Sky Deck 48th Floor" },
   ],
 };
 
