@@ -59,6 +59,9 @@ export const metadata: Metadata = {
       "Tashkent City, Nest One'da kunlik va oylik premium apartamentlar. Online bron qiling.",
   },
   robots: { index: true, follow: true },
+  verification: {
+    google: "googleeb653e1b8a542f6c",
+  },
   // PWA — telefonga/kompyuterga ilova sifatida o'rnatiladi
   manifest: "/manifest.webmanifest",
   icons: {
@@ -92,8 +95,8 @@ const JSON_LD = {
   },
   geo: {
     "@type": "GeoCoordinates",
-    latitude: 41.304217,
-    longitude: 69.417816,
+    latitude: 41.312078,
+    longitude: 69.251809,
   },
   priceRange: "$90 - $170",
   currenciesAccepted: "USD, UZS",
