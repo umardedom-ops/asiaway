@@ -1,0 +1,35 @@
+# AsiaWay Apartments
+
+> Toshkent shahri markazidagi Nest One osmono'par binosida premium
+> apartamentlar ijarasi. Kunlik va oylik.
+
+## Asosiy faktlar
+
+- Joylashuv: Nest One binosi, Tashkent City, Toshkent, O'zbekiston
+- Ijara turi: kunlik va oylik
+- Narx oralig'i: $90 – $170 / kun (apartamentga qarab)
+- Aeroport transferi: Toshkent aeroportidan shaxsiy transfer bilan
+  kutib olinadi va apartamentgacha kuzatiladi
+- 24/7 konsyerj xizmati
+- Bron: saytda sana tanlanadi, ma'lumot kiritiladi, zakalat onlayn
+  to'lanadi — bron darhol tasdiqlanadi
+- Qulayliklar: tezkor Wi-Fi, Smart TV, to'liq jihozlangan oshxona,
+  konditsioner, panoramali shahar manzarasi, Technogym fitnes zali,
+  48-qavatdagi Sky Deck
+- Yaqin joylar: Islom sivilizatsiyasi markazi, Hazrati Imom, Chorsu
+- Sayt tili: o'zbek (ruscha va inglizcha hozircha alohida manzilda
+  emas)
+
+## Sahifalar
+
+- [Bosh sahifa](https://www.asiaway.uz/): joylashuv, xizmatlar, bron
+- [Apartamentlar](https://www.asiaway.uz/sitemap.xml): har apartament
+  uchun alohida sahifa — narx, xonalar soni, qavat, maydon, sig'im va
+  qulayliklar ro'yxati bilan
+
+## Muhim izoh
+
+Kanonik manzil: `https://www.asiaway.uz` (www bilan).
+
+Bu faylda faqat saytda ko'rsatilgan ma'lumot bor. Aniq narx, bo'sh
+sanalar va shartlar bron jarayonida tasdiqlanadi.
