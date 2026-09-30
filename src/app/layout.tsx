@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Cormorant_Garamond } from "next/font/google";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
 import LenisProvider from "@/components/LenisProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
@@ -118,7 +118,15 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies();
   const langCookie = cookieStore.get("asiaway-lang")?.value as Lang | undefined;
-  const initialLang = langCookie || "uz";
+
+  // Til manzildan (`/ru`, `/en`) keladi — middleware uni shu sarlavhaga
+  // yozadi. Manzil cookie'dan USTUN: bot uchun cookie yo'q, va `/ru`
+  // manzilini ochgan odam cookie'da "uz" turgani uchun o'zbekcha
+  // sahifaga tushib qolmasligi kerak.
+  const headerStore = await headers();
+  const headerLang = headerStore.get("x-asiaway-lang") as Lang | null;
+
+  const initialLang: Lang = headerLang || langCookie || "uz";
 
   return (
     <html

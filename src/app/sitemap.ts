@@ -4,12 +4,44 @@ import { createClient } from "@supabase/supabase-js";
 const SITE_URL = "https://www.asiaway.uz";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  /**
+   * Bosh sahifa uch tilda. `alternates.languages` — hreflang ning
+   * sitemapdagi ko'rinishi: Google shu orqali uch versiya bir
+   * sahifaning tarjimasi ekanini biladi va dublikat deb hisoblamaydi.
+   *
+   * Avval sitemapda faqat o'zbekcha manzil bor edi, `/ru` va `/en` esa
+   * umuman mavjud emasdi (HTTP 404).
+   */
+  const tillar = {
+    languages: {
+      "uz-UZ": SITE_URL,
+      "ru-RU": `${SITE_URL}/ru`,
+      "en-US": `${SITE_URL}/en`,
+      "x-default": SITE_URL,
+    },
+  };
+
   const entries: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,
+      alternates: tillar,
+    },
+    {
+      url: `${SITE_URL}/ru`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+      alternates: tillar,
+    },
+    {
+      url: `${SITE_URL}/en`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+      alternates: tillar,
     },
   ];
 
