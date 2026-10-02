@@ -429,7 +429,7 @@ export async function syncApartmentFeeds(
   return results;
 }
 
-/** Cron uchun: barcha lentalar (kvartiralar parallel, 4 tadan) */
+/** Cron uchun: barcha lentalar (kvartiralar parallel, 6 tadan) */
 export async function syncAllFeeds(): Promise<FeedSyncResult[]> {
   const sb = icalServiceClient();
   if (!sb) throw new Error("SUPABASE_SERVICE_ROLE_KEY sozlanmagan");
@@ -442,7 +442,7 @@ export async function syncAllFeeds(): Promise<FeedSyncResult[]> {
   }
   const groups = [...byApt.values()];
   const results: FeedSyncResult[] = [];
-  const CONCURRENCY = 4;
+  const CONCURRENCY = 6;
   for (let i = 0; i < groups.length; i += CONCURRENCY) {
     const batch = await Promise.all(
       groups.slice(i, i + CONCURRENCY).map(async (g) => {

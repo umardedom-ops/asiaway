@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { syncAllFeeds } from "@/lib/ical-sync";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 /**
  * Barcha iCal lentalarini (Airbnb, Booking.com, ...) sinxronlash.
