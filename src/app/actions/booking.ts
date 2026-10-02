@@ -15,6 +15,7 @@ import { notifyRole, fmtMoney, fmtDate } from "@/lib/telegram";
 import { paymentConfigured, buildCheckoutUrl, currentFxRate } from "@/lib/payments";
 import { getAttribution, isMissingAttributionColumn } from "@/lib/attribution";
 import { sendPurchaseForBooking } from "@/lib/meta-capi";
+import { syncApartmentFeeds } from "@/lib/ical-sync";
 
 export interface BookingInput {
   apartment_id: string;
@@ -254,7 +255,19 @@ export async function cancelPendingBooking(bookingId: string) {
 
 // Band qilingan sanalar ro'yxatini qaytarish (Kalendarda o'chirish uchun)
 export async function getBookedDates(apartmentId: string) {
-  const supabase = await createClient();
+  if (!/^[0-9a-f-]{36}$/i.test(apartmentId)) return [];
+
+  // Airbnb/Booking.com kalendarlari 10 daqiqadan eskirgan bo'lsa — avval yangilaymiz,
+  // mehmon platformada band bo'lgan sanani saytda tanlay olmasin. Ko'pi bilan 5 soniya kutamiz.
+  await Promise.race([
+    syncApartmentFeeds(apartmentId, { maxAgeMs: 10 * 60 * 1000 }).catch((e) =>
+      console.error("iCal sync (getBookedDates):", e)
+    ),
+    new Promise((resolve) => setTimeout(resolve, 5000)),
+  ]);
+
+  // Faqat sanalar o'qiladi — anonim mehmon uchun RLS bronlarni yashiradi, shuning uchun service client
+  const supabase = serviceClient() ?? (await createClient());
 
   const { data, error } = await supabase
     .from("bookings")
