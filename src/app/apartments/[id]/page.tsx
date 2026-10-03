@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ApartmentDetail from "./ApartmentDetail";
+import { rasmlarniManzilga } from "@/lib/rasm-havola";
 
 export const revalidate = 0;
 
@@ -113,7 +114,7 @@ export default async function ApartmentPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ApartmentDetail apartment={apt} />
+      <ApartmentDetail apartment={rasmlarniManzilga(apt)} />
     </>
   );
 }
