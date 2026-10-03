@@ -1,7 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { denyUnlessRole } from "@/lib/export-auth";
 
 const getMissingColumn = (errMessage: string): string | null => {
   const match =
@@ -13,6 +15,12 @@ const getMissingColumn = (errMessage: string): string | null => {
 };
 
 export async function saveApartment(prevState: any, formData: FormData) {
+  // Server action — istalgan kishi POST qila oladi. Obyekt CRUD faqat shefga
+  // (layout.tsx: canApartments). Pastda Storage service-role kalit bilan
+  // yoziladi, shuning uchun bu tekshiruvsiz u ochiq yuklash nuqtasi bo'lardi.
+  const deny = await denyUnlessRole(["shef"]);
+  if (deny) return deny;
+
   const supabase = await createClient();
 
   try {
@@ -40,42 +48,44 @@ export async function saveApartment(prevState: any, formData: FormData) {
     
     const amenities = formData.getAll("amenities") as string[];
 
-    // Helper: Fail-safe Storage Upload with Auto Bucket Creation & Data URL Fallback
+    /**
+     * Rasmni Storage'ga yuklab, ommaviy manzilini qaytaradi.
+     *
+     * Avval yuklash yiqilsa, rasm jimgina `data:` base64 satri qilib
+     * bazaga yozilardi. `storage.objects` da authenticated uchun siyosat
+     * yo'q — ya'ni admin yuklagan HAR rasm shu yo'ldan ketgan. Natija:
+     * apartament sahifasi 4.4 MB bo'lgan, va buni hech kim sezmagan.
+     *
+     * Endi Storage service-role kalit bilan yoziladi (yuqorida rol
+     * tekshirilgan, Telegram webhook ham shunday qiladi), yiqilsa esa
+     * xato ochiq qaytadi — admin uni ko'radi.
+     */
+    const storage = (
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createServiceClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY,
+            { auth: { persistSession: false } }
+          )
+        : supabase
+    ).storage;
+
     const uploadImage = async (fileName: string, buffer: Buffer, mimeType: string): Promise<string> => {
-      let { error: uploadErr } = await supabase.storage
-        .from("apartments")
-        .upload(fileName, buffer, {
-          contentType: mimeType,
-          upsert: true,
-        });
+      const yukla = () =>
+        storage.from("apartments").upload(fileName, buffer, { contentType: mimeType, upsert: true });
+
+      let { error: uploadErr } = await yukla();
 
       if (uploadErr && (uploadErr.message?.toLowerCase().includes("not found") || uploadErr.message?.includes("Bucket"))) {
         console.warn("Storage bucket missing, attempting auto-creation:", uploadErr.message);
-        try {
-          await supabase.storage.createBucket("apartments", { public: true });
-        } catch (e) {
-          console.error("Bucket creation failed:", e);
-        }
-
-        const retry = await supabase.storage
-          .from("apartments")
-          .upload(fileName, buffer, {
-            contentType: mimeType,
-            upsert: true,
-          });
-        uploadErr = retry.error;
+        await storage.createBucket("apartments", { public: true });
+        uploadErr = (await yukla()).error;
       }
 
-      if (!uploadErr) {
-        const { data: { publicUrl } } = supabase.storage
-          .from("apartments")
-          .getPublicUrl(fileName);
-        return publicUrl;
+      if (uploadErr) {
+        throw new Error(`Rasm yuklanmadi (${fileName}): ${uploadErr.message}`);
       }
-
-      console.warn("Storage upload failed completely, using data URL fallback:", uploadErr?.message);
-      const base64 = buffer.toString("base64");
-      return `data:${mimeType};base64,${base64}`;
+      return storage.from("apartments").getPublicUrl(fileName).data.publicUrl;
     };
 
     // Rasm faylini yuklash
