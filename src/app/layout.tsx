@@ -59,8 +59,11 @@ export const metadata: Metadata = {
       "Tashkent City, Nest One'da kunlik va oylik premium apartamentlar. Online bron qiling.",
   },
   robots: { index: true, follow: true },
+  // Google public/googleeb653e1b8a542f6c.html fayli orqali tasdiqlangan —
+  // fayl nomi meta-teg kodi emas, shuning uchun bu yerga yozilmaydi.
   verification: {
-    google: "googleeb653e1b8a542f6c",
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION || undefined,
   },
   // PWA — telefonga/kompyuterga ilova sifatida o'rnatiladi
   manifest: "/manifest.webmanifest",
