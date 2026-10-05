@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   // fayl nomi meta-teg kodi emas, shuning uchun bu yerga yozilmaydi.
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
-    yandex: process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION || undefined,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION || "9d22c8bbc08d6dc0",
   },
   // PWA — telefonga/kompyuterga ilova sifatida o'rnatiladi
   manifest: "/manifest.webmanifest",
