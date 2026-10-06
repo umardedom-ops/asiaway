@@ -439,6 +439,12 @@ export default function HomeContent({ apartments, phones, address }: { apartment
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center text-[12px] text-[#A8A49B] pt-8 gap-3">
           <span>© {new Date().getFullYear()} AsiaWay. {t.footer.rights}</span>
           <span>{t.footer.city}</span>
+          <span>
+            {t.footer.madeBy}{" "}
+            <a href="https://archmind.dev" target="_blank" rel="noopener" className="text-[#C5A46D] hover:text-[#E8D3A8] transition-colors">
+              ArchMind
+            </a>
+          </span>
         </div>
       </footer>
     </div>

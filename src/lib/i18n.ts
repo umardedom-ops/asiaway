@@ -26,7 +26,7 @@ interface Dict {
     name: string; phone: string; whatsapp: string; telegram: string; email: string; message: string;
     submit: string; sending: string; success: string; successBody: string; error: string; required: string; optional: string;
   };
-  footer: { title: string; body: string; links: string; social: string; phonesLabel: string; addressLabel: string; rights: string; city: string };
+  footer: { title: string; body: string; links: string; social: string; phonesLabel: string; addressLabel: string; rights: string; city: string; madeBy: string };
   floating: { label: string; call: string; whatsapp: string; telegram: string; instagram: string };
   card: { perNight: string; details: string; book: string; rooms: string; floor: string; area: string; guests: string; from: string; noResults: string };
   filters: { search: string; filters: string; rooms: string; price: string; floor: string; all: string; r1: string; r2: string; r3: string; pLow: string; pMid: string; pHigh: string; fLow: string; fMid: string; fHigh: string };
@@ -71,7 +71,7 @@ export const T: Record<Lang, Dict> = {
       name: "Ismingiz", phone: "Telefon raqam", whatsapp: "WhatsApp raqami", telegram: "Telegram username", email: "Elektron pochta", message: "Xabar (ixtiyoriy)",
       submit: "So'rov yuborish", sending: "Yuborilmoqda...", success: "Rahmat! So'rovingiz qabul qilindi.", successBody: "Menejerimiz tez orada siz bilan bog'lanadi.", error: "Xatolik yuz berdi. Qayta urinib ko'ring.", required: "majburiy", optional: "ixtiyoriy",
     },
-    footer: { title: "Biz Bilan Bog'laning", body: "Eksklyuziv so'rovlar yoki uzoq muddatli rezidensiya uchun bizning menejerlarimiz bilan bog'laning.", links: "Havolalar", social: "Ijtimoiy Tarmoqlar", phonesLabel: "Telefonlar", addressLabel: "Manzil", rights: "Barcha huquqlar himoyalangan.", city: "Toshkent, O'zbekiston" },
+    footer: { title: "Biz Bilan Bog'laning", body: "Eksklyuziv so'rovlar yoki uzoq muddatli rezidensiya uchun bizning menejerlarimiz bilan bog'laning.", links: "Havolalar", social: "Ijtimoiy Tarmoqlar", phonesLabel: "Telefonlar", addressLabel: "Manzil", rights: "Barcha huquqlar himoyalangan.", city: "Toshkent, O'zbekiston", madeBy: "Sayt ishlab chiquvchisi:" },
     floating: { label: "Tezkor bog'lanish", call: "Qo'ng'iroq", whatsapp: "WhatsApp", telegram: "Telegram", instagram: "Instagram" },
     card: { perNight: "/ tun", details: "Batafsil", book: "Band qilish", rooms: "xona", floor: "qavat", area: "maydon", guests: "mehmon", from: "dan", noResults: "Filtr bo'yicha apartament topilmadi." },
     filters: { search: "Qidirish... (pentxaus, park manzarasi, 34-qavat)", filters: "Filtrlar", rooms: "Xonalar soni", price: "Narx oralig'i", floor: "Qavat balandligi", all: "Barchasi", r1: "1 xonali", r2: "2 xonali", r3: "3+ xonali", pLow: "Hamyonbop ($120 gacha)", pMid: "O'rtacha ($120–145)", pHigh: "Premium ($145+)", fLow: "Pastki (1–9)", fMid: "O'rta (10–25)", fHigh: "Yuqori (25+)" },
@@ -115,7 +115,7 @@ export const T: Record<Lang, Dict> = {
       name: "Ваше имя", phone: "Номер телефона", whatsapp: "Номер WhatsApp", telegram: "Telegram username", email: "Электронная почта", message: "Сообщение (необязательно)",
       submit: "Отправить заявку", sending: "Отправка...", success: "Спасибо! Заявка принята.", successBody: "Наш менеджер скоро свяжется с вами.", error: "Произошла ошибка. Попробуйте снова.", required: "обязательно", optional: "необязательно",
     },
-    footer: { title: "Свяжитесь с Нами", body: "По эксклюзивным запросам или долгосрочной резиденции свяжитесь с нашими менеджерами.", links: "Ссылки", social: "Соцсети", phonesLabel: "Телефоны", addressLabel: "Адрес", rights: "Все права защищены.", city: "Ташкент, Узбекистан" },
+    footer: { title: "Свяжитесь с Нами", body: "По эксклюзивным запросам или долгосрочной резиденции свяжитесь с нашими менеджерами.", links: "Ссылки", social: "Соцсети", phonesLabel: "Телефоны", addressLabel: "Адрес", rights: "Все права защищены.", city: "Ташкент, Узбекистан", madeBy: "Разработка сайта:" },
     floating: { label: "Быстрая связь", call: "Позвонить", whatsapp: "WhatsApp", telegram: "Telegram", instagram: "Instagram" },
     card: { perNight: "/ ночь", details: "Подробнее", book: "Забронировать", rooms: "комнат", floor: "этаж", area: "площадь", guests: "гостей", from: "от", noResults: "По фильтру апартаменты не найдены." },
     filters: { search: "Поиск... (пентхаус, вид на парк, 34 этаж)", filters: "Фильтры", rooms: "Комнаты", price: "Диапазон цен", floor: "Этажность", all: "Все", r1: "1 комната", r2: "2 комнаты", r3: "3+ комнат", pLow: "Бюджет (до $120)", pMid: "Средний ($120–145)", pHigh: "Премиум ($145+)", fLow: "Нижние (1–9)", fMid: "Средние (10–25)", fHigh: "Верхние (25+)" },
@@ -159,7 +159,7 @@ export const T: Record<Lang, Dict> = {
       name: "Your name", phone: "Phone number", whatsapp: "WhatsApp number", telegram: "Telegram username", email: "Email", message: "Message (optional)",
       submit: "Send request", sending: "Sending...", success: "Thank you! Request received.", successBody: "Our manager will contact you shortly.", error: "Something went wrong. Please try again.", required: "required", optional: "optional",
     },
-    footer: { title: "Get in Touch", body: "For exclusive requests or long-term residency, contact our managers.", links: "Links", social: "Social", phonesLabel: "Phones", addressLabel: "Address", rights: "All rights reserved.", city: "Tashkent, Uzbekistan" },
+    footer: { title: "Get in Touch", body: "For exclusive requests or long-term residency, contact our managers.", links: "Links", social: "Social", phonesLabel: "Phones", addressLabel: "Address", rights: "All rights reserved.", city: "Tashkent, Uzbekistan", madeBy: "Website by" },
     floating: { label: "Quick contact", call: "Call", whatsapp: "WhatsApp", telegram: "Telegram", instagram: "Instagram" },
     card: { perNight: "/ night", details: "Details", book: "Book now", rooms: "rooms", floor: "floor", area: "area", guests: "guests", from: "from", noResults: "No apartments match the filter." },
     filters: { search: "Search... (penthouse, park view, 34th floor)", filters: "Filters", rooms: "Rooms", price: "Price range", floor: "Floor height", all: "All", r1: "1 room", r2: "2 rooms", r3: "3+ rooms", pLow: "Budget (up to $120)", pMid: "Mid ($120–145)", pHigh: "Premium ($145+)", fLow: "Lower (1–9)", fMid: "Mid (10–25)", fHigh: "Upper (25+)" },
